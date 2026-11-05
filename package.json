@@ -1,0 +1,48 @@
+{
+  "name": "netpals",
+  "productName": "Netpals",
+  "version": "0.1.0",
+  "description": "A 2003-style buddy list where the buddies are AI personas who message you through the day. Local-first.",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "postinstall": "electron-rebuild -f -w better-sqlite3",
+    "sounds": "node scripts/make-sounds.js",
+    "check:llm": "node scripts/check-llm.js",
+    "check:scheduler": "electron scripts/check-scheduler.js",
+    "reset-password": "node scripts/reset-password.js",
+    "license": "node scripts/license.js",
+    "check:license": "node scripts/check-license.js",
+    "icon": "electron scripts/make-icon.js",
+    "dist": "electron-builder --win"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.2.1",
+    "electron": "^45.2.2",
+    "electron-builder": "^26.18.0"
+  },
+  "build": {
+    "appId": "com.netpals.app",
+    "productName": "Netpals",
+    "files": [
+      "main.js",
+      "preload.js",
+      "lib/**",
+      "ui/**",
+      "assets/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "author": "DaveEuson"
+}

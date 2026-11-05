@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+<title>Buddy Info</title>
+<link rel="stylesheet" href="xp.css">
+<script src="chrome.js"></script>
+<style>
+  .who { flex: none; display: flex; align-items: center; gap: 10px; padding: 10px 10px 8px; }
+  .who .tile { width: 44px; height: 44px; font-size: 26px; }
+  .card { flex: none; margin: 0 10px; padding: 12px 12px 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; user-select: text; }
+  #quote { font: italic 14px/1.35 Georgia, "Times New Roman", serif; color: var(--them); }
+  .card .line { font-size: 11px; display: flex; align-items: center; gap: 5px; max-width: 100%; }
+  .card .line > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  fieldset.group { margin: 10px 10px 0; padding: 6px 10px 9px; gap: 5px; }
+  #notes { font-size: 11px; line-height: 1.45; user-select: text; }
+  .meter { display: flex; gap: 2px; }
+  .meter i { width: 10px; height: 10px; border: 1px solid var(--groove); background: var(--panel); }
+  .meter i.on { background: var(--icon); border-color: var(--accent); }
+  footer { padding: 10px; margin-top: auto; }
+</style>
+<title-bar></title-bar>
+<div class="who">
+  <span class="tile" id="emoji" aria-hidden="true"></span>
+  <div class="col" style="flex: 1; gap: 2px">
+    <b id="sn" style="font-size: 13px"></b>
+    <span class="small muted" id="since"></span>
+    <span class="small muted" id="status"></span>
+  </div>
+</div>
+<div class="card sunken">
+  <span id="quote"></span>
+  <span class="small muted" aria-hidden="true" style="letter-spacing: 2px">~*~*~*~</span>
+  <span class="line"><svg class="icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 9.5V2.5l6-1.2v7 M4.5 9.5a1.6 1.4 0 1 1-3.2 0a1.6 1.4 0 1 1 3.2 0z M10.5 8.3a1.6 1.4 0 1 1-3.2 0a1.6 1.4 0 1 1 3.2 0z" fill="none" stroke="currentColor" stroke-width="1.1"/></svg><span><b>currently listening to:</b> <span id="listen"></span></span></span>
+  <!-- The fave link is shown, never opened: the model makes it up, and a made-up address can belong to anyone. -->
+  <span class="line"><svg class="icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M5 7l2-2 M4.2 5.3L3 6.5a1.8 1.8 0 0 0 2.5 2.5l1.2-1.2 M7.8 6.7L9 5.5A1.8 1.8 0 0 0 6.5 3L5.3 4.2" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg><span><b>fave link:</b> <span id="link"></span></span></span>
+</div>
+<fieldset class="group">
+  <legend id="mem-label"></legend>
+  <span id="notes"></span>
+  <span class="tiny muted"><span id="mem-count"></span> <a id="forget" style="margin-left: 6px">Forget all this</a></span>
+</fieldset>
+<div style="margin: 10px 10px 0; display: flex; align-items: center; justify-content: space-between; font-size: 11px">
+  <span>Pings you</span>
+  <span style="display: flex; align-items: center; gap: 6px"><span class="meter" id="meter" aria-hidden="true"></span><span id="often"></span></span>
+</div>
+<label class="check" style="margin: 6px 10px 0; font-size: 11px"><input type="checkbox" id="nudge"><span>Checks in if you leave them hanging</span></label>
+<footer>
+  <button class="btn default" id="im">Send IM</button>
+  <button class="btn" data-win="close">Close</button>
+</footer>
+<script src="profile.js"></script>

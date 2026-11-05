@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+<title>Netpals Setup</title>
+<link rel="stylesheet" href="xp.css">
+<script src="chrome.js"></script>
+<style>
+  main { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 10px; padding: 12px 14px 0; }
+  .grid { display: grid; grid-template-columns: 70px minmax(0, 1fr); align-items: center; row-gap: 6px; column-gap: 8px; padding-left: 20px; }
+  .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  #colors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  #colors input { width: 30px; height: 22px; flex: none; padding: 0 1px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+  #colors span { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  footer { padding: 12px 14px 14px; }
+</style>
+<title-bar></title-bar>
+<main>
+  <fieldset class="group">
+    <legend>You</legend>
+    <you-form id="you"></you-form>
+    <span class="small" id="you-result" role="status"></span>
+    <label class="check"><input type="checkbox" id="autologin"><span>Sign on automatically when Netpals starts</span></label>
+  </fieldset>
+  <fieldset class="group">
+    <legend>Brain</legend>
+    <label class="check"><input type="radio" name="provider" id="p-local"><span>On this computer (Ollama or LM Studio)</span></label>
+    <label class="check"><input type="radio" name="provider" id="p-or"><span>OpenRouter (over the internet)</span></label>
+    <div class="grid" id="local-fields">
+      <label for="server">Server</label>
+      <select id="server"><option value="11434">Ollama · localhost:11434</option><option value="1234">LM Studio · localhost:1234</option></select>
+      <label for="model">Model</label><select id="model"></select>
+    </div>
+    <div class="grid" id="or-fields">
+      <label for="or-model">Model</label><input id="or-model" type="text" spellcheck="false">
+      <label for="key">API key</label><input id="key" type="password" placeholder="sk-or-…" autocomplete="off">
+      <span></span><span class="tiny muted">Saved on this computer only.</span>
+    </div>
+    <div class="row" style="padding-left: 20px">
+      <button class="btn" id="test">Test it</button>
+      <span class="small" id="test-result" role="status"></span>
+    </div>
+  </fieldset>
+  <fieldset class="group">
+    <legend>Quiet hours</legend>
+    <div class="row">
+      <label for="qs">Buddies stay quiet from</label><select id="qs"></select>
+      <label for="qe">to</label><select id="qe"></select>
+    </div>
+    <span class="tiny muted">They'll still answer if you IM them first.</span>
+    <label class="check"><input type="checkbox" id="nudges"><span>Let buddies who are the type ask "still there?" if you don't answer</span></label>
+  </fieldset>
+  <fieldset class="group">
+    <legend>Look and sounds</legend>
+    <div class="row">
+      <label for="theme">Theme</label>
+      <select id="theme" style="width: 140px">
+        <option value="dialup">Dial-Up</option><option value="olive">Olive</option><option value="silver">Silver</option>
+        <option value="midnight">Midnight (dark)</option><option value="bubblegum">Bubblegum</option><option value="custom">Custom</option>
+      </select>
+    </div>
+    <div class="col" id="custom" style="gap: 8px">
+      <span class="small muted">Make it yours: change any color and the whole app follows.</span>
+      <div id="colors"></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="load-theme">Load theme file…</button>
+      <button class="btn" id="save-theme">Save theme file…</button>
+      <span class="small" id="file-result" role="status"></span>
+    </div>
+    <label class="check"><input type="checkbox" id="dark"><span>Go dark automatically when Windows does</span></label>
+    <label class="check"><input type="checkbox" id="ontop"><span>Keep the Buddy List on top of other windows</span></label>
+    <label class="check"><input type="checkbox" id="sound"><span>Play sounds (new IM, door open and close)</span></label>
+    <label class="check"><input type="checkbox" id="notify"><span>Show a desktop notification for new IMs</span></label>
+  </fieldset>
+  <fieldset class="group">
+    <legend>Netpals Plus</legend>
+    <span id="plus-status"></span>
+    <div class="row" id="plus-entry"><input id="license" type="text" spellcheck="false" autocomplete="off" placeholder="Paste your license key" style="flex: 1"><button class="btn" id="unlock">Unlock</button></div>
+    <span class="small" id="plus-buy" hidden><a id="buy" data-href="">Get Netpals Plus</a></span>
+    <span class="small" id="plus-result" role="status"></span>
+  </fieldset>
+  <rigmatch-note></rigmatch-note>
+</main>
+<footer>
+  <button class="btn default" data-win="close">OK</button>
+  <button class="btn" id="cancel">Cancel</button>
+</footer>
+<script src="settings.js"></script>

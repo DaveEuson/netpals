@@ -1,0 +1,62 @@
+/* xp.css — Dial-Up Warmth chrome, shared by every window.
+   Theme tokens are lifted verbatim from the "Buddy List Interface" design canvas. chrome.js picks the class
+   and layers a custom theme's colors on top. Every color below reads a token, so a theme never touches markup. */
+
+.th-dialup{--win:#ECE9D8;--panel:#ffffff;--ink:#1b1b1b;--muted:#555555;--line:#7f9db9;--groove:#c9c3ab;--frame:#0a3fa3;--title:linear-gradient(180deg,#3c86f2 0%,#0d5bd8 14%,#0a50cc 86%,#0842ad 100%);--title-ink:#ffffff;--btn:linear-gradient(180deg,#ffffff 0%,#f3f1e8 60%,#e2ddcc 100%);--btn-line:#003c74;--btn-ink:#1b1b1b;--ring:#9db8ea;--accent:#0b3fb0;--hot:#b03a0a;--icon:#2a58b6;--hover:#fdf1bf;--glow:#f2b04a;--sel:#2a58b6;--sel-ink:#ffffff;--them:#a3141c;--banner:linear-gradient(180deg,#ffffff 0%,#dde7f7 100%);--banner-line:#b4c2dc;--note:#fff8d6;--note-line:#d9c27a;--note-ink:#8a6a00;--badge:#b8400c;--ok:#1d6626;--tile:#f5f2e7;--tab:linear-gradient(180deg,#ffffff,#e6e3d6)}
+.th-olive{--win:#ECEAD8;--panel:#ffffff;--ink:#1b1b1b;--muted:#555555;--line:#8fa06a;--groove:#c9c3ab;--frame:#4a6022;--title:linear-gradient(180deg,#8fa860 0%,#6a8536 14%,#5f7a2e 86%,#4a6022 100%);--title-ink:#ffffff;--btn:linear-gradient(180deg,#ffffff 0%,#f3f1e8 60%,#e2ddcc 100%);--btn-line:#3d5214;--btn-ink:#1b1b1b;--ring:#b9cc8f;--accent:#3f5e10;--hot:#9a2a12;--icon:#5f7a2e;--hover:#f2efc4;--glow:#e8b04a;--sel:#5f7a2e;--sel-ink:#ffffff;--them:#9a2a12;--banner:linear-gradient(180deg,#ffffff 0%,#e6edd5 100%);--banner-line:#c2cfa3;--note:#fff8d6;--note-line:#d9c27a;--note-ink:#8a6a00;--badge:#b8400c;--ok:#1d6626;--tile:#f5f2e7;--tab:linear-gradient(180deg,#ffffff,#e6e3d6)}
+.th-silver{--win:#E9E9EF;--panel:#ffffff;--ink:#1b1b1b;--muted:#555555;--line:#8f98b0;--groove:#c8c8d4;--frame:#8f8fa6;--title:linear-gradient(180deg,#fbfbfd 0%,#d6d6e2 14%,#c6c6d6 86%,#a6a6ba 100%);--title-ink:#1b1b1b;--btn:linear-gradient(180deg,#ffffff 0%,#f2f2f6 60%,#dcdce6 100%);--btn-line:#4e4e6e;--btn-ink:#1b1b1b;--ring:#c0c4e0;--accent:#2e3a8c;--hot:#8c1c2c;--icon:#4a5590;--hover:#eef0fa;--glow:#9aa6d8;--sel:#4a5590;--sel-ink:#ffffff;--them:#8c1c2c;--banner:linear-gradient(180deg,#ffffff 0%,#e4e4ee 100%);--banner-line:#c8c8d4;--note:#fff8d6;--note-line:#d9c27a;--note-ink:#8a6a00;--badge:#b8400c;--ok:#1d6626;--tile:#f2f2f6;--tab:linear-gradient(180deg,#ffffff,#e4e4ec)}
+.th-midnight{color-scheme:dark;--win:#1f2433;--panel:#12151f;--ink:#e8eaf2;--muted:#a3abbf;--line:#3e4a6b;--groove:#343c52;--frame:#0b0e16;--title:linear-gradient(180deg,#3a4f8f 0%,#22346e 14%,#1c2c5e 86%,#141f45 100%);--title-ink:#e8eaf2;--btn:linear-gradient(180deg,#3a4259 0%,#2e354a 60%,#262c3e 100%);--btn-line:#5b6a96;--btn-ink:#e8eaf2;--ring:#4a6bc4;--accent:#8fb4ff;--hot:#ffc070;--icon:#8fb4ff;--hover:#2b3350;--glow:#e0a040;--sel:#3a5bb8;--sel-ink:#ffffff;--them:#ff8f80;--banner:linear-gradient(180deg,#2a3147 0%,#1c2131 100%);--banner-line:#343c52;--note:#2d2915;--note-line:#6b5a22;--note-ink:#f0d890;--badge:#b8400c;--ok:#6fd47f;--tile:#2a3044;--tab:linear-gradient(180deg,#323a52,#262c3e)}
+.th-bubblegum{--win:#fde7f1;--panel:#ffffff;--ink:#2b1430;--muted:#6d4a66;--line:#d78fb8;--groove:#eab6cf;--frame:#a0306b;--title:linear-gradient(180deg,#ff8cc6 0%,#c8358a 14%,#b82c7a 86%,#9a2366 100%);--title-ink:#ffffff;--btn:linear-gradient(180deg,#ffffff 0%,#fff0f7 60%,#fbd6e8 100%);--btn-line:#a0306b;--btn-ink:#2b1430;--ring:#f5a8cf;--accent:#a01f6a;--hot:#6a1fb0;--icon:#c0307f;--hover:#fff2b8;--glow:#ffcf4a;--sel:#c0307f;--sel-ink:#ffffff;--them:#6a1fb0;--banner:linear-gradient(180deg,#ffffff 0%,#ffd9ec 100%);--banner-line:#f0b3d2;--note:#fff6c9;--note-line:#e6c35c;--note-ink:#7a5a00;--badge:#6a1fb0;--ok:#1d7a3a;--tile:#fff0f7;--tab:linear-gradient(180deg,#ffffff,#fbe0ee)}
+
+/* ---- frame ---------------------------------------------------------------------------------- */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { display: flex; flex-direction: column; overflow: hidden; cursor: default; user-select: none; font: 12px Tahoma, Verdana, "Segoe UI", sans-serif; color: var(--ink); background: var(--win); border: 1px solid var(--frame); }
+a { color: var(--accent); cursor: pointer; }
+a:hover { color: var(--hot); }
+:focus-visible { outline: 1px dotted currentColor; outline-offset: -3px; }
+[hidden] { display: none !important; }
+.col { display: flex; flex-direction: column; min-width: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 11px; }
+.tiny { font-size: 10px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.icon { color: var(--icon); flex: none; }
+
+.titlebar { height: 28px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 4px 0 7px; background: var(--title); color: var(--title-ink); font-weight: bold; -webkit-app-region: drag; }
+.titlebar .t { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.titlebar button { -webkit-app-region: no-drag; width: 21px; height: 21px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; border-radius: 3px; cursor: pointer; }
+.tb-min { background: linear-gradient(180deg, #5b8ef0, #2456c8); }
+.tb-close { background: linear-gradient(180deg, #e9785d, #c2361a); }
+
+.banner { flex: none; display: flex; align-items: center; gap: 9px; padding: 10px; background: var(--banner); border-bottom: 1px solid var(--banner-line); }
+.wordmark { font: italic bold 19px "Trebuchet MS", Tahoma, sans-serif; color: var(--accent); letter-spacing: -0.3px; line-height: 1; }
+
+/* ---- controls ------------------------------------------------------------------------------- */
+.sunken { background: var(--panel); border: 1px solid var(--line); }
+fieldset.group { margin: 0; padding: 6px 12px 12px; border: 1px solid var(--groove); border-radius: 4px; display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+fieldset.group > legend { padding: 0 4px; color: var(--accent); }
+.btn { height: 23px; min-width: 75px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--btn-line); border-radius: 3px; background: var(--btn); color: var(--btn-ink); font: inherit; cursor: pointer; }
+.btn.default { box-shadow: inset 0 0 0 1px var(--ring); }
+.btn:hover:not(:disabled) { box-shadow: inset 0 0 0 2px var(--glow); }
+.btn:disabled { opacity: 0.55; cursor: default; }
+input[type=text], input[type=password], input[type=number], select, textarea { height: 23px; padding: 0 5px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font: inherit; user-select: text; }
+textarea { height: auto; padding: 4px 6px; resize: none; }
+footer { flex: none; display: flex; align-items: center; justify-content: flex-end; gap: 6px; padding: 12px; }
+footer #status { flex: 1; min-width: 0; }
+.check { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.check input { margin: 0; }
+you-form { display: grid; grid-template-columns: 74px minmax(0, 1fr); align-items: center; gap: 6px 8px; }
+you-form span { display: flex; align-items: center; gap: 8px; }
+you-form span input { flex: 1; min-width: 0; }
+you-form #y-age { flex: none; width: 52px; }
+you-form textarea { align-self: stretch; }
+.note { display: flex; align-items: flex-start; gap: 7px; padding: 7px 9px; background: var(--note); border: 1px solid var(--note-line); font-size: 11px; line-height: 1.4; }
+.note > svg { flex: none; margin-top: 1px; color: var(--note-ink); }
+.tile { flex: none; display: flex; align-items: center; justify-content: center; background: var(--tile); border: 1px solid var(--groove); border-radius: 3px; }
+.row:hover { background: var(--hover); }
+.err { color: var(--hot); }
+.good { color: var(--ok); }
+input[type=range] { -webkit-appearance: none; appearance: none; height: 20px; background: transparent; margin: 0; }
+input[type=range]::-webkit-slider-runnable-track { height: 4px; background: var(--panel); border: 1px solid var(--groove); border-radius: 2px; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 11px; height: 19px; margin-top: -9px; background: var(--btn); border: 1px solid var(--icon); border-radius: 2px 2px 6px 6px; }

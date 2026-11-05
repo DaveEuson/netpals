@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+<title>Set Away Message</title>
+<link rel="stylesheet" href="xp.css">
+<script src="chrome.js"></script>
+<style>
+  main { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 12px 12px 0; }
+  #saved { display: flex; flex-direction: column; padding: 2px 0; max-height: 110px; overflow: auto; }
+  #saved button { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+  #saved button[aria-pressed=true] { background: var(--sel); color: var(--sel-ink); }
+  #saved span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #text { height: 58px; }
+  #go { font-weight: bold; min-width: 90px; }
+</style>
+<title-bar></title-bar>
+<main>
+  <div class="col" style="gap: 4px">
+    <b id="saved-label">Saved messages</b>
+    <div id="saved" class="sunken" role="group" aria-labelledby="saved-label"></div>
+  </div>
+  <div class="col" style="gap: 4px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline">
+      <label for="text"><b>Away message</b></label>
+      <span class="tiny muted" id="count"></span>
+    </div>
+    <textarea id="text" rows="3" maxlength="200"></textarea>
+  </div>
+  <div class="note">
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 12.5V1.5h6v11 M3 12.5h8 M9 2l2 1v8.5l-2 1" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+    <span>While you're away, buddies won't ping you. When you're back, they'll know where you went.</span>
+  </div>
+</main>
+<footer>
+  <button class="btn default" id="go">I'm Away</button>
+  <button class="btn" data-win="close">Cancel</button>
+</footer>
+<script src="away.js"></script>

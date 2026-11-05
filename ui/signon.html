@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+<title>Sign On</title>
+<link rel="stylesheet" href="xp.css">
+<script src="chrome.js"></script>
+<style>
+  .banner { flex-direction: column; gap: 8px; padding: 22px 0 16px; }
+  .banner .wordmark { font-size: 26px; }
+  main { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 4px; padding: 12px 20px 0; }
+  main > label:not(.check) { margin-top: 6px; font-weight: bold; }
+  .check { margin-top: 6px; }
+  #forgot { align-self: flex-start; margin-top: 8px; }
+  footer { padding: 12px 16px 14px; }
+  #signon { height: 30px; min-width: 96px; font-weight: bold; }
+</style>
+<title-bar min></title-bar>
+<div class="banner">
+  <svg width="64" height="64" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3.5C2 2.7 2.7 2 3.5 2h9c.8 0 1.5.7 1.5 1.5v6c0 .8-.7 1.5-1.5 1.5H7l-3 3v-3h-.5C2.7 11 2 10.3 2 9.5z" fill="#FFD54A" stroke="#6b4300" stroke-width="0.5"/><circle cx="5.5" cy="6.5" r="0.85" fill="#6b4300"/><circle cx="8" cy="6.5" r="0.85" fill="#6b4300"/><circle cx="10.5" cy="6.5" r="0.85" fill="#6b4300"/></svg>
+  <span class="wordmark">Netpals</span>
+</div>
+<main>
+  <label for="sn">Screen Name</label>
+  <input id="sn" type="text" readonly>
+  <label for="pw">Password</label>
+  <input id="pw" type="password" autocomplete="current-password">
+  <label class="check"><input type="checkbox" id="save"><span>Save password</span></label>
+  <label class="check"><input type="checkbox" id="auto"><span>Auto-login</span></label>
+  <a id="forgot" class="small">Forgot password?</a>
+  <span class="tiny muted" id="forgot-hint" hidden>Quit, run <b>npm run reset-password</b> in the app's folder, then start it again to pick a new one. Your buddies and chats stay.</span>
+</main>
+<footer>
+  <span id="status" class="small muted" role="status"></span>
+  <button class="btn default" id="signon">
+    <svg class="icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 14.5V2h7.5v12.5 M3 14.5h10 M10.5 2.5l2.5 1.2V13l-2.5 1.2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8.5" cy="8.5" r="0.8" fill="currentColor"/></svg>
+    <span>Sign On</span>
+  </button>
+</footer>
+<script src="signon.js"></script>
