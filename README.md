@@ -147,8 +147,23 @@ The installer is a classic wizard: a welcome page, the license (`LICENSE.txt`), 
 that offers to run Netpals. Its words live in `build/installer.nsh`, its pictures in `build/*.bmp`.
 
 `npm run icon` redraws every icon from the Buddy List's speech-bubble mark: `assets/icon.png` and `icon.ico` (the
-app and the installer), `assets/tray.ico` and `tray-new.ico` (the tray, quiet and blinking), and the installer's
-sidebar and header pictures.
+app and the installer), `assets/tray.ico` and `tray-new.ico` (the Windows tray, quiet and blinking), the macOS menu
+bar silhouettes (`assets/*Template.png`), and the installer's sidebar and header pictures.
+
+### Mac
+
+Netpals runs on macOS: the Buddy List closes to a menu bar icon, the Dock icon brings it back, Cmd+Q signs off,
+and **Buddies** in the menu bar opens the list, the room, Away and Setup. A `.dmg` can only be built on a Mac:
+
+```bash
+npm run dist:mac
+```
+
+Pushing a `v*` tag also builds both installers on GitHub (`.github/workflows/build.yml`) and attaches them to a
+draft release. The Mac build is unsigned until there's an Apple Developer account ($99 a year): macOS refuses an
+unsigned download outright, so until then Mac testers run `xattr -cr /Applications/Netpals.app` once after copying
+it in. With the account, add the certificate (`CSC_LINK`, `CSC_KEY_PASSWORD`) and notarization details (`APPLE_ID`,
+`APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`) as repository secrets and electron-builder does the rest.
 
 ## Buddies feel slow or dumb?
 

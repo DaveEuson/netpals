@@ -93,9 +93,11 @@ ipcMain.handle("chat:pick", attempt(async (e, id) => {
 ipcMain.handle("file:open", (_e, file) => shell.openPath(path.join(FILES, path.basename(String(file)))));
 
 // ---- tray: the Buddy List closes to it, the icon blinks while IMs wait, and Sign Off is the way out ------------
+// Windows gets the colored .ico; macOS gets black "Template" PNGs that the menu bar tints itself.
 let tray = null, blink = null;
-const trayIcon = (name) => nativeImage.createFromPath(path.join(__dirname, "assets", `${name}.ico`));
-const ICON = { quiet: trayIcon("tray"), waiting: trayIcon("tray-new") };
+const mac = process.platform === "darwin";
+const trayIcon = (file) => nativeImage.createFromPath(path.join(__dirname, "assets", file));
+const ICON = { quiet: trayIcon(mac ? "trayTemplate.png" : "tray.ico"), waiting: trayIcon(mac ? "tray-newTemplate.png" : "tray-new.ico") };
 function makeTray() {
   tray = new Tray(ICON.quiet);
   tray.setToolTip("Netpals");
@@ -303,6 +305,16 @@ ipcMain.handle("win:min", (e) => BrowserWindow.fromWebContents(e.sender)?.minimi
 ipcMain.handle("external", (_e, url) => { if (/^https:\/\//.test(url)) shell.openExternal(url); });
 
 app.setAppUserModelId(app.isPackaged ? "com.netpals.app" : process.execPath); // Windows needs this for notifications
+// macOS needs a real menu bar (Cmd+C, Cmd+V and Cmd+Q live there); on Windows the windows draw their own chrome, so
+// no menu at all, which also retires Electron's default Ctrl+R / Ctrl+Shift+I.
+const after = (kind) => () => { if (signedOn) openWindow(kind); };
+Menu.setApplicationMenu(mac ? Menu.buildFromTemplate([
+  { role: "appMenu" }, { role: "editMenu" },
+  { label: "Buddies", submenu: [{ label: "Buddy List", accelerator: "Cmd+L", click: after("list") }, { label: "Buddy Chat", accelerator: "Cmd+R", click: after("room") },
+    { label: "Away…", accelerator: "Cmd+Shift+A", click: after("away") }, { type: "separator" }, { label: "Setup…", accelerator: "Cmd+,", click: after("settings") }] },
+  { role: "windowMenu" },
+]) : null);
+app.on("activate", after("list")); // the Dock icon brings the Buddy List back
 // First launch (or a cleared password): setup. After that: Sign On, or straight in with auto-login.
 app.whenReady().then(async () => {
   const s = db.settings();

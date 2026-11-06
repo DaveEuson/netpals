@@ -15,7 +15,8 @@
     "license": "node scripts/license.js",
     "check:license": "node scripts/check-license.js",
     "icon": "electron scripts/make-icon.js",
-    "dist": "electron-builder --win"
+    "dist": "electron-builder --win",
+    "dist:mac": "electron-builder --mac"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3"
@@ -51,6 +52,28 @@
       "installerHeader": "build/header.bmp",
       "license": "LICENSE.txt",
       "include": "build/installer.nsh"
+    },
+    "mac": {
+      "icon": "assets/icon.png",
+      "category": "public.app-category.social-networking",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ]
+    },
+    "dmg": {
+      "title": "Netpals"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "DaveEuson",
+      "repo": "netpals",
+      "releaseType": "draft"
     }
   },
   "author": "DaveEuson"

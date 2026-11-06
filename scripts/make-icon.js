@@ -1,6 +1,8 @@
 // Every icon and installer picture, drawn from the Buddy List's own speech-bubble mark:  npm run icon
-//   assets/icon.png (256px, windows in development)      assets/icon.ico (16, 32, 48, 256px: the .exe and the installer)
-//   assets/tray.ico, assets/tray-new.ico (16, 32px)       the tray icon, and the one it blinks to while IMs wait
+//   assets/icon.png (512px: windows in development, and electron-builder makes the macOS .icns from it)
+//   assets/icon.ico (16, 32, 48, 256px: the Windows .exe and installer)
+//   assets/tray.ico, assets/tray-new.ico (16, 32px)       the Windows tray icon, and the one it blinks to while IMs wait
+//   assets/trayTemplate.png, tray-newTemplate.png (+@2x)  the macOS menu bar icons: black silhouettes macOS tints itself
 //   build/sidebar.bmp (164x314), build/header.bmp (150x57) the installer wizard's pictures (NSIS wants plain BMP)
 // Runs under Electron because Electron does the drawing.
 const { app, BrowserWindow, nativeImage } = require("electron");
@@ -13,6 +15,8 @@ const BUBBLE = '<path d="M2.5 4C2.5 3.2 3.2 2.5 4 2.5h8c.8 0 1.5.7 1.5 1.5v5.5c0
 const BLUE = '<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b7be0"/><stop offset="1" stop-color="#0a3f9e"/></linearGradient></defs>';
 const tile = (badge = "") => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">${BLUE}<rect width="16" height="16" rx="3.2" fill="url(#g)"/>${BUBBLE}${badge}</svg>`;
 const NEW = '<circle cx="12.8" cy="3.2" r="3" fill="#e0321c" stroke="#fff" stroke-width="0.8"/>';
+// macOS template icons: black on transparent, outline when quiet and solid while an IM waits.
+const MONO = (filled) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M2.5 4C2.5 3.2 3.2 2.5 4 2.5h8c.8 0 1.5.7 1.5 1.5v5.5c0 .8-.7 1.5-1.5 1.5H7.3l-3 2.8V11H4c-.8 0-1.5-.7-1.5-1.5z" fill="${filled ? "#000" : "none"}" stroke="#000" stroke-width="1.3" stroke-linejoin="round"/>${filled ? "" : '<circle cx="5.6" cy="6.8" r="0.9" fill="#000"/><circle cx="8" cy="6.8" r="0.9" fill="#000"/><circle cx="10.4" cy="6.8" r="0.9" fill="#000"/>'}</svg>`;
 // The wizard sidebar: the mark on the title-bar blue, the wordmark, and a tagline, in Tahoma like the app.
 const SIDEBAR = `<div style="width:164px;height:314px;margin:0;background:linear-gradient(180deg,#3c86f2 0%,#0d5bd8 14%,#0a50cc 70%,#0842ad 100%);font-family:Tahoma,Verdana,sans-serif;color:#fff;position:relative;overflow:hidden">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" style="position:absolute;left:42px;top:34px;width:80px;height:80px">${BUBBLE}</svg>
@@ -26,14 +30,15 @@ const HEADER = `<div style="width:150px;height:57px;margin:0;background:#ece9d8;
 // Draw any HTML at an exact pixel size, whatever the display scaling.
 async function draw(html, width, height, transparent) {
   const w = new BrowserWindow({ width, height, show: false, frame: false, transparent, webPreferences: { offscreen: true } });
-  await w.loadURL(`data:text/html,${encodeURIComponent(`<body style="margin:0;background:${transparent ? "transparent" : "#fff"}">${html}</body>`)}`);
+  await w.loadURL(`data:text/html,${encodeURIComponent(`<body style="margin:0;overflow:hidden;background:${transparent ? "transparent" : "#fff"}">${html}</body>`)}`);
   await new Promise((r) => setTimeout(r, 700));
   let img = await w.capturePage();
   w.destroy();
   if (img.isEmpty()) throw new Error("Nothing was drawn.");
-  return img.getSize().width === width ? img : img.resize({ width, height, quality: "best" });
+  const got = img.getSize();
+  return got.width === width && got.height === height ? img : img.crop({ x: 0, y: 0, width: Math.min(width, got.width), height: Math.min(height, got.height) });
 }
-const svgAt = (svg, px) => svg.replace("<svg ", `<svg width="${px}" height="${px}" `);
+const svgAt = (svg, px) => svg.replace("<svg ", `<svg width="${px}" height="${px}" style="display:block" `); // block: no baseline gap under it
 
 // An .ico is a 6-byte header, a 16-byte entry per image, then the images. Windows has read PNG entries since Vista.
 function ico(pngs) {
@@ -63,11 +68,14 @@ app.on("window-all-closed", () => {}); // each drawing closes its window; that m
 app.whenReady().then(async () => {
   const out = (p, data) => { fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, data); console.log("wrote", path.relative(ROOT, p)); };
   const sizes = async (svg, list) => { const out = []; for (const size of list) out.push({ size, png: (await draw(svgAt(svg, size), size, size, true)).toPNG() }); return out; }; // one at a time: parallel loads fail
-  const app256 = await draw(svgAt(tile(), 256), 256, 256, true);
-  out(path.join(ROOT, "assets", "icon.png"), app256.toPNG());
-  out(path.join(ROOT, "assets", "icon.ico"), ico([...(await sizes(tile(), [16, 32, 48])), { size: 256, png: app256.toPNG() }]));
+  out(path.join(ROOT, "assets", "icon.png"), (await draw(svgAt(tile(), 512), 512, 512, true)).toPNG());
+  out(path.join(ROOT, "assets", "icon.ico"), ico(await sizes(tile(), [16, 32, 48, 256])));
   out(path.join(ROOT, "assets", "tray.ico"), ico(await sizes(tile(), [16, 32])));
   out(path.join(ROOT, "assets", "tray-new.ico"), ico(await sizes(tile(NEW), [16, 32])));
+  for (const [name, svg] of [["trayTemplate", MONO(false)], ["tray-newTemplate", MONO(true)]]) {
+    out(path.join(ROOT, "assets", `${name}.png`), (await draw(svgAt(svg, 16), 16, 16, true)).toPNG());
+    out(path.join(ROOT, "assets", `${name}@2x.png`), (await draw(svgAt(svg, 32), 32, 32, true)).toPNG());
+  }
   out(path.join(ROOT, "build", "sidebar.bmp"), bmp(await draw(SIDEBAR, 164, 314, false)));
   out(path.join(ROOT, "build", "header.bmp"), bmp(await draw(HEADER, 150, 57, false)));
   app.exit(0);
