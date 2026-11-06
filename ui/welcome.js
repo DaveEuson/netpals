@@ -1,4 +1,4 @@
-// welcome.js — first-launch setup in two steps: get a screen name, then see which brain auto-detect picked.
+// welcome.js — first-launch setup in three steps: get a screen name, answer five quick questions, then see which brain auto-detect picked.
 // Sign On checks the brain really answers, then signs you on with the password you just chose.
 const s = window.api.settingsSync();
 const local = s.provider === "local";
@@ -43,13 +43,13 @@ $("pick").onclick = () => window.api.invoke("win:open", "settings");
 let step = "you";
 function go(to) {
   step = to;
-  $("step-you").hidden = to !== "you";
-  $("step-brain").hidden = $("door").hidden = $("back").hidden = to !== "brain";
-  $("go").textContent = to === "you" ? "Next" : "Sign On";
+  for (const id of ["you", "quiz", "brain"]) $(`step-${id}`).hidden = to !== id;
+  $("door").hidden = to !== "brain"; $("back").hidden = to === "you";
+  $("go").textContent = to === "brain" ? "Sign On" : "Next";
   say("");
 }
-fillYou(s);
-$("back").onclick = () => go("you");
+fillYou(s); fillQuiz(s);
+$("back").onclick = () => go(step === "brain" ? "quiz" : "you");
 document.onkeydown = (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT") $("signon").click(); };
 
 $("signon").onclick = async () => {
@@ -57,8 +57,9 @@ $("signon").onclick = async () => {
     const you = readYou();
     if (you.mismatch) return say("The two passwords don't match.", "err");
     const saved = await window.api.invoke("account:save", you);
-    return saved.ok ? go("brain") : say(saved.error, "err");
+    return saved.ok ? go("quiz") : say(saved.error, "err");
   }
+  if (step === "quiz") { await window.api.invoke("settings:set", { quiz: readQuiz() }); return go("brain"); }
   if (!local) {
     const key = $("key").value.trim();
     if (key) await window.api.invoke("settings:set", { apiKey: key });

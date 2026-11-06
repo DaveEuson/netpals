@@ -11,7 +11,7 @@ const prompts = require("./lib/prompts");
 const { createScheduler } = require("./lib/scheduler");
 
 // [width, height, resizable]
-const SIZE = { welcome: [420, 560], signon: [280, 470], list: [260, 560, true], chat: [460, 480, true], settings: [420, 660], away: [340, 400], addbuddy: [400, 640], profile: [300, 490] };
+const SIZE = { welcome: [420, 560], signon: [280, 470], list: [260, 560, true], chat: [460, 480, true], settings: [420, 660], away: [340, 400], addbuddy: [400, 640], profile: [300, 490], connect: [360, 230] };
 const wins = new Map(); // "list" | "settings" | "chat:3" -> BrowserWindow
 
 // Main only needs the theme for the window background shown before the page paints.
@@ -77,7 +77,8 @@ ipcMain.handle("license:set", attempt((_e, key) => {
 const hashPassword = (pw, salt = crypto.randomBytes(16).toString("hex")) => `${salt}:${crypto.scryptSync(String(pw), salt, 32).toString("hex")}`;
 const passwordOk = (pw, stored) => { const a = Buffer.from(hashPassword(pw, stored.split(":")[0])), b = Buffer.from(stored); return a.length === b.length && crypto.timingSafeEqual(a, b); };
 let signedOn = false; // your buddies sign on after you do
-const signOn = () => { openWindow("list"); if (!signedOn) scheduler.start(); signedOn = true; };
+const signOn = () => openWindow("connect"); // the dial-up moment; the Connecting window reports back when it's through
+ipcMain.handle("connect:done", () => { openWindow("list"); if (!signedOn) scheduler.start(); signedOn = true; db.setSettings({ connected: true }); wins.get("connect")?.close(); });
 
 function buddyMenu(e, id) {
   const b = db.buddy(id);

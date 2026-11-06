@@ -18,6 +18,7 @@ $("you").onchange = async () => {
   for (const k of ["screenName", "age", "gender", "about", "passHash"]) touched.add(k);
   say(you.password ? "Saved, with your new password." : "Saved.", "good", "you-result");
 };
+$("quiz").onchange = () => { save({ quiz: readQuiz() }); say("Saved.", "good", "you-result"); };
 
 // ---- brain ---------------------------------------------------------------------------------
 function showProvider() {
@@ -122,7 +123,7 @@ if (s.hasEnvKey) $("key").placeholder = "Using OPENROUTER_API_KEY from your envi
 $("server").value = (s.baseUrl.match(/:(\d+)\//) || [])[1] === "1234" ? "1234" : "11434";
 $("or-model").value = s.provider === "openrouter" ? s.model : "google/gemini-2.5-flash";
 $("key").value = s.apiKey;
-fillYou(s);
+fillYou(s); fillQuiz(s);
 showProvider();
 showCustom();
 showPlus();

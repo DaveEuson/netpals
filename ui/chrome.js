@@ -34,6 +34,12 @@ tag("you-form", (e) => {
     <datalist id="y-genders"><option>Woman</option><option>Man</option><option>Nonbinary</option></datalist>
     <label for="y-about">About you</label><textarea id="y-about" rows="3" maxlength="300" placeholder="A few lines your buddies can read, like an old profile."></textarea>`;
 });
+// <quiz-form>: five quick questions, the kind an old profile asked. Buddies bring the answers up now and then.
+const QUIZ = [["work", "What do you do all day?", "school, a job, the couch"], ["into", "What are you into right now?", "music, games, a show, a hobby"],
+  ["hours", "Night owl or early bird?", "night owl"], ["peeve", "Pet peeve?", "slow walkers, loud chewers"], ["bug", "What should your buddies bug you about?", "a goal, a habit, a project"]];
+tag("quiz-form", (e) => { e.innerHTML = QUIZ.map(([k, q, hint]) => `<label for="q-${k}">${q}</label><input id="q-${k}" type="text" maxlength="120" autocomplete="off" placeholder="${hint}">`).join(""); });
+const fillQuiz = (s) => QUIZ.forEach(([k]) => { $(`q-${k}`).value = s.quiz?.[k] || ""; });
+const readQuiz = () => Object.fromEntries(QUIZ.map(([k]) => [k, $(`q-${k}`).value.trim().slice(0, 120)]));
 const fillYou = (s) => { $("y-sn").value = s.screenName; $("y-age").value = s.age ?? ""; $("y-gender").value = s.gender; $("y-about").value = s.about; };
 const readYou = () => ({ screenName: $("y-sn").value, password: $("y-pw").value, age: $("y-age").value, gender: $("y-gender").value,
   about: $("y-about").value, mismatch: $("y-pw").value !== $("y-pw2").value });

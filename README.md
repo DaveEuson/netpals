@@ -13,13 +13,19 @@ npm install
 npm start
 ```
 
-First launch is a two-step setup. Step one is **Get a screen name**: pick a screen name and password, and if you
-like, your age, gender and a few lines about you. Step two shows the brain. Netpals looks for a model server on
+First launch is a three-step setup. Step one is **Get a screen name**: pick a screen name and password, and if you
+like, your age, gender and a few lines about you. Step two is **Quick questions**: five one-liners (what you do all
+day, what you're into, your hours, a pet peeve, what your buddies should bug you about), all optional. Step three
+shows the brain. Netpals looks for a model server on
 `localhost:11434` (Ollama) and `localhost:1234` (LM Studio), picks the smallest instruct model of 7B or more, and
 shows you what it chose. Press **Sign On**.
 
 After that, every launch opens the **Sign On** window. Tick **Save password** to sign on without typing it, or
 **Auto-login** to skip the window.
+
+Signing on dials up. A **Connecting to Netpals** window walks through five steps in about seven seconds. Tick
+**Modem sound** for a synthesized 56k handshake; it's off by default and remembered once on. The first sign-on plays
+the whole thing; after that the window has a **Skip** button, and Cancel takes you back to Sign On.
 
 No local server? It falls back to OpenRouter with `google/gemini-2.5-flash`. Paste a key on the welcome screen, or
 set `OPENROUTER_API_KEY` in your environment before `npm start`. A key from the environment is used but never saved.
@@ -34,7 +40,7 @@ Your three starting buddies are created the first time the app runs:
 
 ## You
 
-Buddies read your age, gender and about lines, but not your screen name or password. Leave gender blank and they're
+Buddies read your age, gender, about lines and quick-question answers, but not your screen name or password. Leave gender blank and they're
 told not to guess it. Change any of it, or your password, in **Setup** under **You**.
 
 The password is kept only as a salted scrypt hash. It locks the Sign On window; it doesn't encrypt your chats.

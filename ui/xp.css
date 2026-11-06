@@ -51,6 +51,8 @@ you-form span { display: flex; align-items: center; gap: 8px; }
 you-form span input { flex: 1; min-width: 0; }
 you-form #y-age { flex: none; width: 52px; }
 you-form textarea { align-self: stretch; }
+quiz-form { display: flex; flex-direction: column; gap: 3px; }
+quiz-form label + input { margin-bottom: 5px; }
 .note { display: flex; align-items: flex-start; gap: 7px; padding: 7px 9px; background: var(--note); border: 1px solid var(--note-line); font-size: 11px; line-height: 1.4; }
 .note > svg { flex: none; margin-top: 1px; color: var(--note-ink); }
 .tile { flex: none; display: flex; align-items: center; justify-content: center; background: var(--tile); border: 1px solid var(--groove); border-radius: 3px; }
