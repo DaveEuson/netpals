@@ -29,7 +29,7 @@ function add(m) {
   const head = el("span", "head");
   if (m.role === "me") head.append(el("span", "when", time(m.ts)), " ", el("b", "", me));
   else head.append(el("b", "", m.role === "auto" ? `Auto response from ${buddy.screenName}` : buddy.screenName), " ", el("span", "when", time(m.ts)));
-  body.append(head, el("span", "text", m.text));
+  body.append(head, el("span", "text", faces(m.text)));
   row.append(body);
   if (m.role === "buddy") row.append(thumbs(m));
   log.append(row);
@@ -82,6 +82,16 @@ api.on("presence", ({ buddy: b }) => { if (b.id === id) header(b); });
 api.on("typing", ({ id: who, on }) => { if (who === id) typing(on); });
 api.on("chat-error", ({ id: who, error }) => { if (who === id) note(`${buddy.screenName} couldn't answer: ${error}`); });
 api.on("buddies", async () => { const r = await api.invoke("chat:load", id); if (!r) api.invoke("win:close"); else header(r.buddy); });
+
+// ---- smileys: a picker that drops an emoji in at the cursor ------------------------------------
+const EMOJI = "😀 😂 🙂 😉 😍 😘 😛 😎 🤔 😮 😢 😭 😠 🙄 😴 🤒 👍 👎 👋 🙏 👀 💀 ❤️ 💔 🔥 ✨ 🎉 ☕ 🍕 🎮 🎵 💤".split(" ");
+for (const e of EMOJI) {
+  const b = el("button", "", e, { type: "button" });
+  b.onclick = () => { const t = $("text"); t.setRangeText(e, t.selectionStart, t.selectionEnd, "end"); $("picker").hidden = true; t.focus(); };
+  $("picker").append(b);
+}
+$("smile").onclick = () => { $("picker").hidden = !$("picker").hidden; };
+document.addEventListener("click", (e) => { if (!e.target.closest("#picker, #smile")) $("picker").hidden = true; });
 
 $("send").onclick = send;
 $("text").onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };

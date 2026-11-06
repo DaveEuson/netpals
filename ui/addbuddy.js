@@ -46,7 +46,7 @@ $("ok").onclick = async () => {
   api.invoke("win:close");
 };
 
-for (let y = 1997; y <= 2010; y++) $("m-era").add(new Option(String(y), String(y), false, y === 2003));
+for (let y = 1997; y <= 2024; y++) $("m-era").add(new Option(String(y), String(y), false, y === 2003));
 $("tab-random").onclick = () => show("random");
 $("tab-manual").onclick = () => show("manual");
 $("manual").oninput = sync;

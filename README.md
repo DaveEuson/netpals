@@ -61,6 +61,9 @@ npm run reset-password
 - Click a buddy to IM them. Click their name in the IM window for their profile and what they remember about you.
 - 👍 and 👎 on a message make that buddy ping you a bit more or less. Three 👎 in one day also turns Chattiness
   down a notch.
+- **Smileys.** The 🙂 button in an IM window drops an emoji in at the cursor. Classic emoticons like `:-)` and `;-)`
+  are drawn as faces, the way IM clients did; the text underneath stays as typed. Buddies from 2010 on use emoji
+  themselves; older ones stick to emoticons.
 - Right-click a buddy to remove them.
 - **Still there?** Leave a buddy's IM unanswered for 4 to 7 minutes and a buddy who's the type checks in once, in
   their own words. Tasha and Gordon do this; Marisol gives you space. Randomize decides from the personality. Switch

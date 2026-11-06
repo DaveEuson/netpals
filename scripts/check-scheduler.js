@@ -74,6 +74,8 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   check(msg?.text === "hey! did you eat lunch?", `cleanup keeps 1-2 sentences, 1 question, no list or name prefix -> "${msg?.text}"`);
   check(prompts().cleanMessage("omg hiii 🎉🔥 u there?? i miss u!!", gordo) === "omg hiii u there??", "emoji stripped, emoticon-free text kept, stops at the question");
   check(prompts().cleanMessage("Hey! 👋🏼 Just saw you online!", gordo) === "Hey! Just saw you online!", "skin-tone leftovers go with the emoji");
+  const zoomer = { ...gordo, era: 2019 };
+  check(prompts().cleanMessage("omg hiii 🎉 u there??", zoomer) === "omg hiii 🎉 u there??" && /emoji or two/.test(prompts().buddySystem(zoomer, {})) && /No emoji/.test(prompts().buddySystem(gordo, {})), "a 2019 buddy keeps emoji and is told they're fine; 2003 Gordon isn't");
   check(prompts().cleanAway('"Out gettin snacks!! back soon? 🍕"') === "Out gettin snacks!!", "away line: one sentence, no quotes or emoji");
   check(lastSystem.includes('"out to lunch"') && lastSystem.includes("2003") && lastSystem.includes("nothing specific yet"), "prompt carries away text, era and the context line");
   check(db.settings().lastAwayText === "", "away handoff is used once");

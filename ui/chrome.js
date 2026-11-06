@@ -44,6 +44,12 @@ const fillYou = (s) => { $("y-sn").value = s.screenName; $("y-age").value = s.ag
 const readYou = () => ({ screenName: $("y-sn").value, password: $("y-pw").value, age: $("y-age").value, gender: $("y-gender").value,
   about: $("y-about").value, mismatch: $("y-pw").value !== $("y-pw2").value });
 
+// Classic emoticons drawn as faces, the way IM clients did it. Display only: the text itself stays as typed.
+const FACES = { ":-)": "🙂", ":)": "🙂", ":-(": "🙁", ":(": "🙁", ";-)": "😉", ";)": "😉", ":-P": "😛", ":P": "😛", ":-p": "😛", ":p": "😛", ":-D": "😀", ":D": "😀",
+  ":-O": "😮", ":-o": "😮", ":O": "😮", ":o": "😮", ":'(": "😢", "B-)": "😎", ":-*": "😘", ":-|": "😐", "<3": "❤️", ">:(": "😠", "XD": "😆", "xD": "😆" };
+const FACE_RE = new RegExp(`(^|\\s)(${Object.keys(FACES).map((k) => [...k].map((c) => `[${c}]`).join("")).join("|")})(?=[\\s.,!?]|$)`, "g"); // each char in [ ] needs no escaping
+const faces = (t) => String(t).replace(FACE_RE, (_, pre, f) => pre + FACES[f]);
+
 document.addEventListener("click", (e) => {
   const t = e.target.closest("[data-win], [data-href]");
   if (!t) return;

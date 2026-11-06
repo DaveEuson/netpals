@@ -29,7 +29,13 @@
   .thumbs .up[aria-pressed=true] { background: var(--sel); border-color: var(--sel); color: var(--sel-ink); }
   .thumbs .down[aria-pressed=true] { background: var(--badge); border-color: var(--badge); color: #fff; }
   #typing { flex: none; height: 20px; margin: 0 8px; display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
-  .compose { flex: none; display: flex; gap: 8px; padding: 0 8px 10px; }
+  .compose { flex: none; display: flex; gap: 6px; padding: 0 8px 10px; }
+  .tools { flex: none; gap: 6px; }
+  .tool { width: 26px; height: 26px; padding: 0; border: 1px solid var(--groove); border-radius: 3px; background: var(--panel); color: var(--icon); font-size: 15px; line-height: 1; cursor: pointer; }
+  .tool:hover { border-color: var(--glow); }
+  #picker { position: absolute; left: 8px; bottom: 76px; z-index: 2; display: grid; grid-template-columns: repeat(8, 28px); gap: 1px; padding: 4px; box-shadow: 2px 2px 0 var(--groove); }
+  #picker button { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 3px; background: none; font-size: 18px; line-height: 1; cursor: pointer; }
+  #picker button:hover { background: var(--hover); }
   #text { flex: 1; height: 58px; }
   #send { flex: none; width: 72px; height: 58px; flex-direction: column; gap: 4px; font-weight: bold; }
 </style>
@@ -47,7 +53,9 @@
 </div>
 <div id="log" class="sunken" role="log" aria-live="polite"></div>
 <div id="typing" aria-live="polite"></div>
+<div id="picker" class="sunken" role="group" aria-label="Smileys" hidden></div>
 <div class="compose">
+  <div class="col tools"><button class="tool" id="smile" type="button" title="Smileys" aria-label="Smileys">🙂</button></div>
   <label for="text" class="sr" id="text-label">Message</label>
   <textarea id="text" rows="3" maxlength="1000" placeholder="Type a message…"></textarea>
   <button class="btn default" id="send">
