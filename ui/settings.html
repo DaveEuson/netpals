@@ -22,6 +22,7 @@
     <quiz-form id="quiz"></quiz-form>
     <span class="small" id="you-result" role="status"></span>
     <label class="check"><input type="checkbox" id="autologin"><span>Sign on automatically when Netpals starts</span></label>
+    <label class="check"><input type="checkbox" id="startup"><span>Start Netpals when Windows starts</span></label>
   </fieldset>
   <fieldset class="group">
     <legend>Brain</legend>
@@ -50,6 +51,11 @@
     </div>
     <span class="tiny muted">They'll still answer if you IM them first.</span>
     <label class="check"><input type="checkbox" id="nudges"><span>Let buddies who are the type ask "still there?" if you don't answer</span></label>
+    <div class="row">
+      <label for="idle">Go away by yourself after</label>
+      <select id="idle"><option value="0">never</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option></select>
+      <span class="small muted">without touching the mouse or keyboard</span>
+    </div>
   </fieldset>
   <fieldset class="group">
     <legend>Look and sounds</legend>

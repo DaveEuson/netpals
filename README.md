@@ -54,11 +54,18 @@ npm run reset-password
 
 - **Chattiness** at the bottom of the Buddy List sets how often buddies IM you. The levels are off, about 2, 5, 10
   and 20 a day.
+- **Closing the Buddy List** keeps you signed on, in the tray. The tray icon blinks while an IM waits; right-click
+  it for **Sign Off**. Every window opens where you last left it.
 - **Away** pauses all pings. Pick **Come back** in 15 minutes to 2 hours and you're back on your own; the Buddy List
   shows until when. When you come back, the next buddy to IM you knows what your away message said.
+- **Auto-away.** Ten minutes without touching the mouse or keyboard and you're away ("I am away from my computer
+  right now"); touch anything and you're back. Change or switch it off under Quiet hours in Setup.
 - **Add** makes a new buddy. Randomize invents one from a one-line vibe, or Build your own fills in a form.
-- **Setup** changes you, the brain, quiet hours (10pm to 8am by default), theme, sounds and notifications.
-- Click a buddy to IM them. Click their name in the IM window for their profile and what they remember about you.
+- **Setup** changes you, the brain, quiet hours (10pm to 8am by default), theme, sounds and notifications, and
+  whether Netpals starts with Windows (an installed copy only).
+- Click a buddy to IM them. Click their name in the IM window for their profile and what they remember about you;
+  **Edit…** there changes anything about them, **Forget all this** clears their memory. **Save…** in an IM window
+  writes the conversation to a text file.
 - 👍 and 👎 on a message make that buddy ping you a bit more or less. Three 👎 in one day also turns Chattiness
   down a notch.
 - **Smileys.** The 🙂 button in an IM window drops an emoji in at the cursor. Classic emoticons like `:-)` and `;-)`
@@ -131,7 +138,12 @@ its data in `%APPDATA%\Netpals` instead of `data/`. The installer isn't code-sig
 "unrecognized app" the first time; **More info, Run anyway** gets past it. Signing takes a certificate (or Azure
 Trusted Signing) and a few lines under `build` in `package.json`.
 
-`npm run icon` redraws `assets/icon.png` and `assets/icon.ico` from the Buddy List's speech-bubble mark.
+The installer is a classic wizard: a welcome page, the license (`LICENSE.txt`), a folder to pick, a finish page
+that offers to run Netpals. Its words live in `build/installer.nsh`, its pictures in `build/*.bmp`.
+
+`npm run icon` redraws every icon from the Buddy List's speech-bubble mark: `assets/icon.png` and `icon.ico` (the
+app and the installer), `assets/tray.ico` and `tray-new.ico` (the tray, quiet and blinking), and the installer's
+sidebar and header pictures.
 
 ## Buddies feel slow or dumb?
 

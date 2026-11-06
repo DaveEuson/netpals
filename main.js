@@ -1,5 +1,5 @@
 // main.js — Electron main process: windows, IPC, first-launch detection, and the scheduler that makes buddies talk.
-const { app, BrowserWindow, ipcMain, shell, nativeTheme, Menu, dialog, Notification, nativeImage } = require("electron");
+const { app, BrowserWindow, ipcMain, shell, nativeTheme, Menu, dialog, Notification, nativeImage, screen, Tray, clipboard, powerMonitor } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
@@ -13,6 +13,18 @@ const { createScheduler } = require("./lib/scheduler");
 // [width, height, resizable]
 const SIZE = { welcome: [420, 560], signon: [280, 470], list: [260, 560, true], chat: [460, 480, true], settings: [420, 660], away: [340, 440], addbuddy: [400, 640], profile: [300, 490], connect: [360, 230], room: [520, 480, true] };
 const wins = new Map(); // "list" | "settings" | "chat:3" -> BrowserWindow
+let quitting = false; // set by Sign Off; until then closing the Buddy List only hides it
+
+// ---- when something breaks: a plain dialog with details to copy, and a line in the data folder's netpals.log ----
+const LOG = path.join(db.dir, "netpals.log");
+function snag(e) {
+  try { fs.appendFileSync(LOG, `${new Date().toISOString()} ${e?.stack || e}\n`); } catch { /* best effort */ }
+  if (!app.isReady()) return;
+  const r = dialog.showMessageBoxSync({ type: "error", title: "Netpals hit a snag", message: "Something went wrong. Your buddies and chats are safe.", detail: String(e?.message || e), buttons: ["Copy details", "Close"], defaultId: 1, noLink: true });
+  if (r === 0) clipboard.writeText(`${e?.stack || e}\n\n${LOG}`);
+}
+process.on("uncaughtException", snag);
+process.on("unhandledRejection", snag);
 
 // Main only needs the theme for the window background shown before the page paints.
 const isDark = (s) => (s.darkWithSystem && nativeTheme.shouldUseDarkColors) || s.theme === "midnight";
@@ -21,15 +33,21 @@ const llmCfg = (s = db.settings()) => ({ provider: s.provider, baseUrl: s.baseUr
 
 function openWindow(kind, query = {}) {
   const key = kind + (query.id ? `:${query.id}` : "");
-  if (wins.has(key)) return wins.get(key).focus();
+  if (wins.has(key)) { const w = wins.get(key); w.show(); w.focus(); return w; }
   const s = db.settings();
   const [width, height, resizable = false] = SIZE[kind];
+  const b = s.bounds?.[kind]; // where you left this kind of window last time, if that spot is still on a screen
+  const onScreen = b && screen.getAllDisplays().some(({ workArea: a }) => b.x >= a.x - 20 && b.y >= a.y && b.x < a.x + a.width - 60 && b.y < a.y + a.height - 60);
   const w = new BrowserWindow({ width, height, resizable, minWidth: Math.min(width, 220), minHeight: Math.min(height, 360), frame: false, show: false, icon: path.join(__dirname, "assets", "icon.png"),
     backgroundColor: isDark(s) ? "#1f2433" : "#ece9d8", alwaysOnTop: kind === "list" && s.alwaysOnTop, webPreferences: { preload: path.join(__dirname, "preload.js") } });
+  if (onScreen) { w.setPosition(b.x, b.y); if (resizable) w.setContentSize(b.width, b.height); } // set after making it: sizes passed to the constructor come out a few px off
   w.loadFile(path.join(__dirname, "ui", `${kind}.html`), { query });
   w.once("ready-to-show", () => w.show());
   w.on("closed", () => wins.delete(key));
-  if (kind === "list") w.on("close", () => app.quit()); // closing the Buddy List signs you off
+  w.on("close", (e) => {
+    db.setSettings({ bounds: { ...db.settings().bounds, [kind]: w.getContentBounds() } }); // content size round-trips; the outer size grows a few px each time
+    if (kind === "list" && !quitting) { e.preventDefault(); w.hide(); } // the Buddy List lives on in the tray; Sign Off is in its menu
+  });
   wins.set(key, w);
   return w;
 }
@@ -40,6 +58,7 @@ const attempt = (fn) => async (...args) => { try { return { ok: true, ...(await 
 // A buddy's message: every window hears it; if their IM window isn't in front, flash it and pop a desktop notification.
 function onMessage(msg, buddy) {
   broadcast("message", { msg, buddy });
+  if (msg.role === "buddy") blinkTray();
   const w = wins.get(`chat:${buddy.id}`);
   if (msg.role !== "buddy" || w?.isFocused()) return;
   w?.flashFrame(true);
@@ -70,6 +89,31 @@ ipcMain.handle("chat:pick", attempt(async (e, id) => {
   return r.canceled ? { canceled: true } : sendFile(id, r.filePaths[0]);
 }));
 ipcMain.handle("file:open", (_e, file) => shell.openPath(path.join(FILES, path.basename(String(file)))));
+
+// ---- tray: the Buddy List closes to it, the icon blinks while IMs wait, and Sign Off is the way out ------------
+let tray = null, blink = null;
+const trayIcon = (name) => nativeImage.createFromPath(path.join(__dirname, "assets", `${name}.ico`));
+function makeTray() {
+  tray = new Tray(trayIcon("tray"));
+  tray.setToolTip("Netpals");
+  tray.setContextMenu(Menu.buildFromTemplate([{ label: "Buddy List", click: () => openWindow("list") }, { label: "Away…", click: () => openWindow("away") }, { type: "separator" }, { label: "Sign Off", click: () => { quitting = true; app.quit(); } }]));
+  tray.on("click", () => openWindow("list"));
+}
+function blinkTray() { // blinks while any IM is unread; opening that IM window counts as reading it
+  const waiting = db.unreadCounts().length > 0;
+  if (waiting && !blink) { let on = false; blink = setInterval(() => tray?.setImage(trayIcon((on = !on) ? "tray-new" : "tray")), 600); }
+  if (!waiting && blink) { clearInterval(blink); blink = null; tray?.setImage(trayIcon("tray")); }
+}
+const trayState = () => ({ tray: Boolean(tray), blinking: Boolean(blink) });
+
+// ---- auto-away: no mouse or keyboard for a while and you're away, AIM-style; touch anything and you're back -----
+let autoAway = false;
+function idleCheck(idle = powerMonitor.getSystemIdleTime()) {
+  const s = db.settings();
+  if (!s.autoAwayMinutes) return;
+  if (!s.awayMessage && idle >= s.autoAwayMinutes * 60) { autoAway = true; scheduler.setAway("I am away from my computer right now."); broadcast("settings", db.settings()); }
+  else if (autoAway && idle < 60) { autoAway = false; scheduler.setAway(""); broadcast("settings", db.settings()); }
+}
 
 const scheduler = createScheduler({
   chat: (opts) => llm.chat(opts, llmCfg()), onMessage, onPresence: (buddy, from) => broadcast("presence", { buddy, from }),
@@ -104,7 +148,11 @@ const hashPassword = (pw, salt = crypto.randomBytes(16).toString("hex")) => `${s
 const passwordOk = (pw, stored) => { const a = Buffer.from(hashPassword(pw, stored.split(":")[0])), b = Buffer.from(stored); return a.length === b.length && crypto.timingSafeEqual(a, b); };
 let signedOn = false; // your buddies sign on after you do
 const signOn = () => openWindow("connect"); // the dial-up moment; the Connecting window reports back when it's through
-ipcMain.handle("connect:done", () => { openWindow("list"); if (!signedOn) scheduler.start(); signedOn = true; db.setSettings({ connected: true }); wins.get("connect")?.close(); });
+ipcMain.handle("connect:done", () => {
+  openWindow("list");
+  if (!signedOn) { scheduler.start(); makeTray(); setInterval(idleCheck, 30_000); }
+  signedOn = true; db.setSettings({ connected: true }); wins.get("connect")?.close();
+});
 
 function buddyMenu(e, id) {
   const b = db.buddy(id);
@@ -126,12 +174,13 @@ function buddyMenu(e, id) {
 ipcMain.on("settings:getSync", (e) => { const s = db.settings(); e.returnValue = { ...s, hasEnvKey: Boolean(process.env.OPENROUTER_API_KEY), licensedTo: licensedTo(s), buyUrl: license.BUY_URL }; });
 ipcMain.handle("settings:set", (_e, patch) => {
   db.setSettings(patch);
+  if ("startWithWindows" in patch && app.isPackaged) app.setLoginItemSettings({ openAtLogin: Boolean(patch.startWithWindows) }); // an installed copy only; in development this would register electron.exe
   if ("alwaysOnTop" in patch) wins.get("list")?.setAlwaysOnTop(Boolean(patch.alwaysOnTop));
   broadcast("settings", db.settings());
 });
 ipcMain.handle("buddies:list", () => db.buddies());
 ipcMain.handle("buddies:unread", () => db.unreadCounts());
-ipcMain.handle("buddy:read", (_e, id) => { db.markRead(id); broadcast("read", id); });
+ipcMain.handle("buddy:read", (_e, id) => { db.markRead(id); broadcast("read", id); blinkTray(); });
 ipcMain.handle("buddy:menu", buddyMenu);
 ipcMain.handle("msg:vote", (_e, msgId, v) => {
   const r = db.vote(msgId, v);
@@ -141,6 +190,25 @@ ipcMain.handle("msg:vote", (_e, msgId, v) => {
 });
 ipcMain.handle("buddy:nudge", (_e, id, on) => { db.updateBuddy(id, { nudge: on ? 1 : 0 }); broadcast("buddies"); });
 ipcMain.handle("buddy:forget", (_e, id) => { db.updateBuddy(id, { notes: "" }); broadcast("buddies"); });
+// Edit… in Buddy Info: the Add form again, on one buddy. A blank profile keeps the old one.
+ipcMain.handle("buddy:update", attempt((_e, raw) => {
+  const old = db.buddy(raw.id);
+  if (!old) throw new Error("That buddy is gone.");
+  const b = prompts.toBuddy(raw, takenNames().filter((n) => n.toLowerCase() !== old.screenName.toLowerCase()));
+  db.updateBuddy(old.id, { name: b.name, screenName: b.screenName, emoji: b.emoji, era: b.era, personaPrompt: b.personaPrompt, cadenceWeight: b.cadenceWeight, nudge: b.nudge, profile: prompts.blankProfile(b) ? old.profile : b.profile });
+  broadcast("buddies");
+}));
+// Save a conversation as a text file, like an old IM log. `to` skips the dialog (tests).
+ipcMain.handle("chat:save", async (e, id, to) => {
+  const b = db.buddy(id);
+  if (!b) return false;
+  const file = to || (await dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender), { title: "Save conversation", defaultPath: `${b.screenName} ${new Date().toISOString().slice(0, 10)}.txt`, filters: [{ name: "Text", extensions: ["txt"] }] })).filePath;
+  if (!file) return false;
+  const me = db.settings().screenName || "me";
+  const who = (m) => (m.role === "me" ? me : m.role === "auto" ? `${b.screenName} (auto response)` : b.screenName);
+  fs.writeFileSync(file, db.lastMessages(id, 1e6).map((m) => `[${new Date(m.ts).toLocaleString()}] ${who(m)}: ${m.text}${m.file ? `[picture: ${m.file}]` : ""}`).join("\r\n") + "\r\n");
+  return true;
+});
 // ---- Buddy Chat: one room; who's in it is settings.chatRoom, its lines have roomId 1 ---------------------------
 ipcMain.handle("room:load", () => { const s = db.settings(); return { members: s.chatRoom, buddies: db.buddies(), messages: db.roomMessages(200), me: s.screenName }; });
 ipcMain.handle("room:send", (_e, text) => { const said = String(text).trim().slice(0, 1000); if (!said) return; broadcast("room", { msg: db.addRoomMessage("me", said) }); scheduler.roomReply(); });
@@ -218,7 +286,7 @@ ipcMain.handle("llm:test", attempt(async () => {
   const text = await llm.chat({ system: "You are a friend on an instant messenger. Reply with one short hello.", messages: [{ role: "user", content: "hi" }], maxTokens: 30 }, llmCfg());
   return { ms: Date.now() - t0, text };
 }));
-ipcMain.handle("away:set", (_e, text, minutes) => { scheduler.setAway(text, Number(minutes) || 0); broadcast("settings", db.settings()); });
+ipcMain.handle("away:set", (_e, text, minutes) => { autoAway = false; scheduler.setAway(text, Number(minutes) || 0); broadcast("settings", db.settings()); });
 ipcMain.handle("win:open", (_e, kind, query) => { openWindow(kind, query); });
 ipcMain.handle("win:close", (e) => BrowserWindow.fromWebContents(e.sender)?.close());
 ipcMain.handle("win:min", (e) => BrowserWindow.fromWebContents(e.sender)?.minimize());
@@ -235,5 +303,6 @@ app.whenReady().then(async () => {
   else openWindow("signon");
 });
 app.on("window-all-closed", () => app.quit());
+app.on("before-quit", () => { quitting = true; });
 
-module.exports = { openWindow, broadcast, llmCfg, scheduler };
+module.exports = { openWindow, broadcast, llmCfg, scheduler, idleCheck, blinkTray, trayState };

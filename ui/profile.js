@@ -25,5 +25,6 @@ api.on("presence", ({ buddy }) => { if (buddy.id === id) render(buddy); });
 api.on("message", ({ buddy }) => { if (buddy.id === id) render(buddy); }); // a reply may have added a memory
 $("im").onclick = () => { api.invoke("win:open", "chat", { id: String(id) }); api.invoke("win:close"); };
 $("nudge").onchange = () => api.invoke("buddy:nudge", id, $("nudge").checked);
+$("edit").onclick = () => { api.invoke("win:open", "addbuddy", { id: String(id) }); api.invoke("win:close"); };
 $("forget").onclick = async () => { if (confirm("Clear everything this buddy remembers about you?")) await api.invoke("buddy:forget", id); };
 load();

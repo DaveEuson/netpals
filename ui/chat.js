@@ -98,6 +98,7 @@ document.addEventListener("drop", async (e) => { e.preventDefault(); const f = e
 $("send").onclick = send;
 $("text").onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
 $("sn").onclick = $("info").onclick = () => api.invoke("win:open", "profile", { id: String(id) });
+$("save").onclick = async () => { if (await api.invoke("chat:save", id)) note("Saved.", "notice"); };
 window.addEventListener("focus", markRead);
 setInterval(() => buddy && ($("status").textContent = statusLine(buddy)), 30_000);
 
