@@ -196,7 +196,13 @@ npm run check:scheduler -- --live
 npm run check:license
 ```
 
+```bash
+npm run check:models
+```
+
 `check:llm` detects a server and asks it for one line. `check:scheduler` simulates 400 days of pings per chattiness
 level and tests quiet hours, the 20-minute gap, away, cleanup and feedback, all in a throwaway data folder.
 Add `-- --live` to also get one real ping from each starting buddy. `check:license` signs keys with a throwaway key
-pair and checks that genuine keys pass and tampered or foreign ones don't.
+pair and checks that genuine keys pass and tampered or foreign ones don't. `check:models` runs every chat model Ollama has (or the
+ones you name after `--`) through the real buddy prompts: one ping and one reply per starting buddy, with the time
+each took and which house rules the raw answer broke. The quickest way to pick a brain.

@@ -16,7 +16,8 @@
     "check:license": "node scripts/check-license.js",
     "icon": "electron scripts/make-icon.js",
     "dist": "electron-builder --win",
-    "dist:mac": "electron-builder --mac"
+    "dist:mac": "electron-builder --mac",
+    "check:models": "node scripts/check-models.js"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3"
