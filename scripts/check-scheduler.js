@@ -52,7 +52,7 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
 
   // 3. Fake model: messy output is cleaned to the rules; the away message reaches the next buddy once.
   let lastSystem = "";
-  const fake = async ({ system }) => { lastSystem = system; return 'gordo_in_accounting: "hey! did you eat lunch? are you drinking water? here\'s a plan:\n1. eat\n2. sleep"'; };
+  const fake = async ({ system }) => { if (/tiny notebook/.test(system)) return "NONE"; lastSystem = system; return 'gordo_in_accounting: "hey! did you eat lunch? are you drinking water? here\'s a plan:\n1. eat\n2. sleep"'; };
   const sched = createScheduler({ chat: fake });
   const gordo = db.buddies().find((b) => b.screenName === "gordo_in_accounting");
   db.setSettings({ provider: "local", chattiness: 4 });
@@ -76,11 +76,11 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   check(prompts().cleanMessage("Hey! 👋🏼 Just saw you online!", gordo) === "Hey! Just saw you online!", "skin-tone leftovers go with the emoji");
   // pictures: image parts when the model can look, a line about the file when it can't
   let got = null;
-  const looker = createScheduler({ chat: async ({ messages }) => { got = messages[0].content; return "cute cat"; }, picture: async () => "data:image/jpeg;base64,AAAA" });
+  const looker = createScheduler({ chat: async ({ system, messages }) => { if (/tiny notebook/.test(system)) return "NONE"; got = messages[0].content; return "cute cat"; }, picture: async () => "data:image/jpeg;base64,AAAA" });
   db.addMessage(gordo.id, "me", "", Date.now(), "123-cat.jpg");
   await looker.reply(gordo.id);
   check(Array.isArray(got) && got[0].text === "(sent you a picture)" && got[1].image_url.url.startsWith("data:image/jpeg"), "a picture goes to a seeing model as an image part");
-  const blind = createScheduler({ chat: async ({ messages }) => { got = messages[0].content; return "cant see it"; } });
+  const blind = createScheduler({ chat: async ({ system, messages }) => { if (/tiny notebook/.test(system)) return "NONE"; got = messages[0].content; return "cant see it"; } });
   db.addMessage(gordo.id, "me", "look", Date.now(), "124-dog.png");
   await blind.reply(gordo.id);
   check(typeof got === "string" && got.startsWith("look\n") && got.includes("dog.png") && got.includes("can't open pictures"), `a blind model hears about the file instead: ${JSON.stringify(got).slice(0, 60)}`);
@@ -105,6 +105,19 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   check(db.settings().lastAwayText === "", "away handoff is used once");
   await sched.fire(gordo, at(14, 30));
   check(!lastSystem.includes("out to lunch") && lastSystem.includes("hey! did you eat lunch?"), "next prompt drops the away note and shows the thread");
+  // a model that never writes <note> still leaves a memory, through the second call
+  const forgetful = createScheduler({ chat: async ({ system }) => (/tiny notebook/.test(system) ? "Their cat Pixel knocked coffee on the keyboard." : "at least it's friday, right?") });
+  db.updateBuddy(gordo.id, { notes: "" });
+  db.addMessage(gordo.id, "me", "my cat pixel knocked my coffee onto the keyboard this morning, whole desk is sticky");
+  await forgetful.reply(gordo.id);
+  check(db.buddy(gordo.id).notes === "Their cat Pixel knocked coffee on the keyboard", `no <note> from the model: a second call keeps the memory anyway (${db.buddy(gordo.id).notes})`);
+  let noteAsks = 0;
+  const terse = createScheduler({ chat: async ({ system }) => { if (/tiny notebook/.test(system)) noteAsks++; return "ok"; } });
+  db.addMessage(gordo.id, "me", "lol ok");
+  await terse.reply(gordo.id);
+  db.addMessage(gordo.id, "me", "quick question, whats the capital of australia these days");
+  await terse.reply(gordo.id);
+  check(noteAsks === 0 && prompts().cleanNote("NONE") === "" && prompts().cleanNote('"Starts a library job Monday."') === "Starts a library job Monday" && prompts().cleanNote("I'm a large language model designed to help") === "", "short lines and trivia questions skip the memory call; NONE, quotes and a model talking about itself are dropped");
   const seen = new Set();
   const drifter = createScheduler({ chat: async () => "gone fishin, brb", onPresence: (b) => seen.add(b.status) });
   for (let i = 0; i < 60; i++) await drifter.drift(at(14));

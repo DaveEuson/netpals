@@ -17,7 +17,8 @@
     "icon": "electron scripts/make-icon.js",
     "dist": "electron-builder --win",
     "dist:mac": "electron-builder --mac",
-    "check:models": "node scripts/check-models.js"
+    "check:models": "node scripts/check-models.js",
+    "check:chat": "node scripts/check-chat.js"
   },
   "dependencies": {
     "better-sqlite3": "^13.0.3"
