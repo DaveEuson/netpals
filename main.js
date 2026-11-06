@@ -11,7 +11,7 @@ const prompts = require("./lib/prompts");
 const { createScheduler } = require("./lib/scheduler");
 
 // [width, height, resizable]
-const SIZE = { welcome: [420, 560], signon: [280, 470], list: [260, 560, true], chat: [460, 480, true], settings: [420, 660], away: [340, 400], addbuddy: [400, 640], profile: [300, 490], connect: [360, 230] };
+const SIZE = { welcome: [420, 560], signon: [280, 470], list: [260, 560, true], chat: [460, 480, true], settings: [420, 660], away: [340, 440], addbuddy: [400, 640], profile: [300, 490], connect: [360, 230] };
 const wins = new Map(); // "list" | "settings" | "chat:3" -> BrowserWindow
 
 // Main only needs the theme for the window background shown before the page paints.
@@ -49,6 +49,7 @@ function onMessage(msg, buddy) {
 const scheduler = createScheduler({
   chat: (opts) => llm.chat(opts, llmCfg()), onMessage, onPresence: (buddy, from) => broadcast("presence", { buddy, from }),
   onTyping: (id, on) => broadcast("typing", { id, on }), onError: (buddy, e) => broadcast("chat-error", { id: buddy.id, error: e.message }),
+  onBack: () => broadcast("settings", db.settings()),
 });
 
 // Ask for JSON twice before giving up; connection errors throw straight through with their own message.
@@ -183,7 +184,7 @@ ipcMain.handle("llm:test", attempt(async () => {
   const text = await llm.chat({ system: "You are a friend on an instant messenger. Reply with one short hello.", messages: [{ role: "user", content: "hi" }], maxTokens: 30 }, llmCfg());
   return { ms: Date.now() - t0, text };
 }));
-ipcMain.handle("away:set", (_e, text) => { scheduler.setAway(text); broadcast("settings", db.settings()); });
+ipcMain.handle("away:set", (_e, text, minutes) => { scheduler.setAway(text, Number(minutes) || 0); broadcast("settings", db.settings()); });
 ipcMain.handle("win:open", (_e, kind, query) => { openWindow(kind, query); });
 ipcMain.handle("win:close", (e) => BrowserWindow.fromWebContents(e.sender)?.close());
 ipcMain.handle("win:min", (e) => BrowserWindow.fromWebContents(e.sender)?.minimize());

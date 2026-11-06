@@ -50,7 +50,8 @@ function render() {
   const off = buddies.filter((b) => b.status === "offline").sort(byStatusThenName);
   $("list").replaceChildren(...group("on", `Buddies (${on.length}/${buddies.length})`, on), ...group("off", `Offline (${off.length})`, off));
   const total = Object.values(unread).reduce((n, u) => n + u.n, 0);
-  $("me").textContent = s.awayMessage ? `You're away · ${s.awayMessage}` : `You're online${total ? ` · ${total} new IM${total > 1 ? "s" : ""}` : ""}`;
+  const till = s.awayUntil ? ` till ${new Date(s.awayUntil).toLocaleTimeString([], { timeStyle: "short" })}` : "";
+  $("me").textContent = s.awayMessage ? `You're away${till} · ${s.awayMessage}` : `You're online${total ? ` · ${total} new IM${total > 1 ? "s" : ""}` : ""}`;
   $("back").hidden = !s.awayMessage;
   $("chat").value = s.chattiness;
   $("chat-label").textContent = LABELS[s.chattiness];

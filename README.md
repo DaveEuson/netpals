@@ -54,7 +54,8 @@ npm run reset-password
 
 - **Chattiness** at the bottom of the Buddy List sets how often buddies IM you. The levels are off, about 2, 5, 10
   and 20 a day.
-- **Away** pauses all pings. When you come back, the next buddy to IM you knows what your away message said.
+- **Away** pauses all pings. Pick **Come back** in 15 minutes to 2 hours and you're back on your own; the Buddy List
+  shows until when. When you come back, the next buddy to IM you knows what your away message said.
 - **Add** makes a new buddy. Randomize invents one from a one-line vibe, or Build your own fills in a form.
 - **Setup** changes you, the brain, quiet hours (10pm to 8am by default), theme, sounds and notifications.
 - Click a buddy to IM them. Click their name in the IM window for their profile and what they remember about you.

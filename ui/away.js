@@ -1,4 +1,5 @@
-// away.js — pick or write an away message. Going away pauses pings; the text is remembered for next time.
+// away.js — pick or write an away message, and when to come back. Going away pauses pings; the text and the
+// come-back pick are remembered for next time.
 const s = window.api.settingsSync();
 const text = $("text");
 
@@ -15,11 +16,13 @@ function render() {
 }
 
 text.value = s.awayMessage || s.savedAways[0] || "";
+$("back").value = s.awayMinutes;
 text.oninput = render;
 $("go").onclick = async () => {
   const msg = text.value.trim();
-  await window.api.invoke("settings:set", { savedAways: [msg, ...s.savedAways.filter((t) => t !== msg)].slice(0, 8) });
-  await window.api.invoke("away:set", msg);
+  const minutes = Number($("back").value);
+  await window.api.invoke("settings:set", { savedAways: [msg, ...s.savedAways.filter((t) => t !== msg)].slice(0, 8), awayMinutes: minutes });
+  await window.api.invoke("away:set", msg, minutes);
   window.api.invoke("win:close");
 };
 render();

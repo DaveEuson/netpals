@@ -60,6 +60,16 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   check(db.settings().awayMessage === "out to lunch", "away message saved");
   sched.setAway("");
   check(db.settings().lastAwayText === "out to lunch" && !db.settings().awayMessage, "coming back hands the away message on");
+  let backs = 0;
+  const timed = createScheduler({ chat: fake, onBack: () => backs++ });
+  timed.setAway("coffee", 0.002); // about a tenth of a second
+  check(db.settings().awayMessage === "coffee" && db.settings().awayUntil > Date.now(), "a come-back time is saved with the away message");
+  await new Promise((r) => setTimeout(r, 300));
+  check(!db.settings().awayMessage && db.settings().awayUntil === 0 && db.settings().lastAwayText === "coffee" && backs === 1, "the timer brings you back and tells the windows");
+  timed.setAway("still here", 0);
+  check(db.settings().awayMessage === "still here" && db.settings().awayUntil === 0, "no limit means no timer");
+  timed.setAway("");
+  db.setSettings({ lastAwayText: "out to lunch", lastAwayMinutes: 1 }); // the hand-off the prompt check below reads
   const msg = await sched.fire(gordo, at(14, 5));
   check(msg?.text === "hey! did you eat lunch?", `cleanup keeps 1-2 sentences, 1 question, no list or name prefix -> "${msg?.text}"`);
   check(prompts().cleanMessage("omg hiii 🎉🔥 u there?? i miss u!!", gordo) === "omg hiii u there??", "emoji stripped, emoticon-free text kept, stops at the question");
