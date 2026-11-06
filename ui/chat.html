@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
 <title>Instant Message</title>
 <link rel="stylesheet" href="xp.css">
 <script src="chrome.js"></script>
@@ -15,6 +15,7 @@
   .msg .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
   .msg .text { line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
   .msg .head { font-size: 11px; }
+  .msg .pic { max-width: 260px; max-height: 200px; border: 1px solid var(--groove); cursor: pointer; }
   .msg .head b { color: var(--them); }
   .msg .head .when { color: var(--muted); }
   .msg.me { justify-content: flex-end; padding-left: 60px; }
@@ -55,7 +56,10 @@
 <div id="typing" aria-live="polite"></div>
 <div id="picker" class="sunken" role="group" aria-label="Smileys" hidden></div>
 <div class="compose">
-  <div class="col tools"><button class="tool" id="smile" type="button" title="Smileys" aria-label="Smileys">🙂</button></div>
+  <div class="col tools">
+    <button class="tool" id="smile" type="button" title="Smileys" aria-label="Smileys">🙂</button>
+    <button class="tool" id="pic" type="button" title="Send a picture" aria-label="Send a picture"><svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true"><rect x="1.5" y="2.5" width="12" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M2 11l3.5-4 3 3 2-2 2.5 3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><circle cx="10" cy="5.5" r="1.1" fill="currentColor"/></svg></button>
+  </div>
   <label for="text" class="sr" id="text-label">Message</label>
   <textarea id="text" rows="3" maxlength="1000" placeholder="Type a message…"></textarea>
   <button class="btn default" id="send">

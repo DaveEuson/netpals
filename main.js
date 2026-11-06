@@ -1,5 +1,5 @@
 // main.js — Electron main process: windows, IPC, first-launch detection, and the scheduler that makes buddies talk.
-const { app, BrowserWindow, ipcMain, shell, nativeTheme, Menu, dialog, Notification } = require("electron");
+const { app, BrowserWindow, ipcMain, shell, nativeTheme, Menu, dialog, Notification, nativeImage } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
@@ -34,6 +34,8 @@ function openWindow(kind, query = {}) {
   return w;
 }
 const broadcast = (channel, payload) => { for (const w of wins.values()) w.webContents.send(channel, payload); };
+// Handlers the renderer shows errors from: { ok: true, ...result } or { ok: false, error }.
+const attempt = (fn) => async (...args) => { try { return { ok: true, ...(await fn(...args)) }; } catch (e) { return { ok: false, error: e.message }; } };
 
 // A buddy's message: every window hears it; if their IM window isn't in front, flash it and pop a desktop notification.
 function onMessage(msg, buddy) {
@@ -46,8 +48,32 @@ function onMessage(msg, buddy) {
   new Notification({ title: buddy.screenName, body: msg.text, silent: true }).on("click", () => openWindow("chat", { id: String(buddy.id) })).show();
 }
 
+// ---- pictures: copied into data/files, shown as thumbnails, sent to the model shrunk to 1024px when it can see ----
+const FILES = path.join(db.dir, "files");
+const shrink = (file, width) => { const i = nativeImage.createFromPath(path.join(FILES, file)); return i.getSize().width > width ? i.resize({ width }) : i; };
+const thumbs = new Map();
+const withThumb = (m) => { if (m.file && !thumbs.has(m.file)) thumbs.set(m.file, shrink(m.file, 260).toDataURL()); return m.file ? { ...m, thumb: thumbs.get(m.file) } : m; };
+async function sendFile(id, src) {
+  const buddy = db.buddy(id);
+  if (!buddy || !/\.(png|jpe?g|gif|webp|bmp)$/i.test(src)) throw new Error("Pictures only: png, jpg, gif, webp or bmp.");
+  if (fs.statSync(src).size > 20e6) throw new Error("That picture is over 20 MB.");
+  fs.mkdirSync(FILES, { recursive: true });
+  const file = `${Date.now()}-${path.basename(src).replace(/[^\w.-]/g, "_")}`;
+  fs.copyFileSync(src, path.join(FILES, file));
+  broadcast("message", { msg: withThumb(db.addMessage(id, "me", "", Date.now(), file)), buddy });
+  scheduler.reply(id);
+  return { seen: await llm.canSee(llmCfg()), model: db.settings().model };
+}
+ipcMain.handle("chat:sendFile", attempt((_e, id, src) => sendFile(id, String(src))));
+ipcMain.handle("chat:pick", attempt(async (e, id) => {
+  const r = await dialog.showOpenDialog(BrowserWindow.fromWebContents(e.sender), { title: "Send a picture", properties: ["openFile"], filters: [{ name: "Pictures", extensions: ["png", "jpg", "jpeg", "gif", "webp", "bmp"] }] });
+  return r.canceled ? { canceled: true } : sendFile(id, r.filePaths[0]);
+}));
+ipcMain.handle("file:open", (_e, file) => shell.openPath(path.join(FILES, path.basename(String(file)))));
+
 const scheduler = createScheduler({
   chat: (opts) => llm.chat(opts, llmCfg()), onMessage, onPresence: (buddy, from) => broadcast("presence", { buddy, from }),
+  picture: async (file) => ((await llm.canSee(llmCfg())) === false ? null : `data:image/jpeg;base64,${shrink(file, 1024).toJPEG(80).toString("base64")}`),
   onTyping: (id, on) => broadcast("typing", { id, on }), onError: (buddy, e) => broadcast("chat-error", { id: buddy.id, error: e.message }),
   onBack: () => broadcast("settings", db.settings()),
 });
@@ -61,8 +87,6 @@ async function askJson(p) {
 }
 const takenNames = () => db.buddies().map((b) => b.screenName);
 const ownProfile = async (b) => prompts.toBuddy({ ...b, profile: await askJson(prompts.writeProfile(b)) }).profile;
-// Handlers the renderer shows errors from: { ok: true, ...result } or { ok: false, error }.
-const attempt = (fn) => async (...args) => { try { return { ok: true, ...(await fn(...args)) }; } catch (e) { return { ok: false, error: e.message }; } };
 
 // ---- Netpals Plus: free is 3 buddies (main checks) and two themes (Setup checks); a key unlocks the rest ----------
 const licensedTo = (s = db.settings()) => { const l = license.verify(s.license); return l ? l.name || l.email || "you" : ""; };
@@ -116,7 +140,7 @@ ipcMain.handle("msg:vote", (_e, msgId, v) => {
 });
 ipcMain.handle("buddy:nudge", (_e, id, on) => { db.updateBuddy(id, { nudge: on ? 1 : 0 }); broadcast("buddies"); });
 ipcMain.handle("buddy:forget", (_e, id) => { db.updateBuddy(id, { notes: "" }); broadcast("buddies"); });
-ipcMain.handle("chat:load", (_e, id) => { const buddy = db.buddy(id); return buddy && { buddy, messages: db.lastMessages(id, 200) }; });
+ipcMain.handle("chat:load", (_e, id) => { const buddy = db.buddy(id); return buddy && { buddy, messages: db.lastMessages(id, 200).map(withThumb) }; });
 ipcMain.handle("chat:send", (_e, id, text) => {
   const buddy = db.buddy(id), said = String(text).trim().slice(0, 1000);
   if (!buddy || !said) return;

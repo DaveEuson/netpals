@@ -74,6 +74,16 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   check(msg?.text === "hey! did you eat lunch?", `cleanup keeps 1-2 sentences, 1 question, no list or name prefix -> "${msg?.text}"`);
   check(prompts().cleanMessage("omg hiii 🎉🔥 u there?? i miss u!!", gordo) === "omg hiii u there??", "emoji stripped, emoticon-free text kept, stops at the question");
   check(prompts().cleanMessage("Hey! 👋🏼 Just saw you online!", gordo) === "Hey! Just saw you online!", "skin-tone leftovers go with the emoji");
+  // pictures: image parts when the model can look, a line about the file when it can't
+  let got = null;
+  const looker = createScheduler({ chat: async ({ messages }) => { got = messages[0].content; return "cute cat"; }, picture: async () => "data:image/jpeg;base64,AAAA" });
+  db.addMessage(gordo.id, "me", "", Date.now(), "123-cat.jpg");
+  await looker.reply(gordo.id);
+  check(Array.isArray(got) && got[0].text === "(sent you a picture)" && got[1].image_url.url.startsWith("data:image/jpeg"), "a picture goes to a seeing model as an image part");
+  const blind = createScheduler({ chat: async ({ messages }) => { got = messages[0].content; return "cant see it"; } });
+  db.addMessage(gordo.id, "me", "look", Date.now(), "124-dog.png");
+  await blind.reply(gordo.id);
+  check(typeof got === "string" && got.startsWith("look\n") && got.includes("dog.png") && got.includes("can't open pictures"), `a blind model hears about the file instead: ${JSON.stringify(got).slice(0, 60)}`);
   const zoomer = { ...gordo, era: 2019 };
   check(prompts().cleanMessage("omg hiii 🎉 u there??", zoomer) === "omg hiii 🎉 u there??" && /emoji or two/.test(prompts().buddySystem(zoomer, {})) && /No emoji/.test(prompts().buddySystem(gordo, {})), "a 2019 buddy keeps emoji and is told they're fine; 2003 Gordon isn't");
   check(prompts().cleanAway('"Out gettin snacks!! back soon? 🍕"') === "Out gettin snacks!!", "away line: one sentence, no quotes or emoji");

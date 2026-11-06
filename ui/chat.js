@@ -29,7 +29,9 @@ function add(m) {
   const head = el("span", "head");
   if (m.role === "me") head.append(el("span", "when", time(m.ts)), " ", el("b", "", me));
   else head.append(el("b", "", m.role === "auto" ? `Auto response from ${buddy.screenName}` : buddy.screenName), " ", el("span", "when", time(m.ts)));
-  body.append(head, el("span", "text", faces(m.text)));
+  body.append(head);
+  if (m.file) { const img = el("img", "pic", null, { src: m.thumb, alt: m.file.replace(/^\d+-/, ""), title: "Open the picture" }); img.onclick = () => api.invoke("file:open", m.file); body.append(img); }
+  if (m.text) body.append(el("span", "text", faces(m.text)));
   row.append(body);
   if (m.role === "buddy") row.append(thumbs(m));
   log.append(row);
@@ -92,6 +94,16 @@ for (const e of EMOJI) {
 }
 $("smile").onclick = () => { $("picker").hidden = !$("picker").hidden; };
 document.addEventListener("click", (e) => { if (!e.target.closest("#picker, #smile")) $("picker").hidden = true; });
+
+// ---- pictures: the button opens a file dialog, or drop one on the window ----------------------
+function sent(r) {
+  if (!r || r.canceled) return;
+  if (!r.ok) return note(r.error);
+  if (r.seen === false) note(`${r.model} can't see pictures, so ${buddy.screenName} only hears the file name. Pick a model that can in Setup, like gemma3.`, "notice");
+}
+$("pic").onclick = async () => sent(await api.invoke("chat:pick", id));
+document.addEventListener("dragover", (e) => e.preventDefault());
+document.addEventListener("drop", async (e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) sent(await api.invoke("chat:sendFile", id, api.pathFor(f))); });
 
 $("send").onclick = send;
 $("text").onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
