@@ -27,6 +27,11 @@ Signing on dials up. A **Connecting to Netpals** window walks through five steps
 **Modem sound** for a synthesized 56k handshake; it's off by default and remembered once on. The first sign-on plays
 the whole thing; after that the window has a **Skip** button, and Cancel takes you back to Sign On.
 
+What to expect from a local model: charm, not brilliance. A 7B model forgets what you said an hour ago, repeats
+its favorite phrases, mixes up the date and will not pass the Turing test. That's the deal for keeping everything on
+your computer. Bigger models help (see RigMatch below); OpenRouter's models are sharper still, for a fraction of a
+cent per message.
+
 No local server? It falls back to OpenRouter with `google/gemini-2.5-flash`. Paste a key on the welcome screen, or
 set `OPENROUTER_API_KEY` in your environment before `npm start`. A key from the environment is used but never saved.
 
