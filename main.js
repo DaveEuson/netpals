@@ -11,7 +11,7 @@ const prompts = require("./lib/prompts");
 const { createScheduler } = require("./lib/scheduler");
 
 // [width, height, resizable]
-const SIZE = { welcome: [420, 560], signon: [280, 470], list: [260, 560, true], chat: [460, 480, true], settings: [420, 660], away: [340, 440], addbuddy: [400, 640], profile: [300, 490], connect: [360, 230] };
+const SIZE = { welcome: [420, 560], signon: [280, 470], list: [260, 560, true], chat: [460, 480, true], settings: [420, 660], away: [340, 440], addbuddy: [400, 640], profile: [300, 490], connect: [360, 230], room: [520, 480, true] };
 const wins = new Map(); // "list" | "settings" | "chat:3" -> BrowserWindow
 
 // Main only needs the theme for the window background shown before the page paints.
@@ -76,6 +76,7 @@ const scheduler = createScheduler({
   picture: async (file) => ((await llm.canSee(llmCfg())) === false ? null : `data:image/jpeg;base64,${shrink(file, 1024).toJPEG(80).toString("base64")}`),
   onTyping: (id, on) => broadcast("typing", { id, on }), onError: (buddy, e) => broadcast("chat-error", { id: buddy.id, error: e.message }),
   onBack: () => broadcast("settings", db.settings()),
+  onRoom: (msg, buddy) => broadcast("room", { msg, buddy }), onRoomTyping: (buddy, on) => broadcast("room-typing", { buddy, on }),
 });
 
 // Ask for JSON twice before giving up; connection errors throw straight through with their own message.
@@ -140,6 +141,15 @@ ipcMain.handle("msg:vote", (_e, msgId, v) => {
 });
 ipcMain.handle("buddy:nudge", (_e, id, on) => { db.updateBuddy(id, { nudge: on ? 1 : 0 }); broadcast("buddies"); });
 ipcMain.handle("buddy:forget", (_e, id) => { db.updateBuddy(id, { notes: "" }); broadcast("buddies"); });
+// ---- Buddy Chat: one room; who's in it is settings.chatRoom, its lines have roomId 1 ---------------------------
+ipcMain.handle("room:load", () => { const s = db.settings(); return { members: s.chatRoom, buddies: db.buddies(), messages: db.roomMessages(200), me: s.screenName }; });
+ipcMain.handle("room:send", (_e, text) => { const said = String(text).trim().slice(0, 1000); if (!said) return; broadcast("room", { msg: db.addRoomMessage("me", said) }); scheduler.roomReply(); });
+ipcMain.handle("room:members", (_e, ids) => {
+  const was = db.settings().chatRoom, now = [...new Set(ids.map(Number))].filter((id) => db.buddy(id));
+  for (const id of now.filter((id) => !was.includes(id))) broadcast("room", { msg: db.addRoomMessage("sys", `${db.buddy(id).screenName} has entered the room.`, id) });
+  for (const id of was.filter((id) => !now.includes(id))) broadcast("room", { msg: db.addRoomMessage("sys", `${db.buddy(id)?.screenName || "someone"} has left the room.`, id) });
+  db.setSettings({ chatRoom: now }); broadcast("settings", db.settings());
+});
 ipcMain.handle("chat:load", (_e, id) => { const buddy = db.buddy(id); return buddy && { buddy, messages: db.lastMessages(id, 200).map(withThumb) }; });
 ipcMain.handle("chat:send", (_e, id, text) => {
   const buddy = db.buddy(id), said = String(text).trim().slice(0, 1000);

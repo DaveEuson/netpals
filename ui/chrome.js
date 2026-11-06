@@ -44,6 +44,19 @@ const fillYou = (s) => { $("y-sn").value = s.screenName; $("y-age").value = s.ag
 const readYou = () => ({ screenName: $("y-sn").value, password: $("y-pw").value, age: $("y-age").value, gender: $("y-gender").value,
   about: $("y-about").value, mismatch: $("y-pw").value !== $("y-pw2").value });
 
+const time = (ts) => new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+const stamp = (ts) => new Date(ts).toLocaleString([], { weekday: "long", hour: "numeric", minute: "2-digit" });
+// A smiley picker that drops an emoji in at the cursor of a textarea. Instant Message and Buddy Chat both have one.
+const EMOJI = "😀 😂 🙂 😉 😍 😘 😛 😎 🤔 😮 😢 😭 😠 🙄 😴 🤒 👍 👎 👋 🙏 👀 💀 ❤️ 💔 🔥 ✨ 🎉 ☕ 🍕 🎮 🎵 💤".split(" ");
+function smileys(text, button, picker) {
+  for (const e of EMOJI) {
+    const b = el("button", "", e, { type: "button" });
+    b.onclick = () => { text.setRangeText(e, text.selectionStart, text.selectionEnd, "end"); picker.hidden = true; text.focus(); };
+    picker.append(b);
+  }
+  button.onclick = () => { picker.hidden = !picker.hidden; };
+  document.addEventListener("click", (e) => { if (!e.target.closest("#picker, #smile")) picker.hidden = true; });
+}
 // Classic emoticons drawn as faces, the way IM clients did it. Display only: the text itself stays as typed.
 const FACES = { ":-)": "🙂", ":)": "🙂", ":-(": "🙁", ":(": "🙁", ";-)": "😉", ";)": "😉", ":-P": "😛", ":P": "😛", ":-p": "😛", ":p": "😛", ":-D": "😀", ":D": "😀",
   ":-O": "😮", ":-o": "😮", ":O": "😮", ":o": "😮", ":'(": "😢", "B-)": "😎", ":-*": "😘", ":-|": "😐", "<3": "❤️", ">:(": "😠", "XD": "😆", "xD": "😆" };

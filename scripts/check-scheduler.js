@@ -84,6 +84,17 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   db.addMessage(gordo.id, "me", "look", Date.now(), "124-dog.png");
   await blind.reply(gordo.id);
   check(typeof got === "string" && got.startsWith("look\n") && got.includes("dog.png") && got.includes("can't open pictures"), `a blind model hears about the file instead: ${JSON.stringify(got).slice(0, 60)}`);
+  // Buddy Chat: one to three members answer in turn, then maybe one riffs on the last buddy line
+  db.setSettings({ chatRoom: db.buddies().map((b) => b.id) });
+  for (const b of db.buddies()) db.updateBuddy(b.id, { status: "online" });
+  let roomSys = "";
+  const room = createScheduler({ chat: async ({ system }) => { roomSys = system; return /riff on what/.test(system) ? "lol same" : "hey room"; } });
+  db.addRoomMessage("me", "hey everyone");
+  const n = await room.roomReply();
+  const lines = db.roomMessages(10).filter((m) => m.role === "buddy");
+  check(n >= 1 && n <= 3 && (lines.length === n || lines.length === n + 1) && new Set(lines.slice(0, n).map((m) => m.fromId)).size === n, `room: ${n} answered in turn${lines.length > n ? ", then one riffed" : ""}`);
+  check(/in a chat room/.test(roomSys) && /the host: hey everyone/.test(roomSys) && /the host/.test(roomSys) && !/dialtone/.test(roomSys), "the room prompt names the room and the host's line, never your screen name");
+  db.setSettings({ chatRoom: [] });
   const zoomer = { ...gordo, era: 2019 };
   check(prompts().cleanMessage("omg hiii 🎉 u there??", zoomer) === "omg hiii 🎉 u there??" && /emoji or two/.test(prompts().buddySystem(zoomer, {})) && /No emoji/.test(prompts().buddySystem(gordo, {})), "a 2019 buddy keeps emoji and is told they're fine; 2003 Gordon isn't");
   check(prompts().cleanAway('"Out gettin snacks!! back soon? 🍕"') === "Out gettin snacks!!", "away line: one sentence, no quotes or emoji");

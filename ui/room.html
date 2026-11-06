@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+<title>Buddy Chat</title>
+<link rel="stylesheet" href="xp.css">
+<script src="chrome.js"></script>
+<style>
+  .members { flex: none; display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 8px 10px; font-size: 11px; border-bottom: 1px solid var(--groove); }
+  .members .off { color: var(--muted); }
+  .msg.sys { justify-content: center; }
+  .msg.sys .text { color: var(--muted); font-style: italic; font-size: 11px; }
+</style>
+<title-bar min></title-bar>
+<div class="members" id="members" role="group" aria-label="Who's in the room"></div>
+<div id="log" class="sunken" role="log" aria-live="polite"></div>
+<div id="typing" aria-live="polite"></div>
+<div id="picker" class="sunken" role="group" aria-label="Smileys" hidden></div>
+<div class="compose">
+  <div class="col tools"><button class="tool" id="smile" type="button" title="Smileys" aria-label="Smileys">🙂</button></div>
+  <label for="text" class="sr">Message to the room</label>
+  <textarea id="text" rows="3" maxlength="1000" placeholder="Say something to the room…"></textarea>
+  <button class="btn default" id="send">
+    <svg class="icon" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 9l14-6-5 13-2.5-5.5z M8.5 10.5L16 3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+    <span>Send</span>
+  </button>
+</div>
+<script src="room.js"></script>

@@ -83,7 +83,7 @@ api.on("read", (id) => { delete unread[id]; render(); });
 
 $("chat").oninput = () => { $("chat-label").textContent = LABELS[$("chat").value]; };
 $("chat").onchange = () => api.invoke("settings:set", { chattiness: Number($("chat").value) });
-for (const [id, win] of [["away", "away"], ["add", "addbuddy"], ["setup", "settings"]]) $(id).onclick = () => api.invoke("win:open", win);
+for (const [id, win] of [["away", "away"], ["add", "addbuddy"], ["chat", "room"], ["setup", "settings"]]) $(id).onclick = () => api.invoke("win:open", win);
 $("back").onclick = () => api.invoke("away:set", "");
 
 setInterval(render, 30_000); // idle minutes tick up, "just signed on" fades

@@ -62,3 +62,30 @@ quiz-form label + input { margin-bottom: 5px; }
 input[type=range] { -webkit-appearance: none; appearance: none; height: 20px; background: transparent; margin: 0; }
 input[type=range]::-webkit-slider-runnable-track { height: 4px; background: var(--panel); border: 1px solid var(--groove); border-radius: 2px; }
 input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 11px; height: 19px; margin-top: -9px; background: var(--btn); border: 1px solid var(--icon); border-radius: 2px 2px 6px 6px; }
+
+/* ---- IM log, typing line, compose box and smiley picker: Instant Message and Buddy Chat ------- */
+#log { flex: 1; min-height: 0; margin: 8px 8px 0; padding: 8px 10px; overflow: auto; display: flex; flex-direction: column; gap: 9px; user-select: text; }
+.stamp { align-self: center; font-size: 10px; color: var(--muted); }
+.msg { display: flex; align-items: flex-start; gap: 8px; }
+.msg .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.msg .text { line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg .head { font-size: 11px; }
+.msg .pic { max-width: 260px; max-height: 200px; border: 1px solid var(--groove); cursor: pointer; }
+.msg .head b { color: var(--them); }
+.msg .head .when { color: var(--muted); }
+.msg.me { justify-content: flex-end; padding-left: 60px; }
+.msg.me .body { align-items: flex-end; }
+.msg.me .text { text-align: right; }
+.msg.me .head b { color: var(--accent); }
+.msg.auto .text, .msg.err .text, .msg.notice .text { color: var(--muted); font-style: italic; }
+.msg.err .text { color: var(--hot); }
+#typing { flex: none; height: 20px; margin: 0 8px; display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+.compose { flex: none; display: flex; gap: 6px; padding: 0 8px 10px; }
+.tools { flex: none; gap: 6px; }
+.tool { width: 26px; height: 26px; padding: 0; border: 1px solid var(--groove); border-radius: 3px; background: var(--panel); color: var(--icon); font-size: 15px; line-height: 1; cursor: pointer; }
+.tool:hover { border-color: var(--glow); }
+#picker { position: absolute; left: 8px; bottom: 76px; z-index: 2; display: grid; grid-template-columns: repeat(8, 28px); gap: 1px; padding: 4px; box-shadow: 2px 2px 0 var(--groove); }
+#picker button { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 3px; background: none; font-size: 18px; line-height: 1; cursor: pointer; }
+#picker button:hover { background: var(--hover); }
+#text { flex: 1; height: 58px; }
+#send { flex: none; width: 72px; height: 58px; flex-direction: column; gap: 4px; font-weight: bold; }

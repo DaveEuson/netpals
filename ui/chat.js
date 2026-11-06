@@ -5,8 +5,6 @@ let buddy = null;
 let lastTs = 0;
 const me = api.settingsSync().screenName || "Me";
 
-const time = (ts) => new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-const stamp = (ts) => new Date(ts).toLocaleString([], { weekday: "long", hour: "numeric", minute: "2-digit" });
 const markRead = () => { if (document.hasFocus()) api.invoke("buddy:read", id); };
 
 const statusLine = (b) => ({ away: `Away · ${b.statusText || "be right back"}`, idle: `Idle ${Math.max(1, Math.round((Date.now() - b.statusAt) / 60_000))}m`,
@@ -85,15 +83,7 @@ api.on("typing", ({ id: who, on }) => { if (who === id) typing(on); });
 api.on("chat-error", ({ id: who, error }) => { if (who === id) note(`${buddy.screenName} couldn't answer: ${error}`); });
 api.on("buddies", async () => { const r = await api.invoke("chat:load", id); if (!r) api.invoke("win:close"); else header(r.buddy); });
 
-// ---- smileys: a picker that drops an emoji in at the cursor ------------------------------------
-const EMOJI = "😀 😂 🙂 😉 😍 😘 😛 😎 🤔 😮 😢 😭 😠 🙄 😴 🤒 👍 👎 👋 🙏 👀 💀 ❤️ 💔 🔥 ✨ 🎉 ☕ 🍕 🎮 🎵 💤".split(" ");
-for (const e of EMOJI) {
-  const b = el("button", "", e, { type: "button" });
-  b.onclick = () => { const t = $("text"); t.setRangeText(e, t.selectionStart, t.selectionEnd, "end"); $("picker").hidden = true; t.focus(); };
-  $("picker").append(b);
-}
-$("smile").onclick = () => { $("picker").hidden = !$("picker").hidden; };
-document.addEventListener("click", (e) => { if (!e.target.closest("#picker, #smile")) $("picker").hidden = true; });
+smileys($("text"), $("smile"), $("picker"));
 
 // ---- pictures: the button opens a file dialog, or drop one on the window ----------------------
 function sent(r) {
