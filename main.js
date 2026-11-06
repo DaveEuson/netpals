@@ -33,7 +33,7 @@ const llmCfg = (s = db.settings()) => ({ provider: s.provider, baseUrl: s.baseUr
 
 function openWindow(kind, query = {}) {
   const key = kind + (query.id ? `:${query.id}` : "");
-  if (wins.has(key)) { const w = wins.get(key); w.show(); w.focus(); return w; }
+  if (wins.has(key)) { const w = wins.get(key); if (w.isMinimized()) w.restore(); w.show(); w.focus(); return w; }
   const s = db.settings();
   const [width, height, resizable = false] = SIZE[kind];
   const b = s.bounds?.[kind]; // where you left this kind of window last time, if that spot is still on a screen
@@ -51,7 +51,7 @@ function openWindow(kind, query = {}) {
   wins.set(key, w);
   return w;
 }
-const broadcast = (channel, payload) => { for (const w of wins.values()) w.webContents.send(channel, payload); };
+const broadcast = (channel, payload) => { for (const w of wins.values()) if (!w.isDestroyed()) w.webContents.send(channel, payload); };
 // Handlers the renderer shows errors from: { ok: true, ...result } or { ok: false, error }.
 const attempt = (fn) => async (...args) => { try { return { ok: true, ...(await fn(...args)) }; } catch (e) { return { ok: false, error: e.message }; } };
 
@@ -68,24 +68,26 @@ function onMessage(msg, buddy) {
 }
 
 // ---- pictures: copied into data/files, shown as thumbnails, sent to the model shrunk to 1024px when it can see ----
+// PNG and JPEG only: that's what nativeImage decodes. Thumbnails are made when a window asks, one at a time, and kept.
 const FILES = path.join(db.dir, "files");
 const shrink = (file, width) => { const i = nativeImage.createFromPath(path.join(FILES, file)); return i.getSize().width > width ? i.resize({ width }) : i; };
 const thumbs = new Map();
-const withThumb = (m) => { if (m.file && !thumbs.has(m.file)) thumbs.set(m.file, shrink(m.file, 260).toDataURL()); return m.file ? { ...m, thumb: thumbs.get(m.file) } : m; };
+const thumb = (file) => { if (!thumbs.has(file)) thumbs.set(file, shrink(file, 260).toDataURL()); return thumbs.get(file); };
+ipcMain.handle("pic:thumb", (_e, file) => thumb(path.basename(String(file))));
 async function sendFile(id, src) {
   const buddy = db.buddy(id);
-  if (!buddy || !/\.(png|jpe?g|gif|webp|bmp)$/i.test(src)) throw new Error("Pictures only: png, jpg, gif, webp or bmp.");
+  if (!buddy || !/\.(png|jpe?g)$/i.test(src)) throw new Error("Pictures only: a png or jpg.");
   if (fs.statSync(src).size > 20e6) throw new Error("That picture is over 20 MB.");
   fs.mkdirSync(FILES, { recursive: true });
   const file = `${Date.now()}-${path.basename(src).replace(/[^\w.-]/g, "_")}`;
   fs.copyFileSync(src, path.join(FILES, file));
-  broadcast("message", { msg: withThumb(db.addMessage(id, "me", "", Date.now(), file)), buddy });
+  broadcast("message", { msg: db.addMessage(id, "me", "", Date.now(), file), buddy });
   scheduler.reply(id);
   return { seen: await llm.canSee(llmCfg()), model: db.settings().model };
 }
 ipcMain.handle("chat:sendFile", attempt((_e, id, src) => sendFile(id, String(src))));
 ipcMain.handle("chat:pick", attempt(async (e, id) => {
-  const r = await dialog.showOpenDialog(BrowserWindow.fromWebContents(e.sender), { title: "Send a picture", properties: ["openFile"], filters: [{ name: "Pictures", extensions: ["png", "jpg", "jpeg", "gif", "webp", "bmp"] }] });
+  const r = await dialog.showOpenDialog(BrowserWindow.fromWebContents(e.sender), { title: "Send a picture", properties: ["openFile"], filters: [{ name: "Pictures", extensions: ["png", "jpg", "jpeg"] }] });
   return r.canceled ? { canceled: true } : sendFile(id, r.filePaths[0]);
 }));
 ipcMain.handle("file:open", (_e, file) => shell.openPath(path.join(FILES, path.basename(String(file)))));
@@ -93,26 +95,26 @@ ipcMain.handle("file:open", (_e, file) => shell.openPath(path.join(FILES, path.b
 // ---- tray: the Buddy List closes to it, the icon blinks while IMs wait, and Sign Off is the way out ------------
 let tray = null, blink = null;
 const trayIcon = (name) => nativeImage.createFromPath(path.join(__dirname, "assets", `${name}.ico`));
+const ICON = { quiet: trayIcon("tray"), waiting: trayIcon("tray-new") };
 function makeTray() {
-  tray = new Tray(trayIcon("tray"));
+  tray = new Tray(ICON.quiet);
   tray.setToolTip("Netpals");
   tray.setContextMenu(Menu.buildFromTemplate([{ label: "Buddy List", click: () => openWindow("list") }, { label: "Away…", click: () => openWindow("away") }, { type: "separator" }, { label: "Sign Off", click: () => { quitting = true; app.quit(); } }]));
   tray.on("click", () => openWindow("list"));
 }
 function blinkTray() { // blinks while any IM is unread; opening that IM window counts as reading it
   const waiting = db.unreadCounts().length > 0;
-  if (waiting && !blink) { let on = false; blink = setInterval(() => tray?.setImage(trayIcon((on = !on) ? "tray-new" : "tray")), 600); }
-  if (!waiting && blink) { clearInterval(blink); blink = null; tray?.setImage(trayIcon("tray")); }
+  if (waiting && !blink) { let on = false; blink = setInterval(() => tray?.setImage((on = !on) ? ICON.waiting : ICON.quiet), 600); }
+  if (!waiting && blink) { clearInterval(blink); blink = null; tray?.setImage(ICON.quiet); }
 }
 const trayState = () => ({ tray: Boolean(tray), blinking: Boolean(blink) });
 
 // ---- auto-away: no mouse or keyboard for a while and you're away, AIM-style; touch anything and you're back -----
-let autoAway = false;
+// settings.autoAway remembers that Netpals set the away itself, so a restart in the middle still ends it.
 function idleCheck(idle = powerMonitor.getSystemIdleTime()) {
   const s = db.settings();
-  if (!s.autoAwayMinutes) return;
-  if (!s.awayMessage && idle >= s.autoAwayMinutes * 60) { autoAway = true; scheduler.setAway("I am away from my computer right now."); broadcast("settings", db.settings()); }
-  else if (autoAway && idle < 60) { autoAway = false; scheduler.setAway(""); broadcast("settings", db.settings()); }
+  if (!s.awayMessage && s.autoAwayMinutes && idle >= s.autoAwayMinutes * 60) { db.setSettings({ autoAway: true }); scheduler.setAway("I am away from my computer right now."); broadcast("settings", db.settings()); }
+  else if (s.autoAway && idle < 60) { db.setSettings({ autoAway: false }); scheduler.setAway(""); broadcast("settings", db.settings()); }
 }
 
 const scheduler = createScheduler({
@@ -131,6 +133,7 @@ async function askJson(p) {
   throw new Error("The model's answer didn't make sense. Roll again?");
 }
 const takenNames = () => db.buddies().map((b) => b.screenName);
+const takenForBuddies = () => [...takenNames(), db.settings().screenName].filter(Boolean); // yours is taken too
 const ownProfile = async (b) => prompts.toBuddy({ ...b, profile: await askJson(prompts.writeProfile(b)) }).profile;
 
 // ---- Netpals Plus: free is 3 buddies (main checks) and two themes (Setup checks); a key unlocks the rest ----------
@@ -194,7 +197,7 @@ ipcMain.handle("buddy:forget", (_e, id) => { db.updateBuddy(id, { notes: "" }); 
 ipcMain.handle("buddy:update", attempt((_e, raw) => {
   const old = db.buddy(raw.id);
   if (!old) throw new Error("That buddy is gone.");
-  const b = prompts.toBuddy(raw, takenNames().filter((n) => n.toLowerCase() !== old.screenName.toLowerCase()));
+  const b = prompts.toBuddy(raw, takenForBuddies().filter((n) => n.toLowerCase() !== old.screenName.toLowerCase()));
   db.updateBuddy(old.id, { name: b.name, screenName: b.screenName, emoji: b.emoji, era: b.era, personaPrompt: b.personaPrompt, cadenceWeight: b.cadenceWeight, nudge: b.nudge, profile: prompts.blankProfile(b) ? old.profile : b.profile });
   broadcast("buddies");
 }));
@@ -206,19 +209,26 @@ ipcMain.handle("chat:save", async (e, id, to) => {
   if (!file) return false;
   const me = db.settings().screenName || "me";
   const who = (m) => (m.role === "me" ? me : m.role === "auto" ? `${b.screenName} (auto response)` : b.screenName);
-  fs.writeFileSync(file, db.lastMessages(id, 1e6).map((m) => `[${new Date(m.ts).toLocaleString()}] ${who(m)}: ${m.text}${m.file ? `[picture: ${m.file}]` : ""}`).join("\r\n") + "\r\n");
+  fs.writeFileSync(file, db.lastMessages(id, 1e6).map((m) => `[${new Date(m.ts).toLocaleString()}] ${who(m)}: ${m.text}${m.file ? `${m.text ? " " : ""}[picture: ${m.file.replace(/^\d+-/, "")}]` : ""}`).join("\r\n") + "\r\n");
   return true;
 });
 // ---- Buddy Chat: one room; who's in it is settings.chatRoom, its lines have roomId 1 ---------------------------
 ipcMain.handle("room:load", () => { const s = db.settings(); return { members: s.chatRoom, buddies: db.buddies(), messages: db.roomMessages(200), me: s.screenName }; });
-ipcMain.handle("room:send", (_e, text) => { const said = String(text).trim().slice(0, 1000); if (!said) return; broadcast("room", { msg: db.addRoomMessage("me", said) }); scheduler.roomReply(); });
+ipcMain.handle("room:send", (_e, text) => {
+  const said = String(text).trim().slice(0, 1000);
+  if (!said) return;
+  broadcast("room", { msg: db.addRoomMessage("me", said) });
+  const s = db.settings(), around = db.buddies().some((b) => (s.chatRoom || []).includes(b.id) && ["online", "idle"].includes(b.status));
+  if (!around) return broadcast("room", { msg: { id: 0, role: "sys", text: "Nobody in the room is around right now.", ts: Date.now(), fromId: 0 } }); // shown, not kept
+  scheduler.roomReply();
+});
 ipcMain.handle("room:members", (_e, ids) => {
-  const was = db.settings().chatRoom, now = [...new Set(ids.map(Number))].filter((id) => db.buddy(id));
+  const was = db.settings().chatRoom || [], now = [...new Set(ids.map(Number))].filter((id) => db.buddy(id));
   for (const id of now.filter((id) => !was.includes(id))) broadcast("room", { msg: db.addRoomMessage("sys", `${db.buddy(id).screenName} has entered the room.`, id) });
   for (const id of was.filter((id) => !now.includes(id))) broadcast("room", { msg: db.addRoomMessage("sys", `${db.buddy(id)?.screenName || "someone"} has left the room.`, id) });
   db.setSettings({ chatRoom: now }); broadcast("settings", db.settings());
 });
-ipcMain.handle("chat:load", (_e, id) => { const buddy = db.buddy(id); return buddy && { buddy, messages: db.lastMessages(id, 200).map(withThumb) }; });
+ipcMain.handle("chat:load", (_e, id) => { const buddy = db.buddy(id); return buddy && { buddy, messages: db.lastMessages(id, 200) }; });
 ipcMain.handle("chat:send", (_e, id, text) => {
   const buddy = db.buddy(id), said = String(text).trim().slice(0, 1000);
   if (!buddy || !said) return;
@@ -228,13 +238,13 @@ ipcMain.handle("chat:send", (_e, id, text) => {
 ipcMain.handle("buddy:canAdd", addBlocked);
 ipcMain.handle("buddy:randomize", attempt(async (_e, vibe) => {
   if (!licensedTo()) throw new Error("Randomize comes with Netpals Plus. Add your key in Setup, or build a buddy yourself.");
-  const b = prompts.toBuddy(await askJson(prompts.randomBuddy(String(vibe).slice(0, 200))), takenNames());
+  const b = prompts.toBuddy(await askJson(prompts.randomBuddy(String(vibe).slice(0, 200))), takenForBuddies());
   if (prompts.blankProfile(b)) b.profile = await ownProfile(b); // the preview should be complete
   return { buddy: b };
 }));
 ipcMain.handle("buddy:add", attempt((_e, raw) => {
   if (addBlocked()) throw new Error(addBlocked());
-  const b = prompts.toBuddy(raw, takenNames());
+  const b = prompts.toBuddy(raw, takenForBuddies());
   const id = db.addBuddy(b);
   broadcast("presence", { buddy: db.buddy(id), from: "offline" }); // new buddies sign on with a door sound
   // Left the profile blank? They write their own, in the background.
@@ -286,7 +296,7 @@ ipcMain.handle("llm:test", attempt(async () => {
   const text = await llm.chat({ system: "You are a friend on an instant messenger. Reply with one short hello.", messages: [{ role: "user", content: "hi" }], maxTokens: 30 }, llmCfg());
   return { ms: Date.now() - t0, text };
 }));
-ipcMain.handle("away:set", (_e, text, minutes) => { autoAway = false; scheduler.setAway(text, Number(minutes) || 0); broadcast("settings", db.settings()); });
+ipcMain.handle("away:set", (_e, text, minutes) => { db.setSettings({ autoAway: false }); scheduler.setAway(text, Number(minutes) || 0); broadcast("settings", db.settings()); });
 ipcMain.handle("win:open", (_e, kind, query) => { openWindow(kind, query); });
 ipcMain.handle("win:close", (e) => BrowserWindow.fromWebContents(e.sender)?.close());
 ipcMain.handle("win:min", (e) => BrowserWindow.fromWebContents(e.sender)?.minimize());

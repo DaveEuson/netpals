@@ -94,7 +94,7 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   const lines = db.roomMessages(10).filter((m) => m.role === "buddy");
   check(n >= 1 && n <= 3 && (lines.length === n || lines.length === n + 1) && new Set(lines.slice(0, n).map((m) => m.fromId)).size === n, `room: ${n} answered in turn${lines.length > n ? ", then one riffed" : ""}`);
   check(/in a chat room/.test(roomSys) && /the host: hey everyone/.test(roomSys) && /the host/.test(roomSys) && !/dialtone/.test(roomSys), "the room prompt names the room and the host's line, never your screen name");
-  db.setSettings({ chatRoom: [] });
+  db.setSettings({ chatRoom: null });
   const zoomer = { ...gordo, era: 2019 };
   check(prompts().cleanMessage("omg hiii 🎉 u there??", zoomer) === "omg hiii 🎉 u there??" && /emoji or two/.test(prompts().buddySystem(zoomer, {})) && /No emoji/.test(prompts().buddySystem(gordo, {})), "a 2019 buddy keeps emoji and is told they're fine; 2003 Gordon isn't");
   check(prompts().cleanAway('"Out gettin snacks!! back soon? 🍕"') === "Out gettin snacks!!", "away line: one sentence, no quotes or emoji");

@@ -28,7 +28,11 @@ function add(m) {
   if (m.role === "me") head.append(el("span", "when", time(m.ts)), " ", el("b", "", me));
   else head.append(el("b", "", m.role === "auto" ? `Auto response from ${buddy.screenName}` : buddy.screenName), " ", el("span", "when", time(m.ts)));
   body.append(head);
-  if (m.file) { const img = el("img", "pic", null, { src: m.thumb, alt: m.file.replace(/^\d+-/, ""), title: "Open the picture" }); img.onclick = () => api.invoke("file:open", m.file); body.append(img); }
+  if (m.file) { // the thumbnail arrives on its own, so a log full of pictures opens at once
+    const img = el("img", "pic", null, { alt: m.file.replace(/^\d+-/, ""), title: "Open the picture" });
+    api.invoke("pic:thumb", m.file).then((src) => { img.src = src; });
+    img.onclick = () => api.invoke("file:open", m.file); body.append(img);
+  }
   if (m.text) body.append(el("span", "text", faces(m.text)));
   row.append(body);
   if (m.role === "buddy") row.append(thumbs(m));

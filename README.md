@@ -71,12 +71,12 @@ npm run reset-password
 - **Smileys.** The 🙂 button in an IM window drops an emoji in at the cursor. Classic emoticons like `:-)` and `;-)`
   are drawn as faces, the way IM clients did; the text underneath stays as typed. Buddies from 2010 on use emoji
   themselves; older ones stick to emoticons.
-- **Pictures.** The picture button in an IM window (or dropping a file onto it) sends a png, jpg, gif, webp or bmp.
+- **Pictures.** The picture button in an IM window (or dropping a file onto it) sends a png or jpg.
   It shows as a thumbnail; click it to open the original. If the brain can see pictures (Ollama's `gemma3`, most
   OpenRouter models), the buddy looks at it; if not, the IM window says so and the buddy only hears the file name.
 - **Buddy Chat.** The Chat button opens one room for everyone you tick; the first time, everyone who's around is
   in. Say something and one to three buddies answer in turn, and sometimes one riffs on another. Buddies who are
-  away or signed off sit it out. Pictures stay in one-on-one IMs.
+  away or signed off sit it out, and the room says so if nobody's around. Pictures stay in one-on-one IMs.
 - Right-click a buddy to remove them.
 - **Still there?** Leave a buddy's IM unanswered for 4 to 7 minutes and a buddy who's the type checks in once, in
   their own words. Tasha and Gordon do this; Marisol gives you space. Randomize decides from the personality. Switch

@@ -44,8 +44,8 @@ async function load() {
   const r = await api.invoke("room:load");
   me = r.me || "Me";
   buddies = new Map(r.buddies.map((b) => [b.id, b]));
-  members = new Set(r.members.filter((id) => buddies.has(id)));
-  if (!r.members.length) { // the first time, everyone who's around is in
+  members = new Set((r.members || []).filter((id) => buddies.has(id)));
+  if (r.members === null) { // the first time ever, everyone who's around is in; an emptied room stays empty
     for (const b of r.buddies) if (b.status !== "offline") members.add(b.id);
     if (members.size) api.invoke("room:members", [...members]);
   }
