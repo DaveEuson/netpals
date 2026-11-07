@@ -10,6 +10,10 @@ on:
         type: choice
         options: [macos-latest, windows-latest]
         default: macos-latest
+      tests:
+        description: Run the test suite (untick to only build and smoke-test)
+        type: boolean
+        default: true
 jobs:
   test:
     runs-on: ${{ inputs.os }}
@@ -22,11 +26,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test -- --verbose
+        if: inputs.tests
       - name: Build (the Mac disk images ad-hoc signed)
         shell: bash
         run: |
-          if [ "$RUNNER_OS" = "macOS" ]; then npx electron-builder --mac -c.mac.identity=- -c.mac.hardenedRuntime=false
-          else npx electron-builder --win --dir; fi
+          if [ "$RUNNER_OS" = "macOS" ]; then npx electron-builder --mac --publish never -c.mac.identity=- -c.mac.hardenedRuntime=false
+          else npx electron-builder --win --dir --publish never; fi
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
       - name: Smoke test the packaged app
@@ -38,7 +43,7 @@ jobs:
             node scripts/smoke.js "$app/Contents/MacOS/Netpals"
           else node scripts/smoke.js dist/win-unpacked/Netpals.exe; fi
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && inputs.tests
         with:
           name: screenshots-${{ inputs.os }}
           path: tests/out/*.png
