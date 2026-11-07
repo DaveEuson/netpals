@@ -6,6 +6,9 @@ if (s.savePassword) $("pw").placeholder = "••••••••";
 $("auto").onchange = () => { if ($("auto").checked) $("save").checked = true; }; // auto-login needs a saved password
 $("save").onchange = () => { if (!$("save").checked) $("auto").checked = false; };
 $("forgot").onclick = () => { $("forgot-hint").hidden = false; };
+$("forgot-hint").textContent = (/Mac/.test(navigator.userAgent)
+  ? "Quit Netpals, then in Terminal run: open -a Netpals --args --reset-password"
+  : "Open Reset Netpals password from the Start menu.") + " You pick a new one; your buddies and chats stay.";
 $("pw").onkeydown = (e) => { if (e.key === "Enter") $("signon").click(); };
 
 $("signon").onclick = async () => {

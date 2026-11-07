@@ -1,5 +1,5 @@
 // Your account, across launches. PHASE (set by tests/run.js) picks the launch; the data folder carries over:
-//   setup → signon → auto → (scripts/reset-password.js) → reset
+//   setup → signon → auto → reset (started with --reset-password, the way the Start menu shortcut does it)
 const t = require("../harness");
 const { db, check, skip, win, js, sleep, until, click, text, value, vis, set, open, snap, buddy } = t;
 const PHASE = process.env.PHASE;
@@ -117,7 +117,7 @@ t.run(async () => {
 
   if (PHASE === "reset") {
     const w = win("welcome.html");
-    check(Boolean(w) && !win("signon.html"), "after reset-password, setup opens again");
+    check(Boolean(w) && !win("signon.html") && !db.settings().passHash && !db.settings().autoLogin, "--reset-password clears the password and opens setup");
     check((await value(w, "y-sn")) === "dialtone dave", "with your screen name kept");
     check(db.buddies().length >= 3, "and your buddies kept");
   }

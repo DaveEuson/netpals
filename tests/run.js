@@ -13,7 +13,7 @@ const fakeModel = require("./fake-model");
 const TESTS = [
   { name: "license", node: "unit/license.js" },
   { name: "scheduler", electron: "unit/scheduler.js", args: (live) => (live ? ["--live"] : []), timeout: 240 },
-  { name: "account", electron: "ui/account.js", phases: ["setup", "signon", "auto", { node: "../scripts/reset-password.js" }, "reset"] },
+  { name: "account", electron: "ui/account.js", phases: ["setup", "signon", "auto", { phase: "reset", args: ["--reset-password"] }] },
   { name: "connect", electron: "ui/connect.js" },
   { name: "plus", electron: "ui/plus.js" },
   { name: "list", electron: "ui/list.js" },
@@ -24,6 +24,7 @@ const TESTS = [
   { name: "settings", electron: "ui/settings.js" },
   { name: "polish", electron: "ui/polish.js" },
   { name: "single", electron: "ui/single.js" },
+  { name: "security", electron: "ui/security.js" },
   { name: "stress", electron: "ui/stress.js", timeout: 600, only: true }, // long: run it by name
 ];
 
@@ -57,16 +58,17 @@ function runOne(cmd, args, env, seconds) {
     const started = Date.now();
     let bad = 0;
     for (const phase of steps) {
-      const node = typeof phase === "object" && phase ? phase.node : t.node;
-      const [cmd, file] = node ? [process.execPath, node] : [electron, t.electron];
-      const { code, out } = await runOne(cmd, [file, ...(t.args ? t.args(live) : [])], { ...env, NETPALS_DATA: data, PHASE: typeof phase === "string" ? phase : "" }, t.timeout || 180);
+      const step = typeof phase === "string" ? { phase } : phase || {}; // a phase name, or { phase, args } or { node }
+      const [cmd, file] = step.node || t.node ? [process.execPath, step.node || t.node] : [electron, t.electron];
+      const args = [file, ...(t.args ? t.args(live) : []), ...(step.args || [])];
+      const { code, out } = await runOne(cmd, args, { ...env, NETPALS_DATA: data, PHASE: step.phase || "" }, t.timeout || 180);
       const lines = out.split(/\r?\n/);
       const results = lines.filter((l) => /^(PASS|FAIL|SKIP)\b/.test(l));
       passes += results.filter((l) => l.startsWith("PASS")).length;
       skips += results.filter((l) => l.startsWith("SKIP")).length;
       const failed = results.filter((l) => l.startsWith("FAIL")).length;
       bad += failed + (code !== 0 && !failed ? 1 : 0);
-      const label = typeof phase === "string" ? `${t.name}:${phase}` : t.name;
+      const label = step.phase ? `${t.name}:${step.phase}` : t.name;
       if (verbose) console.log(out.trim());
       else for (const l of lines.filter((l) => /^(FAIL|SKIP)\b|^\[dialog\]/.test(l))) console.log(`  ${label}  ${l}`);
       if (code !== 0 && !failed) console.log(`  ${label}  FAIL  exited with code ${code}${verbose ? "" : `\n${out.trim().split(/\r?\n/).slice(-8).map((l) => `      ${l}`).join("\n")}`}`);

@@ -42,6 +42,10 @@ module.exports = function windows({ db }) {
       w.setPosition(b.x, b.y);
       if (resizable) w.setContentSize(b.width, b.height);
     }
+    // A window only ever shows its own page: a file dropped outside an IM window, a link, or a script can't send it
+    // somewhere else (where the page would keep the api bridge), and nothing opens windows but openWindow.
+    w.webContents.on("will-navigate", (e) => e.preventDefault());
+    w.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
     w.loadFile(path.join(ROOT, "ui", `${kind}.html`), { query });
     w.once("ready-to-show", () => w.show());
     w.on("closed", () => wins.delete(key));

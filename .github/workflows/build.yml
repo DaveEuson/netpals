@@ -18,7 +18,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx electron-builder --publish ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
+      # Without an Apple certificate (CSC_LINK) the Mac app is ad-hoc signed: Apple Silicon won't run an unsigned app at all.
+      - shell: bash
+        run: |
+          extra=""
+          if [ "$RUNNER_OS" = "macOS" ] && [ -z "$CSC_LINK" ]; then extra="-c.mac.identity=- -c.mac.hardenedRuntime=false"; fi
+          npx electron-builder --publish ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }} $extra
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.CSC_LINK }}

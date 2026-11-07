@@ -67,7 +67,9 @@ t.run(async () => {
   const logFile = path.join(OUT, "tasha.txt");
   fs.mkdirSync(OUT, { recursive: true });
   const chat4 = await open(main, "chat", { id: String(tash.id) });
-  check(await js(chat4, "Boolean(document.getElementById('save'))") && (await js(chat4, `api.invoke("chat:save", ${tash.id}, ${JSON.stringify(logFile)})`)), "Save… writes the conversation to a file");
+  t.files.save = logFile;
+  await click(chat4, "save");
+  check(await until(() => fs.existsSync(logFile), 3000), "Save… writes the conversation to the file you pick");
   const lines = fs.readFileSync(logFile, "utf8").split("\r\n").filter(Boolean);
   check(lines.length === 3 && /xXtashaRAWRxX: psst, u there\?$/.test(lines[0]) && /tester: hey :\)$/.test(lines[1]) && /\(auto response\): brb/.test(lines[2]), "three stamped lines, each under the right name");
   chat4.close();

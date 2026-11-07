@@ -37,7 +37,7 @@ module.exports = function menus(ctx) {
   // ---- menu bar. macOS needs a real one (Cmd+C, Cmd+V and Cmd+Q live there). On Windows the windows draw their own
   // chrome, so there's no menu at all, which also retires Electron's default Ctrl+R and Ctrl+Shift+I.
   const after = (kind) => () => { if (ctx.isSignedOn()) openWindow(kind); };
-  Menu.setApplicationMenu(mac ? Menu.buildFromTemplate([
+  app.whenReady().then(() => Menu.setApplicationMenu(mac ? Menu.buildFromTemplate([
     { role: "appMenu" },
     { role: "editMenu" },
     { label: "Buddies", submenu: [
@@ -48,7 +48,7 @@ module.exports = function menus(ctx) {
       { label: "Setup…", accelerator: "Cmd+,", click: after("settings") },
     ] },
     { role: "windowMenu" },
-  ]) : null);
+  ]) : null));
   app.on("activate", after("list")); // the Dock icon brings the Buddy List back
 
   // ---- right-click on a buddy

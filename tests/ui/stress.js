@@ -62,7 +62,8 @@ t.run(async () => {
   const logFile = path.join(t.OUT, "stress-log.txt");
   fs.mkdirSync(t.OUT, { recursive: true });
   t0 = Date.now();
-  await js(list, `api.invoke("chat:save", ${all[5].id}, ${JSON.stringify(logFile)})`);
+  t.files.save = logFile;
+  await js(list, `api.invoke("chat:save", ${all[5].id})`);
   check(fs.readFileSync(logFile, "utf8").split("\r\n").length > 800 && ms(t0) < 2000, `saving a conversation of ${fs.readFileSync(logFile, "utf8").split("\r\n").length - 1} lines takes ${ms(t0)} ms`);
 
   // ---- a burst: ten quick lines to one buddy

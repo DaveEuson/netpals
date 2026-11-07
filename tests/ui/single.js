@@ -14,5 +14,8 @@ else {
     check(code === 0, `a second launch quits by itself (${code}, ${Date.now() - t0} ms)`);
     check(await until(() => !list.isMinimized() && list.isVisible(), 3000), "and brings the first one's Buddy List forward");
     check(require("electron").BrowserWindow.getAllWindows().filter((w) => w.webContents.getURL().includes("list.html")).length === 1, "still just one Buddy List");
+    const reset = spawn(process.execPath, [__filename, "--reset-password"], { env: { ...process.env, SECOND: "1" } });
+    await new Promise((r) => { reset.on("close", r); setTimeout(r, 15_000); });
+    check(await until(() => t.db.settings().passHash === "", 3000), "the reset shortcut works while Netpals is already open");
   });
 }

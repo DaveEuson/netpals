@@ -1,0 +1,44 @@
+# Runs the whole test suite and a smoke test of the packaged app on a real Mac (the Windows side is tested locally).
+# By hand only (Actions tab, or: gh workflow run test.yml), since macOS minutes count ten times on a private repo.
+# Screenshots from the window tests are kept as an artifact, to see how Netpals looks on macOS.
+name: test
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: Where to test
+        type: choice
+        options: [macos-latest, windows-latest]
+        default: macos-latest
+jobs:
+  test:
+    runs-on: ${{ inputs.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test -- --verbose
+      - name: Package without an installer (ad-hoc signed on macOS)
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then npx electron-builder --mac --dir -c.mac.identity=- -c.mac.hardenedRuntime=false
+          else npx electron-builder --win --dir; fi
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Smoke test the packaged app
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            app=$(ls -d dist/mac*/Netpals.app | head -1)
+            codesign --verify --deep --strict --verbose=2 "$app" && echo "codesign: valid (ad-hoc)"
+            node scripts/smoke.js "$app/Contents/MacOS/Netpals"
+          else node scripts/smoke.js dist/win-unpacked/Netpals.exe; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots-${{ inputs.os }}
+          path: tests/out/*.png

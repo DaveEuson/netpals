@@ -18,6 +18,12 @@ const license = require("./lib/license");
 const prompts = require("./lib/prompts");
 const { createScheduler } = require("./lib/scheduler");
 
+// Forgot your password? Start Netpals with --reset-password (Windows has a Start menu shortcut for it). It clears the
+// password and sign-on choices; buddies, chats and everything else stay, and setup opens to pick a new one.
+const RESET = "--reset-password";
+const resetPassword = () => db.setSettings({ passHash: "", savePassword: false, autoLogin: false });
+if (process.argv.includes(RESET)) resetPassword();
+
 // ---- when something breaks: a plain dialog with details to copy, and a line in the data folder's netpals.log
 const LOG = path.join(db.dir, "netpals.log");
 function snag(e) {
@@ -73,7 +79,15 @@ app.whenReady().then(async () => {
   else ctx.openWindow("signon");
 });
 app.on("window-all-closed", () => app.quit());
-app.on("second-instance", () => {
+app.on("second-instance", (_e, argv) => {
+  if (argv.includes(RESET)) { // the reset shortcut while Netpals is already open (likely sitting at Sign On)
+    resetPassword();
+    if (!ctx.isSignedOn()) {
+      ctx.wins.get("signon")?.close();
+      return ctx.openWindow("welcome");
+    }
+    dialog.showMessageBox({ type: "info", message: "Your password is cleared.", detail: "Next time you sign on, Netpals asks you to pick a new one." });
+  }
   const w = ctx.isSignedOn() ? ctx.openWindow("list") : BrowserWindow.getAllWindows().find((x) => !x.isDestroyed());
   if (!w) return;
   if (w.isMinimized()) w.restore();

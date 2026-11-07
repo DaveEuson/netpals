@@ -78,11 +78,11 @@ module.exports = function buddies(ctx) {
     broadcast("message", { msg: db.addMessage(id, "me", said), buddy });
     ctx.scheduler.reply(id); // the answer arrives as its own "message" event, after "typing"
   }));
-  // Save a conversation as a text file, like an old IM log. `to` skips the dialog (tests).
-  ipcMain.handle("chat:save", async (e, id, to) => {
+  // Save a conversation as a text file, like an old IM log. Always through the save dialog: a page never picks the path.
+  ipcMain.handle("chat:save", async (e, id) => {
     const b = db.buddy(id);
     if (!b) return false;
-    const file = to || (await dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender), { title: "Save conversation",
+    const file = (await dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender), { title: "Save conversation",
       defaultPath: `${b.screenName} ${new Date().toISOString().slice(0, 10)}.txt`, filters: [{ name: "Text", extensions: ["txt"] }] })).filePath;
     if (!file) return false;
     const me = db.settings().screenName || "me";

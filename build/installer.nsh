@@ -1,5 +1,14 @@
-; Netpals installer: the wizard's words. electron-builder pulls this in through build.nsis.include in package.json,
-; before the pages are made, so these defines shape the Welcome, License and Finish pages.
+; Netpals installer extras. electron-builder pulls this in through build.nsis.include in package.json.
+
+; A Start menu shortcut for a forgotten password: it starts Netpals with --reset-password.
+!macro customInstall
+  CreateShortCut "$SMPROGRAMS\Reset Netpals password.lnk" "$INSTDIR\Netpals.exe" "--reset-password"
+!macroend
+!macro customUnInstall
+  Delete "$SMPROGRAMS\Reset Netpals password.lnk"
+!macroend
+
+; The wizard's words: defined before the pages are made, so they shape the Welcome, License and Finish pages.
 !macro customHeader
   !define MUI_WELCOMEPAGE_TITLE "Welcome to Netpals Setup"
   !define MUI_WELCOMEPAGE_TEXT "This wizard will put Netpals on your computer: a 2003-style buddy list where the buddies are AI personas who IM you through the day.$\r$\n$\r$\nIt runs on your computer and talks to a model on your computer when it can. No account, no cloud, no ads.$\r$\n$\r$\nClick Next to continue."
