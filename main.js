@@ -7,24 +7,29 @@
 const { app, BrowserWindow, clipboard, dialog, ipcMain, shell } = require("electron");
 const path = require("path");
 const fs = require("fs");
-// One Netpals at a time: a second launch (a double-click, or starting it by hand after Windows already did) hands
-// over to the first and quits, so two schedulers never share one database.
-// The lock has already told the running copy by the time it returns false, so this copy just stops, on the spot:
-// app.exit() this early doesn't take on macOS, and app.quit() waits for an app that never finishes starting.
-if (!app.requestSingleInstanceLock()) process.exit(0);
 // An installed copy keeps its data in AppData, not inside the read-only app bundle.
 if (app.isPackaged) process.env.NETPALS_DATA ||= app.getPath("userData");
+
+// Forgot your password? Start Netpals with --reset-password (Windows has a Start menu shortcut for it). It clears the
+// password and sign-on choices; buddies, chats and everything else stay, and setup opens to pick a new one.
+const RESET = "--reset-password";
+const resetPassword = () => require("./lib/db").setSettings({ passHash: "", savePassword: false, autoLogin: false });
+
+// One Netpals at a time: a second launch (a double-click, or starting it by hand after Windows already did) hands
+// over to the first and quits, so two schedulers never share one database. The lock has already told the running
+// copy by the time it returns false, so this copy stops on the spot (app.exit() this early doesn't take on macOS,
+// and app.quit() waits for an app that never finishes starting). A reset is done here too: macOS doesn't always
+// pass the flag on to the running copy.
+if (!app.requestSingleInstanceLock()) {
+  if (process.argv.includes(RESET)) resetPassword();
+  process.exit(0);
+}
+if (process.argv.includes(RESET)) resetPassword();
 const db = require("./lib/db");
 const llm = require("./lib/llm");
 const license = require("./lib/license");
 const prompts = require("./lib/prompts");
 const { createScheduler } = require("./lib/scheduler");
-
-// Forgot your password? Start Netpals with --reset-password (Windows has a Start menu shortcut for it). It clears the
-// password and sign-on choices; buddies, chats and everything else stay, and setup opens to pick a new one.
-const RESET = "--reset-password";
-const resetPassword = () => db.setSettings({ passHash: "", savePassword: false, autoLogin: false });
-if (process.argv.includes(RESET)) resetPassword();
 
 // ---- when something breaks: a plain dialog with details to copy, and a line in the data folder's netpals.log
 const LOG = path.join(db.dir, "netpals.log");
