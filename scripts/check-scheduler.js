@@ -98,6 +98,7 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   check(prompts().cleanMessage("Hey gordo_in_accounting, perks of being a night owl, huh?", gordo) === "Hey, perks of being a night owl, huh?" && prompts().cleanMessage("hey there Gordon! lunch?", gordo) === "hey, lunch?", "a buddy greeting you with their own name loses the name");
   check(prompts().cleanMessage("<note>Boss moved deadlines, huh. Guess you'll burn the midnight oil again.<br> Lemme know if you wanna grab a bite", gordo) === "Boss moved deadlines, huh. Guess you'll burn the midnight oil again.", "a reply wrapped in an unclosed note still gets through, minus the tags");
   check(prompts().cleanMessage("i <3 this. ok?", gordo) === "i <3 this. ok?", "<3 isn't a tag");
+  check(prompts().appendNote("They have a cat named Pixel; Starts a library job Monday", "They have a cat") === "They have a cat named Pixel; Starts a library job Monday" && prompts().appendNote("They have a cat", "They have a cat named Pixel") === "They have a cat named Pixel", "a note that says less than one already kept is dropped; one that says more replaces it");
   const zoomer = { ...gordo, era: 2019 };
   check(prompts().cleanMessage("omg hiii 🎉 u there??", zoomer) === "omg hiii 🎉 u there??" && /emoji or two/.test(prompts().buddySystem(zoomer, {})) && /No emoji/.test(prompts().buddySystem(gordo, {})), "a 2019 buddy keeps emoji and is told they're fine; 2003 Gordon isn't");
   check(prompts().cleanAway('"Out gettin snacks!! back soon? 🍕"') === "Out gettin snacks!!", "away line: one sentence, no quotes or emoji");
