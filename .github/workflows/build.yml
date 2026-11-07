@@ -20,14 +20,16 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # The platform flag comes first: without it, electron-builder misreads the -c options that follow. Without an
-      # Apple certificate (CSC_LINK) the Mac app is ad-hoc signed, since Apple Silicon won't run an unsigned app at all.
+      # Secrets that aren't set arrive as empty variables, and electron-builder reads an empty CSC_LINK as a certificate
+      # path (the project folder: "not a file"), so empty ones are dropped first. Without an Apple certificate the Mac
+      # app is ad-hoc signed, since Apple Silicon won't run an unsigned app at all.
       - shell: bash
         run: |
+          for v in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do [ -z "${!v}" ] && unset "$v"; done
           publish=${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
           if [ "$RUNNER_OS" = "macOS" ]; then
             extra=""
-            if [ -z "$CSC_LINK" ]; then extra="-c.mac.identity=- -c.mac.hardenedRuntime=false"; fi
+            if [ -z "${CSC_LINK:-}" ]; then extra="-c.mac.identity=- -c.mac.hardenedRuntime=false"; fi
             npx electron-builder --mac --publish "$publish" $extra
           else
             npx electron-builder --win --publish "$publish"
