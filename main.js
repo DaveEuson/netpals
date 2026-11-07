@@ -93,7 +93,8 @@ app.on("second-instance", (_e, argv) => {
       ctx.wins.get("signon")?.close();
       return ctx.openWindow("welcome");
     }
-    dialog.showMessageBox({ type: "info", message: "Your password is cleared.", detail: "Next time you sign on, Netpals asks you to pick a new one." });
+    // On the Buddy List, so on a Mac it's a sheet on that window rather than a dialog that holds up the whole app.
+    dialog.showMessageBox(ctx.openWindow("list"), { type: "info", message: "Your password is cleared.", detail: "Next time you sign on, Netpals asks you to pick a new one." });
   }
   const w = ctx.isSignedOn() ? ctx.openWindow("list") : BrowserWindow.getAllWindows().find((x) => !x.isDestroyed());
   if (!w) return;

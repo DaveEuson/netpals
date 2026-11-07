@@ -40,13 +40,18 @@ jobs:
           if [ "$RUNNER_OS" = "macOS" ]; then
             app=dist/mac-arm64/Netpals.app
             codesign --verify --deep --strict --verbose=2 "$app" && echo "codesign: valid (ad-hoc)"
-            node scripts/smoke.js "$app/Contents/MacOS/Netpals"
+            mkdir -p smoke-logs && SMOKE_LOGS=smoke-logs node scripts/smoke.js "$app/Contents/MacOS/Netpals"
           else node scripts/smoke.js dist/win-unpacked/Netpals.exe; fi
       - uses: actions/upload-artifact@v4
         if: always() && inputs.tests
         with:
           name: screenshots-${{ inputs.os }}
           path: tests/out/*.png
+      - uses: actions/upload-artifact@v4
+        if: always() && runner.os == 'macOS'
+        with:
+          name: smoke-logs
+          path: smoke-logs/
       - uses: actions/upload-artifact@v4
         if: runner.os == 'macOS'
         with:
