@@ -1,5 +1,6 @@
 # Builds the Windows installer and the macOS disk images when a v* tag is pushed (or by hand), and attaches them to
-# a draft GitHub release for that tag. Signing: see README, "Mac".
+# a draft GitHub release for that tag. If the release is already published, electron-builder leaves its files alone.
+# Signing: see docs/DEVELOPING.md.
 name: build
 on:
   push:
@@ -8,6 +9,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false # one platform failing shouldn't cancel the other
       matrix:
         os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
@@ -18,12 +20,18 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # Without an Apple certificate (CSC_LINK) the Mac app is ad-hoc signed: Apple Silicon won't run an unsigned app at all.
+      # The platform flag comes first: without it, electron-builder misreads the -c options that follow. Without an
+      # Apple certificate (CSC_LINK) the Mac app is ad-hoc signed, since Apple Silicon won't run an unsigned app at all.
       - shell: bash
         run: |
-          extra=""
-          if [ "$RUNNER_OS" = "macOS" ] && [ -z "$CSC_LINK" ]; then extra="-c.mac.identity=- -c.mac.hardenedRuntime=false"; fi
-          npx electron-builder --publish ${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }} $extra
+          publish=${{ startsWith(github.ref, 'refs/tags/v') && 'always' || 'never' }}
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            extra=""
+            if [ -z "$CSC_LINK" ]; then extra="-c.mac.identity=- -c.mac.hardenedRuntime=false"; fi
+            npx electron-builder --mac --publish "$publish" $extra
+          else
+            npx electron-builder --win --publish "$publish"
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
