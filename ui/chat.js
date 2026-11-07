@@ -78,7 +78,10 @@ function typing(on) {
 
 async function send() {
   const text = $("text").value.trim();
-  if (text) { $("text").value = ""; await api.invoke("chat:send", id, text); }
+  if (!text) return;
+  $("text").value = "";
+  const r = await api.invoke("chat:send", id, text);
+  if (!r.ok) { $("text").value = text; note(`Couldn't save that: ${r.error}`); } // a full disk, say; your line stays in the box
 }
 
 api.on("message", ({ msg, buddy: b }) => { if (b.id !== id) return; header(b); add(msg); markRead(); });

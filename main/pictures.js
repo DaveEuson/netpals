@@ -11,9 +11,12 @@ module.exports = function pictures(ctx) {
     const i = nativeImage.createFromPath(path.join(FILES, file));
     return i.getSize().width > width ? i.resize({ width }) : i;
   };
-  const thumbs = new Map(); // made when a window asks for one, then kept
+  const thumbs = new Map(); // made when a window asks for one; the 300 most recent are kept
   const thumb = (file) => {
-    if (!thumbs.has(file)) thumbs.set(file, shrink(file, 260).toDataURL());
+    if (!thumbs.has(file)) {
+      thumbs.set(file, shrink(file, 260).toDataURL());
+      if (thumbs.size > 300) thumbs.delete(thumbs.keys().next().value);
+    }
     return thumbs.get(file);
   };
 

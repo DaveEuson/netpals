@@ -72,12 +72,12 @@ module.exports = function buddies(ctx) {
 
   // ---- IMs
   ipcMain.handle("chat:load", (_e, id) => { const buddy = db.buddy(id); return buddy && { buddy, messages: db.lastMessages(id, 200) }; });
-  ipcMain.handle("chat:send", (_e, id, text) => {
+  ipcMain.handle("chat:send", attempt((_e, id, text) => {
     const buddy = db.buddy(id), said = String(text).trim().slice(0, 1000);
     if (!buddy || !said) return;
     broadcast("message", { msg: db.addMessage(id, "me", said), buddy });
     ctx.scheduler.reply(id); // the answer arrives as its own "message" event, after "typing"
-  });
+  }));
   // Save a conversation as a text file, like an old IM log. `to` skips the dialog (tests).
   ipcMain.handle("chat:save", async (e, id, to) => {
     const b = db.buddy(id);
@@ -96,16 +96,16 @@ module.exports = function buddies(ctx) {
   // ---- Buddy Chat: one room. Who's in it is settings.chatRoom; its lines are messages with roomId 1.
   const roomLine = (msg) => broadcast("room", { msg });
   ipcMain.handle("room:load", () => { const s = db.settings(); return { members: s.chatRoom, buddies: db.buddies(), messages: db.roomMessages(200), me: s.screenName }; });
-  ipcMain.handle("room:send", (_e, text) => {
+  ipcMain.handle("room:send", attempt((_e, text) => {
     const said = String(text).trim().slice(0, 1000);
     if (!said) return;
     roomLine(db.addRoomMessage("me", said));
     const room = db.settings().chatRoom || [];
     if (!db.buddies().some((b) => room.includes(b.id) && ["online", "idle"].includes(b.status))) {
-      return roomLine({ id: 0, role: "sys", text: "Nobody in the room is around right now.", ts: Date.now(), fromId: 0 }); // shown, not kept
+      return void roomLine({ id: 0, role: "sys", text: "Nobody in the room is around right now.", ts: Date.now(), fromId: 0 }); // shown, not kept
     }
     ctx.scheduler.roomReply();
-  });
+  }));
   ipcMain.handle("room:members", (_e, ids) => {
     const was = db.settings().chatRoom || [], now = [...new Set(ids.map(Number))].filter((id) => db.buddy(id));
     for (const id of now.filter((id) => !was.includes(id))) roomLine(db.addRoomMessage("sys", `${db.buddy(id).screenName} has entered the room.`, id));

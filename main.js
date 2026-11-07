@@ -2,6 +2,7 @@
 //   windows   opening windows, where they were left, broadcast()     menus     the tray, the macOS menu bar, right-click
 //   pictures  sending a picture, thumbnails                          account   password, signing on, Plus, away
 //   buddies   the list, adding, IMs, Buddy Chat, notifications       settings  Setup, the brain, theme files
+//   storage   how much room Netpals takes, a warning when the disk is nearly full
 // This file wires them together, makes the scheduler that makes buddies talk, and decides what opens first.
 const { app, BrowserWindow, clipboard, dialog, ipcMain, shell } = require("electron");
 const path = require("path");
@@ -41,7 +42,7 @@ const llmCfg = (s = db.settings()) => ({ provider: s.provider, baseUrl: s.baseUr
 // when it's called, so the order only matters for what runs while loading.
 const ctx = { db, llm, license, prompts, attempt, llmCfg };
 for (const part of [require("./main/windows"), require("./main/menus"), require("./main/pictures"), require("./main/account"),
-  require("./main/buddies"), require("./main/settings")]) Object.assign(ctx, part(ctx));
+  require("./main/buddies"), require("./main/settings"), require("./main/storage")]) Object.assign(ctx, part(ctx));
 const { broadcast } = ctx;
 ctx.scheduler = createScheduler({
   chat: (opts) => llm.chat(opts, llmCfg()),

@@ -139,13 +139,15 @@ depend on.
 npm run dist
 ```
 
-That builds `dist/Netpals Setup 0.1.0.exe`, a Windows installer that lets you pick the folder. An installed copy keeps
+That builds `dist/Netpals Setup 0.2.0.exe`, a Windows installer that lets you pick the folder. An installed copy keeps
 its data in `%APPDATA%\Netpals` instead of `data/`. The installer isn't code-signed yet, so Windows SmartScreen says
 "unrecognized app" the first time; **More info, Run anyway** gets past it. Signing takes a certificate (or Azure
 Trusted Signing) and a few lines under `build` in `package.json`.
 
 The installer is a classic wizard: a welcome page, the license (`LICENSE.txt`), a folder to pick, a finish page
 that offers to run Netpals. Its words live in `build/installer.nsh`, its pictures in `build/*.bmp`.
+
+Only one copy of Netpals runs at a time: launching it again brings the running one forward.
 
 `npm run icon` redraws every icon from the Buddy List's speech-bubble mark: `assets/icon.png` and `icon.ico` (the
 app and the installer), `assets/tray.ico` and `tray-new.ico` (the Windows tray, quiet and blinking), the macOS menu
@@ -172,6 +174,10 @@ Run [RigMatch](https://github.com/DaveEuson/RigMatch) to find a model that fits 
 
 ## Where things live
 
+- **Storage.** Setup shows how much room your IMs and pictures take and how much the disk has left, and
+  **Show the folder** opens it for backups. SQLite keeps everything on disk and reads only what a window shows, so
+  memory doesn't grow with your history; a heavy year of IMs is about 5 MB, and pictures are what take room. When the
+  disk drops under 1 GB free, a notification says so, once a day at most.
 - `data/netpals.db` holds settings, buddies and messages (an installed copy: `%APPDATA%\Netpals\netpals.db`). Delete
   it to start over. Set `NETPALS_DATA` to keep it somewhere else.
 - `lib/context.js` is where calendar or meeting summaries can plug in. Whatever it returns, every buddy reads as
@@ -182,28 +188,41 @@ Run [RigMatch](https://github.com/DaveEuson/RigMatch) to find a model that fits 
 ## Checks
 
 ```bash
-npm run check:llm
+npm test
 ```
 
-```bash
-npm run check:scheduler
-```
+Runs every check: the license and scheduler checks, then a window test for each part of the app (setup and sign-on,
+Connecting, Plus, the Buddy List, Away, IMs, pictures, Buddy Chat, Setup, the tray and window polish, one copy at a
+time), each in a throwaway data folder against `tests/fake-model.js`, a stand-in model that answers instantly. About
+four minutes; screenshots land in `tests/out`. Name tests to run just those (`npm test -- room settings`), and add
+`--verbose` to see everything they printed.
 
 ```bash
-npm run check:scheduler -- --live
+npm test -- --live
 ```
 
+Also runs the parts that need a real model on Ollama: whether `gemma3:4b` sees a picture, the model list and Test it
+in Setup (and OpenRouter's, when `OPENROUTER_API_KEY` is set), and one real ping per starting buddy.
+
 ```bash
-npm run check:license
+npm test -- stress
 ```
+
+A year of heavy use at once (60 buddies, 50,000 IMs, 40 pictures), a model that misbehaves every way it can, and 120
+IM windows opened and closed under a storm of presence changes. A minute or so.
+
+Picking a brain:
 
 ```bash
 npm run check:models
 ```
 
-`check:llm` detects a server and asks it for one line. `check:scheduler` simulates 400 days of pings per chattiness
-level and tests quiet hours, the 20-minute gap, away, cleanup and feedback, all in a throwaway data folder.
-Add `-- --live` to also get one real ping from each starting buddy. `check:license` signs keys with a throwaway key
-pair and checks that genuine keys pass and tampered or foreign ones don't. `check:models` runs every chat model Ollama has (or the
-ones you name after `--`) through the real buddy prompts: one ping and one reply per starting buddy, with the time
-each took and which house rules the raw answer broke. The quickest way to pick a brain.
+```bash
+npm run check:chat -- llama3.1:8b
+```
+
+`check:models` runs every chat model Ollama has (or the ones you name after `--`) through the real buddy prompts: one
+ping and one reply per starting buddy, with the time each took and which house rules the raw answer broke.
+`check:chat` plays an eight-line conversation at each starting buddy and prints it, so you can judge whether they stay
+coherent, in character and remember things. A model name with a slash (`google/gemini-2.5-flash`) goes to OpenRouter
+with `OPENROUTER_API_KEY`. `check:llm` just detects a server and asks it for one line.

@@ -43,7 +43,10 @@ function sysLine(text) {
 }
 async function send() {
   const text = $("text").value.trim();
-  if (text) { $("text").value = ""; await api.invoke("room:send", text); }
+  if (!text) return;
+  $("text").value = "";
+  const r = await api.invoke("room:send", text);
+  if (!r.ok) { $("text").value = text; sysLine(`Couldn't save that: ${r.error}`); }
 }
 
 async function load() {

@@ -53,6 +53,8 @@ module.exports = function account(ctx) {
       ctx.scheduler.start();
       ctx.makeTray();
       setInterval(idleCheck, 30_000);
+      ctx.diskCheck();
+      setInterval(() => ctx.diskCheck(), 6 * 3600_000);
     }
     signedOn = true;
     db.setSettings({ connected: true });

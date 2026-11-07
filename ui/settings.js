@@ -114,6 +114,15 @@ $("unlock").onclick = async () => {
   say("Unlocked. Enjoy!", "good", "plus-result");
 };
 
+// ---- storage -------------------------------------------------------------------------------
+const size = (bytes) => (bytes >= 1e9 ? `${(bytes / 1e9).toFixed(1)} GB` : bytes >= 1e6 ? `${(bytes / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1e3))} KB`);
+api.invoke("storage:get").then((u) => {
+  const low = u.free < u.low;
+  say(`Your IMs take ${size(u.chats)} and pictures ${size(u.pictures)}. ${size(u.free)} free on this disk.${low ? " That's getting low: Netpals needs a little room to keep saving." : ""}`,
+    low ? "err" : "muted", "storage");
+});
+$("show-data").onclick = () => api.invoke("storage:open");
+
 // ---- open / close --------------------------------------------------------------------------
 // The title bar's X means Cancel here, not just close.
 const x = document.querySelector(".tb-close");

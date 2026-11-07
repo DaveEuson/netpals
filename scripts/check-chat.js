@@ -1,4 +1,5 @@
 // Is a buddy coherent over a whole conversation?  npm run check:chat [-- model [screenName]]
+// A model with a slash in its name (google/gemini-2.5-flash) goes to OpenRouter with OPENROUTER_API_KEY; others to Ollama.
 // Plays an eight-line script at a buddy through the real reply path (prompts, cleanup, memory notes, typing delays)
 // and prints the exchange with flags: admitting it's an AI, a list, nothing usable, and whether the last answer
 // remembers what you said at the start. Judge the rest yourself; that's the point of printing it.
@@ -10,7 +11,10 @@ const llm = require("../lib/llm");
 const { createScheduler } = require("../lib/scheduler");
 
 const [model = "llama3.1:8b", only] = process.argv.slice(2);
-const cfg = { provider: "local", baseUrl: "http://localhost:11434/v1", model, apiKey: "" };
+const openrouter = model.includes("/");
+if (openrouter && !process.env.OPENROUTER_API_KEY) { console.log("Set OPENROUTER_API_KEY to talk to an OpenRouter model."); process.exit(1); }
+const cfg = openrouter ? { provider: "openrouter", baseUrl: "https://openrouter.ai/api/v1", model, apiKey: process.env.OPENROUTER_API_KEY }
+  : { provider: "local", baseUrl: "http://localhost:11434/v1", model, apiKey: "" };
 const SCRIPT = [
   "hey",
   "not much. my cat pixel knocked my coffee onto the keyboard this morning, whole desk is sticky",
@@ -21,7 +25,7 @@ const SCRIPT = [
   "asdfghjkl ;;; ???",
   "ok gotta run. remind me what my cat did this morning?",
 ];
-db.setSettings({ provider: "local", baseUrl: cfg.baseUrl, model, screenName: "dialtone_dave", age: 41, about: "makes synth music", chattiness: 2 });
+db.setSettings({ provider: cfg.provider, baseUrl: cfg.baseUrl, model, screenName: "dialtone_dave", age: 41, about: "makes synth music", chattiness: 2 });
 const sched = createScheduler({ chat: (o) => llm.chat(o, cfg) });
 
 const flagsFor = (text, i) => {

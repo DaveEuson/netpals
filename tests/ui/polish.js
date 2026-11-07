@@ -57,6 +57,8 @@ t.run(async () => {
   check((await value(st, "idle")) === "0" && !(await js(st, "document.getElementById('startup').checked")), "Setup shows the auto-away pick and the startup box");
   await click(st, "startup"); await set(st, { idle: "15" }); await sleep(200);
   check(db.settings().startWithWindows === true && db.settings().autoAwayMinutes === 15, "both save");
+  check(/Your IMs take [\d.]+ (KB|MB) and pictures [\d.]+ (KB|MB)\. [\d.]+ (GB|MB) free/.test(await text(st, "storage")), `Setup shows how much room Netpals takes (${await text(st, "storage")})`);
+  check(main.diskCheck(500e6) === true && main.diskCheck(50e9) === false, "under 1 GB free counts as low");
   st.close(); await sleep(300);
 
   // save a conversation
