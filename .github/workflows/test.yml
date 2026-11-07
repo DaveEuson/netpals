@@ -28,7 +28,6 @@ jobs:
       - run: npm test -- --verbose
         if: inputs.tests
       - run: npm test -- screenshots
-        if: inputs.tests
       - name: Build (the Mac disk images ad-hoc signed)
         shell: bash
         run: |
@@ -45,12 +44,13 @@ jobs:
             mkdir -p smoke-logs && SMOKE_LOGS=smoke-logs node scripts/smoke.js "$app/Contents/MacOS/Netpals"
           else node scripts/smoke.js dist/win-unpacked/Netpals.exe; fi
       - uses: actions/upload-artifact@v4
-        if: always() && inputs.tests
+        if: always()
         with:
           name: screenshots-${{ inputs.os }}
           path: |
             tests/out/*.png
             docs/images/*.png
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         if: always() && runner.os == 'macOS'
         with:
