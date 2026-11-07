@@ -97,7 +97,11 @@ function sent(r) {
 }
 $("pic").onclick = async () => sent(await api.invoke("chat:pick", id));
 document.addEventListener("dragover", (e) => e.preventDefault());
-document.addEventListener("drop", async (e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) sent(await api.invoke("chat:sendFile", id, api.pathFor(f))); });
+document.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  const f = e.dataTransfer.files[0];
+  if (f) sent(await api.invoke("chat:sendFile", id, api.pathFor(f)));
+});
 
 $("send").onclick = send;
 $("text").onkeydown = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };

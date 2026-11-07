@@ -2,7 +2,9 @@
 // 56k modem handshake if you tick it (off by default, remembered once ticked). The first sign-on plays the whole thing;
 // after that there's Skip. Cancel (or the X) goes back to Sign On.
 const s = api.settingsSync();
-const STEPS = [["Dialing Netpals…", 1.6], ["Connecting at 56,000 bps…", 2.4], ["Verifying screen name and password…", 1.6], ["Loading your buddy list…", 1.4], ["Signed on!", 0.6]]; // text, seconds
+const STEPS = [ // [text, seconds]
+  ["Dialing Netpals…", 1.6], ["Connecting at 56,000 bps…", 2.4], ["Verifying screen name and password…", 1.6], ["Loading your buddy list…", 1.4], ["Signed on!", 0.6],
+];
 const timers = [];
 let ctx = null; // AudioContext, made only while the modem is on
 
@@ -11,7 +13,11 @@ let ctx = null; // AudioContext, made only while the modem is on
 function modem() {
   ctx = new AudioContext();
   const out = ctx.createGain(); out.gain.value = 0.12; out.connect(ctx.destination);
-  const tone = (freqs, at, dur, type = "sine") => freqs.forEach((f) => { const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; o.connect(out); o.start(at); o.stop(at + dur); });
+  const tone = (freqs, at, dur, type = "sine") => freqs.forEach((f) => {
+    const o = ctx.createOscillator();
+    o.type = type; o.frequency.value = f;
+    o.connect(out); o.start(at); o.stop(at + dur);
+  });
   const noise = (at, dur, from, to) => {
     const b = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate), d = b.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -40,7 +46,11 @@ $("modem").checked = s.modem;
 let at = 0;
 STEPS.forEach(([text, secs], i) => {
   $("bar").append(el("i"));
-  timers.push(setTimeout(() => { $("step").textContent = text; say(`Step ${i + 1} of ${STEPS.length}`); $("bar").children[i].style.visibility = "visible"; }, at * 1000));
+  timers.push(setTimeout(() => {
+    $("step").textContent = text;
+    say(`Step ${i + 1} of ${STEPS.length}`);
+    $("bar").children[i].style.visibility = "visible";
+  }, at * 1000));
   at += secs;
 });
 timers.push(setTimeout(done, at * 1000));

@@ -11,9 +11,11 @@ setText({
   "brain-name": local ? `${app}, right here on this computer` : "OpenRouter, over the internet",
   "brain-where": local ? `${where} · ${n} model${n === 1 ? "" : "s"} found` : "Nothing answered on localhost:11434 or :1234.",
   model: s.model,
-  why: s.detect?.small ? "No model 7B or bigger here, so this is the biggest you have. Buddies may sound a bit simple." : "Smallest instruct model 7B or bigger. Quick and still clever.",
+  why: s.detect?.small ? "No model 7B or bigger here, so this is the biggest you have. Buddies may sound a bit simple."
+    : "Smallest instruct model 7B or bigger. Quick and still clever.",
   privacy: local ? "Nothing leaves this computer." : "Chats go to OpenRouter to be answered.",
-  expect: local ? "Charming, a little dim. A model this size forgets, repeats itself and won't pass the Turing test. Bigger models help; OpenRouter helps more." : "Sharper than a local model; each message costs a fraction of a cent.",
+  expect: local ? "Charming, a little dim. A model this size forgets, repeats itself and won't pass the Turing test. Bigger models help; OpenRouter helps more."
+    : "Sharper than a local model; each message costs a fraction of a cent.",
 });
 $("ic-local").toggleAttribute("hidden", !local); // SVG has no .hidden property
 $("ic-cloud").toggleAttribute("hidden", local);

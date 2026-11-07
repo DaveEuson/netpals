@@ -57,7 +57,9 @@ if (editId) {
     if (!r) return api.invoke("win:close");
     const b = r.buddy, p = b.profile || {};
     document.title = `Edit ${b.screenName}`; $("title").textContent = document.title; $("ok").textContent = "Save"; $("tab-random").hidden = true;
-    for (const [f, v] of [["m-name", b.name], ["m-sn", b.screenName], ["m-emoji", b.emoji], ["m-era", b.era], ["m-persona", b.personaPrompt], ["m-cad", Math.round(b.cadenceWeight * 10)], ["m-quote", p.quote || ""], ["m-listen", p.listening || ""], ["m-link", p.link || ""]]) $(f).value = v;
+    const fields = { "m-name": b.name, "m-sn": b.screenName, "m-emoji": b.emoji, "m-era": b.era, "m-persona": b.personaPrompt,
+      "m-cad": Math.round(b.cadenceWeight * 10), "m-quote": p.quote || "", "m-listen": p.listening || "", "m-link": p.link || "" };
+    for (const [f, v] of Object.entries(fields)) $(f).value = v;
     $("m-nudge").checked = Boolean(b.nudge);
     show("manual"); $("m-name").focus();
   });

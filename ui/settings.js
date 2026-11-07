@@ -89,7 +89,8 @@ $("load-theme").onclick = async () => {
 $("save-theme").onclick = async () => { if (await api.invoke("theme:save", s.customTheme)) say("Saved.", "good", "file-result"); };
 $("idle").value = s.autoAwayMinutes;
 $("idle").onchange = () => save({ autoAwayMinutes: Number($("idle").value) });
-for (const [id, key] of [["autologin", "autoLogin"], ["startup", "startWithWindows"], ["nudges", "nudges"], ["dark", "darkWithSystem"], ["ontop", "alwaysOnTop"], ["sound", "sound"], ["notify", "notify"]]) {
+const CHECKBOXES = { autologin: "autoLogin", startup: "startWithWindows", nudges: "nudges", dark: "darkWithSystem", ontop: "alwaysOnTop", sound: "sound", notify: "notify" };
+for (const [id, key] of Object.entries(CHECKBOXES)) {
   $(id).checked = s[key];
   $(id).onchange = () => save({ [key]: $(id).checked });
 }

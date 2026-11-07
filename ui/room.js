@@ -14,7 +14,8 @@ function add(m) {
   else {
     const head = el("span", "head"), b = buddies.get(m.fromId);
     if (m.role === "me") head.append(el("span", "when", time(m.ts)), " ", el("b", "", me));
-    else head.append(el("span", "", b?.emoji || "💬", { "aria-hidden": "true" }), " ", el("b", "", b?.screenName || "someone"), " ", el("span", "when", time(m.ts)));
+    else head.append(el("span", "", b?.emoji || "💬", { "aria-hidden": "true" }), " ", el("b", "", b?.screenName || "someone"), " ",
+      el("span", "when", time(m.ts)));
     body.append(head, el("span", "text", faces(m.text)));
   }
   row.append(body);
@@ -34,7 +35,12 @@ function renderMembers() {
   }));
 }
 const showTyping = () => { $("typing").textContent = typing.size ? `${[...typing].join(", ")} ${typing.size > 1 ? "are" : "is"} typing…` : ""; };
-const sysLine = (text) => { const row = el("div", "msg sys"); row.append(el("span", "text", text)); $("log").append(row); $("log").scrollTop = $("log").scrollHeight; };
+function sysLine(text) {
+  const row = el("div", "msg sys");
+  row.append(el("span", "text", text));
+  $("log").append(row);
+  $("log").scrollTop = $("log").scrollHeight;
+}
 async function send() {
   const text = $("text").value.trim();
   if (text) { $("text").value = ""; await api.invoke("room:send", text); }
