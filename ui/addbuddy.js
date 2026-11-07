@@ -22,7 +22,7 @@ function show(t) {
 
 function fill(b) {
   setText({
-    "c-emoji": b.emoji, "c-sn": b.screenName, "c-who": `${b.name} · from ${b.era}`, "c-persona": b.personaPrompt,
+    "c-emoji": b.emoji, "c-sn": b.screenName, "c-who": `${b.name} · ${b.era ? `from ${b.era}` : "from today"}`, "c-persona": b.personaPrompt,
     "c-quote": b.profile.quote ? `“${b.profile.quote}”` : "", "c-listen": b.profile.listening, "c-link": b.profile.link,
     "c-nudge": b.nudge ? "Checks in if you leave them hanging." : "Gives you space if you go quiet.",
   });
@@ -47,7 +47,7 @@ $("ok").onclick = async () => {
   api.invoke("win:close");
 };
 
-for (let y = 1997; y <= 2024; y++) $("m-era").add(new Option(String(y), String(y), false, y === 2003));
+eraOptions($("m-era"));
 $("tab-random").onclick = () => show("random");
 $("tab-manual").onclick = () => show("manual");
 $("manual").oninput = sync;

@@ -69,7 +69,8 @@ npm run reset-password
 - **Setup** changes you, the brain, quiet hours (10pm to 8am by default), theme, sounds and notifications, and
   whether Netpals starts with Windows (an installed copy only).
 - Click a buddy to IM them. Click their name in the IM window for their profile and what they remember about you;
-  **Edit…** there changes anything about them, **Forget all this** clears their memory. **Save…** in an IM window
+  **Edit…** there changes anything about them, **Forget all this** clears their memory, and **Lives in** picks the
+  year their slang and references come from, 1985 to now, or **Today** for a buddy who lives in the present. **Save…** in an IM window
   writes the conversation to a text file.
 - 👍 and 👎 on a message make that buddy ping you a bit more or less. Three 👎 in one day also turns Chattiness
   down a notch.

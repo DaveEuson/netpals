@@ -11,7 +11,7 @@ const prompts = require("./lib/prompts");
 const { createScheduler } = require("./lib/scheduler");
 
 // [width, height, resizable]
-const SIZE = { welcome: [420, 560], signon: [280, 470], list: [260, 560, true], chat: [460, 480, true], settings: [420, 660], away: [340, 440], addbuddy: [400, 640], profile: [300, 490], connect: [360, 230], room: [520, 480, true] };
+const SIZE = { welcome: [420, 560], signon: [280, 470], list: [260, 560, true], chat: [460, 480, true], settings: [420, 660], away: [340, 440], addbuddy: [400, 640], profile: [300, 520], connect: [360, 230], room: [520, 480, true] };
 const wins = new Map(); // "list" | "settings" | "chat:3" -> BrowserWindow
 let quitting = false; // set by Sign Off; until then closing the Buddy List only hides it
 
@@ -194,6 +194,7 @@ ipcMain.handle("msg:vote", (_e, msgId, v) => {
   return r;
 });
 ipcMain.handle("buddy:nudge", (_e, id, on) => { db.updateBuddy(id, { nudge: on ? 1 : 0 }); broadcast("buddies"); });
+ipcMain.handle("buddy:era", (_e, id, era) => { const b = db.buddy(id); if (b) { db.updateBuddy(id, { era: prompts.toBuddy({ ...b, era }).era }); broadcast("buddies"); } }); // Lives in, from Buddy Info
 ipcMain.handle("buddy:forget", (_e, id) => { db.updateBuddy(id, { notes: "" }); broadcast("buddies"); });
 // Edit… in Buddy Info: the Add form again, on one buddy. A blank profile keeps the old one.
 ipcMain.handle("buddy:update", attempt((_e, raw) => {

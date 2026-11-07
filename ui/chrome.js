@@ -44,6 +44,17 @@ const fillYou = (s) => { $("y-sn").value = s.screenName; $("y-age").value = s.ag
 const readYou = () => ({ screenName: $("y-sn").value, password: $("y-pw").value, age: $("y-age").value, gender: $("y-gender").value,
   about: $("y-about").value, mismatch: $("y-pw").value !== $("y-pw2").value });
 
+// The era picker: Today, then every year back to 1985, newest first, by decade. Buddy Info and the Add/Edit form share it.
+function eraOptions(select, value = 2003) {
+  const thisYear = new Date().getFullYear();
+  select.replaceChildren(new Option("Today", "0"));
+  for (let d = Math.floor(thisYear / 10) * 10; d >= 1980; d -= 10) {
+    const g = el("optgroup", "", null, { label: `${d}s` });
+    for (let y = Math.min(d + 9, thisYear); y >= Math.max(d, 1985); y--) g.append(new Option(String(y), String(y)));
+    select.append(g);
+  }
+  select.value = String(value);
+}
 const time = (ts) => new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 const stamp = (ts) => new Date(ts).toLocaleString([], { weekday: "long", hour: "numeric", minute: "2-digit" });
 // A smiley picker that drops an emoji in at the cursor of a textarea. Instant Message and Buddy Chat both have one.
