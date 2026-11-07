@@ -1,228 +1,148 @@
 # Netpals
 
-A 2003-style buddy list where the buddies are AI personas who IM you through the day. Beige windows, blue title
-bars, door sounds when buddies sign on. It runs on your computer and talks to a model on your computer when it can.
+A 2003-style buddy list where the buddies are AI personas who IM you through the day.
 
-## 60-second setup
+![The Netpals Buddy List next to an IM from gordo_in_accounting](docs/images/hero.png)
 
-You need Node 20 or newer. For a fully local brain, also run [Ollama](https://ollama.com) or
-[LM Studio](https://lmstudio.ai) with an instruct model of 7B or more (for example `ollama pull mistral:7b`).
+Beige windows, blue title bars, door sounds when buddies sign on, and a dial-up modem if you want one. Your
+buddies have their own personalities and the year they're stuck in. They IM you on their own schedule, go idle and
+away, remember what you tell them, and check in if you leave them hanging. Everything lives on your computer.
+
+## Get it
+
+**Windows 10 or 11 (64-bit):** download `Netpals Setup 0.2.0.exe` from the
+[releases page](https://github.com/DaveEuson/netpals/releases) and run it. The installer isn't code-signed yet, so
+Windows may say "Windows protected your PC" the first time: choose **More info**, then **Run anyway**.
+
+**macOS:** see [Platforms](#platforms).
+
+## Give it a brain
+
+Netpals needs a language model to write your buddies' lines. There are two ways to give it one.
+
+**On your computer, free and private.** Install [Ollama](https://ollama.com) (or [LM Studio](https://lmstudio.ai))
+and a model, and Netpals finds it by itself:
 
 ```bash
-npm install
-npm start
+ollama pull llama3.1:8b
 ```
 
-First launch is a three-step setup. Step one is **Get a screen name**: pick a screen name and password, and if you
-like, your age, gender and a few lines about you. Step two is **Quick questions**: five one-liners (what you do all
-day, what you're into, your hours, a pet peeve, what your buddies should bug you about), all optional. Step three
-shows the brain. Netpals looks for a model server on
-`localhost:11434` (Ollama) and `localhost:1234` (LM Studio), picks the smallest instruct model of 7B or more, and
-shows you what it chose. Press **Sign On**.
+| Model | What it's like |
+|---|---|
+| `llama3.1:8b` | The cleanest: short, in character, quick. A good first pick. |
+| `mistral-nemo` | The most human-sounding; needs a little more memory and time. |
+| `gemma3:4b` or `gemma3:12b` | Can see pictures you send. 4b is quick and terse. |
 
-After that, every launch opens the **Sign On** window. Tick **Save password** to sign on without typing it, or
-**Auto-login** to skip the window.
+A 7B or 8B model wants about 8 GB of memory, and a graphics card makes it much quicker. What to expect: charm, not
+brilliance. A model this size forgets, repeats itself, mixes up the date and won't pass the Turing test. That's
+the trade for keeping everything on your computer. If your buddies feel slow or dumb,
+[RigMatch](https://github.com/DaveEuson/RigMatch) finds the best model your machine can run.
 
-Signing on dials up. A **Connecting to Netpals** window walks through five steps in about seven seconds. Tick
-**Modem sound** for a synthesized 56k handshake; it's off by default and remembered once on. The first sign-on plays
-the whole thing; after that the window has a **Skip** button, and Cancel takes you back to Sign On.
+**OpenRouter, over the internet.** Get a key at [openrouter.ai](https://openrouter.ai) and paste it on the welcome
+screen (or set `OPENROUTER_API_KEY`). Netpals uses `google/gemini-2.5-flash`, which is sharper than any local model
+and costs a fraction of a cent per message. Your messages go to OpenRouter to be answered.
 
-What to expect from a local model: charm, not brilliance. A 7B model forgets what you said an hour ago, repeats
-its favorite phrases, mixes up the date and will not pass the Turing test. That's the deal for keeping everything on
-your computer. Bigger models help (see RigMatch below); OpenRouter's models are sharper still, for a fraction of a
-cent per message.
+## First run
 
-No local server? It falls back to OpenRouter with `google/gemini-2.5-flash`. Paste a key on the welcome screen, or
-set `OPENROUTER_API_KEY` in your environment before `npm start`. A key from the environment is used but never saved.
+Setup takes a minute: pick a screen name and password, answer five optional quick questions (what you do all day,
+what you're into, your hours, a pet peeve, what your buddies should bug you about), and see which brain Netpals
+found. Press **Sign On** and it dials up:
 
-Your three starting buddies are created the first time the app runs:
+![The Connecting to Netpals window, halfway through dialing](docs/images/connect.png)
 
-| Buddy | Who | Era |
+Tick **Modem sound** for the 56k handshake. After the first time there's a **Skip** button. Your three starting
+buddies sign on one by one, with a door sound each:
+
+| Buddy | Who | Lives in |
 |---|---|---|
-| 🌊 stillwaterMB | a calm coach | 1999 |
-| ⚡ xXtashaRAWRxX | a hype friend | 2006 |
-| ☕ gordo_in_accounting | a dry-witted coworker | 2003 |
+| 🌊 stillwaterMB | a calm coach who gives you space | 1999 |
+| ⚡ xXtashaRAWRxX | a hype friend who checks in if you go quiet | 2006 |
+| ☕ gordo_in_accounting | a deadpan coworker two cubicles over | 2003 |
 
-## You
+## What you can do
 
-Buddies read your age, gender, about lines and quick-question answers, but not your screen name or password. Leave gender blank and they're
-told not to guess it. Change any of it, or your password, in **Setup** under **You**.
+- **IM a buddy** by clicking them. They answer in a sentence or two, with a typing line while they write. A quick
+  burst of lines gets one answer, the way a person would give it.
+- **Chattiness** at the bottom of the Buddy List sets how often buddies IM you first: off, or about 2, 5, 10 or 20
+  times a day. Quiet hours (10pm to 8am unless you change them) keep them quiet.
+- **Smileys and pictures.** The 🙂 button drops in an emoji, and classic emoticons like `:-)` are drawn as faces. The
+  picture button (or dropping a png or jpg on the window) sends a picture; models that can see will look at it.
+- **👍 and 👎** on a message make that buddy IM you a little more or less.
+- **Away** pauses everyone. Pick when you'll be back and Netpals brings you back by itself. Leave the computer for
+  ten minutes and you go away on your own; touch anything and you're back. Buddies hear where you went.
+- **Buddy Info** (click a buddy's name in their IM window) shows their profile and what they remember about you.
+  **Edit…** changes anything about them, **Forget all this** clears their memory, and **Lives in** picks the year
+  their slang comes from, 1985 to now, or **Today**.
+- **Add** makes a new buddy: build one yourself, or (with Plus) **Randomize** one from a one-line vibe.
+- **Save…** in an IM window writes the conversation to a text file.
+- **Closing the Buddy List** keeps you signed on, in the tray (the menu bar on a Mac); its icon blinks when an IM is
+  waiting. Right-click it for **Sign Off**.
 
-The password is kept only as a salted scrypt hash. It locks the Sign On window; it doesn't encrypt your chats.
-Forgot it? Quit Netpals and run this, then start it again to pick a new one. Your buddies and chats stay.
+**Buddy Chat** puts your buddies in one room. Say something and one to three of them answer, sometimes to each other:
 
-```bash
-npm run reset-password
-```
+![Buddy Chat with three buddies arguing about the game](docs/images/room.png)
 
-## Using it
+**Themes.** Setup has five: Dial-Up, Olive, Silver, Midnight (dark) and Bubblegum, plus your own colors, which you
+can save to a file and share. Netpals can go dark when your system does.
 
-- **Chattiness** at the bottom of the Buddy List sets how often buddies IM you. The levels are off, about 2, 5, 10
-  and 20 a day.
-- **Closing the Buddy List** keeps you signed on, in the tray. The tray icon blinks while an IM waits; right-click
-  it for **Sign Off**. Every window opens where you last left it.
-- **Away** pauses all pings. Pick **Come back** in 15 minutes to 2 hours and you're back on your own; the Buddy List
-  shows until when. When you come back, the next buddy to IM you knows what your away message said.
-- **Auto-away.** Ten minutes without touching the mouse or keyboard and you're away ("I am away from my computer
-  right now"); touch anything and you're back. Change or switch it off under Quiet hours in Setup.
-- **Add** makes a new buddy. Randomize invents one from a one-line vibe, or Build your own fills in a form.
-- **Setup** changes you, the brain, quiet hours (10pm to 8am by default), theme, sounds and notifications, and
-  whether Netpals starts with Windows (an installed copy only).
-- Click a buddy to IM them. Click their name in the IM window for their profile and what they remember about you;
-  **Edit…** there changes anything about them, **Forget all this** clears their memory, and **Lives in** picks the
-  year their slang and references come from, 1985 to now, or **Today** for a buddy who lives in the present. **Save…** in an IM window
-  writes the conversation to a text file.
-- 👍 and 👎 on a message make that buddy ping you a bit more or less. Three 👎 in one day also turns Chattiness
-  down a notch.
-- **Smileys.** The 🙂 button in an IM window drops an emoji in at the cursor. Classic emoticons like `:-)` and `;-)`
-  are drawn as faces, the way IM clients did; the text underneath stays as typed. Buddies from 2010 on use emoji
-  themselves; older ones stick to emoticons.
-- **Pictures.** The picture button in an IM window (or dropping a file onto it) sends a png or jpg.
-  It shows as a thumbnail; click it to open the original. If the brain can see pictures (Ollama's `gemma3`, most
-  OpenRouter models), the buddy looks at it; if not, the IM window says so and the buddy only hears the file name.
-- **Buddy Chat.** The Chat button opens one room for everyone you tick; the first time, everyone who's around is
-  in. Say something and one to three buddies answer in turn, and sometimes one riffs on another. Buddies who are
-  away or signed off sit it out, and the room says so if nobody's around. Pictures stay in one-on-one IMs.
-- Right-click a buddy to remove them.
-- **Still there?** Leave a buddy's IM unanswered for 4 to 7 minutes and a buddy who's the type checks in once, in
-  their own words. Tasha and Gordon do this; Marisol gives you space. Randomize decides from the personality. Switch
-  it per buddy in their profile or on the Add form, or for everyone in **Setup**. Away, quiet hours and Chattiness Off
-  keep check-ins quiet too.
-
-Buddies keep to 1 or 2 sentences, never send lists, and ask at most one question.
-
-## Themes
-
-Setup has five themes: Dial-Up, Olive, Silver, Midnight (dark) and Bubblegum. **Go dark automatically when Windows
-does** switches to Midnight with your system. Pick **Custom** to change six colors and watch every window follow.
-Save a custom theme to a file to share it, and load a file to use someone else's. A theme file is plain JSON:
-
-```json
-{ "base": "dialup", "win": "#ece9d8", "panel": "#ffffff", "ink": "#1b1b1b", "title": "#0a50cc", "accent": "#0b3fb0", "them": "#a3141c" }
-```
+![The Buddy List in Dial-Up, Midnight and Bubblegum](docs/images/themes.png)
 
 ## Netpals Plus
 
-| Free | Plus, a one-time license |
+| Free | Plus, a one-time purchase |
 |---|---|
 | Up to 3 buddies, built by hand | As many buddies as you like, plus Randomize |
-| Chat, away messages, check-ins, notifications | Everything in Free |
+| IMs, Buddy Chat, away messages, check-ins, pictures | Everything in Free |
 | Dial-Up and Midnight themes | Every theme, custom colors and theme files |
 
-Paste a license key in **Setup** under **Netpals Plus** and press **Unlock**. Keys are checked on your computer;
-nothing is sent anywhere.
+Paste your key in **Setup** under **Netpals Plus** and press **Unlock**. Keys are checked on your computer; nothing
+is sent anywhere.
 
-### Selling keys
+## Your privacy
 
-A key is the buyer's name, email and date, signed with your private key. The app holds only the public half, in
-`lib/license.js`. Your private key is at `~/.netpals/license-private.pem`, outside this folder. Back it up and
-never commit it. If you lose it, you can't make keys that copies already out there will accept.
+- Your screen name, password, buddies and every conversation stay in one folder on your computer. Netpals has no
+  account, no server and no analytics.
+- With a model on your computer, nothing leaves it.
+- With OpenRouter, what a buddy needs to answer goes to OpenRouter and the model's maker: the conversation so far,
+  what you told setup about yourself, what the buddy remembers, and any picture you send. Your password never does.
+- The password locks the Sign On window. It doesn't encrypt your conversations.
 
-To make a key for a buyer, run this and send them the line it prints:
+## Your data
 
-```bash
-npm run license -- "Buyer Name" buyer@example.com
-```
+Setup's **Storage** section shows how much room your IMs and pictures take and how much your disk has left, and
+**Show the folder** opens it. That folder is everything: copy it to back up, delete it to start over.
 
-Sell through a store like Gumroad or Lemon Squeezy, then send keys by hand for now. To make yourself a key for
-your own copy, run the same command with your name.
+- Windows: `%APPDATA%\Netpals`
+- macOS: `~/Library/Application Support/Netpals`
 
-Once you have a store page, put its address in `BUY_URL` at the top of `lib/license.js`. The free version's Setup
-then shows a **Get Netpals Plus** link.
+A heavy year of IMs is about 5 MB; pictures take the room. If your disk drops under 1 GB free, Netpals tells you.
 
-`npm run license -- init` made the key pair. It refuses to run again so it can't replace the key your sold licenses
-depend on.
+**Forgot your password?** On Windows, open **Reset Netpals password** from the Start menu. On a Mac, quit Netpals and
+run `open -a Netpals --args --reset-password` in Terminal. Either way you pick a new one, and your buddies and
+conversations stay.
 
-## Installing it
+## Platforms
 
-```bash
-npm run dist
-```
+| Platform | Netpals 0.2 |
+|---|---|
+| Windows 11, 64-bit | Yes |
+| Windows 10, 64-bit | Should work (same build), not yet tested |
+| macOS | Not in this release |
+| Linux | Not yet |
 
-That builds `dist/Netpals Setup 0.2.0.exe`, a Windows installer that lets you pick the folder. An installed copy keeps
-its data in `%APPDATA%\Netpals` instead of `data/`. The installer isn't code-signed yet, so Windows SmartScreen says
-"unrecognized app" the first time; **More info, Run anyway** gets past it. Signing takes a certificate (or Azure
-Trusted Signing) and a few lines under `build` in `package.json`.
+## Something wrong?
 
-The installer is a classic wizard: a welcome page, the license (`LICENSE.txt`), a folder to pick, a finish page
-that offers to run Netpals. Its words live in `build/installer.nsh`, its pictures in `build/*.bmp`.
+- **"Nothing answered at localhost:11434"**: Ollama isn't running. Start it, or pick another brain in Setup.
+- **Buddies are slow or say odd things**: try a different model in Setup (see the table above), or OpenRouter.
+- **Netpals hit a snag**: the box has a **Copy details** button; the same details are in `netpals.log` in your data
+  folder.
+- **Starting Netpals again** brings the open one forward; only one runs at a time.
 
-Only one copy of Netpals runs at a time: launching it again brings the running one forward.
+## Building from source
 
-`npm run icon` redraws every icon from the Buddy List's speech-bubble mark: `assets/icon.png` and `icon.ico` (the
-app and the installer), `assets/tray.ico` and `tray-new.ico` (the Windows tray, quiet and blinking), the macOS menu
-bar silhouettes (`assets/*Template.png`), and the installer's sidebar and header pictures.
+See [docs/DEVELOPING.md](docs/DEVELOPING.md): running it with `npm start`, the tests, and building the installers.
 
-### Mac
+## License
 
-Netpals runs on macOS: the Buddy List closes to a menu bar icon, the Dock icon brings it back, Cmd+Q signs off,
-and **Buddies** in the menu bar opens the list, the room, Away and Setup. A `.dmg` can only be built on a Mac:
-
-```bash
-npm run dist:mac
-```
-
-Pushing a `v*` tag also builds both installers on GitHub (`.github/workflows/build.yml`) and attaches them to a
-draft release. The Mac build is unsigned until there's an Apple Developer account ($99 a year): macOS refuses an
-unsigned download outright, so until then Mac testers run `xattr -cr /Applications/Netpals.app` once after copying
-it in. With the account, add the certificate (`CSC_LINK`, `CSC_KEY_PASSWORD`) and notarization details (`APPLE_ID`,
-`APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`) as repository secrets and electron-builder does the rest.
-
-## Buddies feel slow or dumb?
-
-Run [RigMatch](https://github.com/DaveEuson/RigMatch) to find a model that fits your machine, then pick it in Setup.
-
-## Where things live
-
-- **Storage.** Setup shows how much room your IMs and pictures take and how much the disk has left, and
-  **Show the folder** opens it for backups. SQLite keeps everything on disk and reads only what a window shows, so
-  memory doesn't grow with your history; a heavy year of IMs is about 5 MB, and pictures are what take room. When the
-  disk drops under 1 GB free, a notification says so, once a day at most.
-- `data/netpals.db` holds settings, buddies and messages (an installed copy: `%APPDATA%\Netpals\netpals.db`). Delete
-  it to start over. Set `NETPALS_DATA` to keep it somewhere else.
-- `lib/context.js` is where calendar or meeting summaries can plug in. Whatever it returns, every buddy reads as
-  "what you know about their day".
-- `lib/scheduler.js` decides when buddies talk. `lib/prompts.js` holds every prompt and the cleanup rules.
-- `assets/*.wav` are original sounds made by `npm run sounds`.
-
-## Checks
-
-```bash
-npm test
-```
-
-Runs every check: the license and scheduler checks, then a window test for each part of the app (setup and sign-on,
-Connecting, Plus, the Buddy List, Away, IMs, pictures, Buddy Chat, Setup, the tray and window polish, one copy at a
-time), each in a throwaway data folder against `tests/fake-model.js`, a stand-in model that answers instantly. About
-four minutes; screenshots land in `tests/out`. Name tests to run just those (`npm test -- room settings`), and add
-`--verbose` to see everything they printed.
-
-```bash
-npm test -- --live
-```
-
-Also runs the parts that need a real model on Ollama: whether `gemma3:4b` sees a picture, the model list and Test it
-in Setup (and OpenRouter's, when `OPENROUTER_API_KEY` is set), and one real ping per starting buddy.
-
-```bash
-npm test -- stress
-```
-
-A year of heavy use at once (60 buddies, 50,000 IMs, 40 pictures), a model that misbehaves every way it can, and 120
-IM windows opened and closed under a storm of presence changes. A minute or so.
-
-Picking a brain:
-
-```bash
-npm run check:models
-```
-
-```bash
-npm run check:chat -- llama3.1:8b
-```
-
-`check:models` runs every chat model Ollama has (or the ones you name after `--`) through the real buddy prompts: one
-ping and one reply per starting buddy, with the time each took and which house rules the raw answer broke.
-`check:chat` plays an eight-line conversation at each starting buddy and prints it, so you can judge whether they stay
-coherent, in character and remember things. A model name with a slash (`google/gemini-2.5-flash`) goes to OpenRouter
-with `OPENROUTER_API_KEY`. `check:llm` just detects a server and asks it for one line.
+Netpals is not open source. Using it is covered by [LICENSE.txt](LICENSE.txt). Its sounds, icons and artwork are
+original.

@@ -18,19 +18,26 @@ let failed = 0;
 const check = (ok, label) => { console.log(`${ok ? "PASS" : "FAIL"}  ${label}`); if (!ok) failed++; };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function until(fn, ms) { for (let t = 0; t < ms; t += 500) { if (fn()) return true; await sleep(500); } return false; }
-const launch = (...args) => spawn(exe, args, { env: process.env, stdio: process.env.SMOKE_VERBOSE ? "inherit" : "ignore" });
+let launches = 0;
+const launch = (...args) => { // SMOKE_LOGS=<folder> keeps each launch's own output there
+  const logs = process.env.SMOKE_LOGS, out = logs ? fs.openSync(path.join(logs, `launch-${++launches}.log`), "w") : "ignore";
+  return spawn(exe, args, { env: process.env, stdio: process.env.SMOKE_VERBOSE ? "inherit" : ["ignore", out, out] });
+};
 const exited = (p, ms) => new Promise((r) => { p.on("exit", (code) => r(code)); setTimeout(() => r("still running"), ms); });
 
 (async () => {
   const server = await fakeModel.start();
   db.setSettings({ screenName: "smoke_test", passHash: "x:y", autoLogin: true, connected: true, provider: "local",
     baseUrl: `http://127.0.0.1:${server.address().port}/v1`, model: "fake:7b", chattiness: 0, sound: false, notify: false });
+  const launched = Date.now();
   const first = launch();
   let firstExit = null;
-  first.on("exit", (code, signal) => { firstExit = code ?? signal; if (process.env.SMOKE_VERBOSE) console.log(`[smoke] the first copy exited: ${firstExit}`); });
-  check(await until(() => db.settings().connected && db.buddies().every((b) => b.status === "online"), 45_000), "it signs on and all three buddies come online");
+  let secondAt = 0;
+  first.on("exit", (code, signal) => { firstExit = `${code ?? signal}, ${secondAt ? `${Date.now() - secondAt} ms after the second launch` : "before the second launch"}`; });
+  // A new database already lists everyone online; signing on takes them offline and back, so look for that.
+  check(await until(() => db.buddies().every((b) => b.status === "online" && b.statusAt > launched), 45_000), "it signs on and all three buddies come online");
   check(firstExit === null, "and keeps running");
-  const t0 = Date.now();
+  const t0 = secondAt = Date.now();
   const code = await exited(launch(), 15_000);
   check(code === 0, `a second launch hands over and quits (${code}, ${Date.now() - t0} ms)`);
   check(firstExit === null, `leaving the first one running${firstExit === null ? "" : ` (it exited: ${firstExit})`}`);

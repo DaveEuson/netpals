@@ -9,7 +9,9 @@ const path = require("path");
 const fs = require("fs");
 // One Netpals at a time: a second launch (a double-click, or starting it by hand after Windows already did) hands
 // over to the first and quits, so two schedulers never share one database.
-if (!app.requestSingleInstanceLock()) app.exit(0);
+// The lock has already told the running copy by the time it returns false, so this copy just stops, on the spot:
+// app.exit() this early doesn't take on macOS, and app.quit() waits for an app that never finishes starting.
+if (!app.requestSingleInstanceLock()) process.exit(0);
 // An installed copy keeps its data in AppData, not inside the read-only app bundle.
 if (app.isPackaged) process.env.NETPALS_DATA ||= app.getPath("userData");
 const db = require("./lib/db");

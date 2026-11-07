@@ -187,6 +187,12 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   check(w() === 0.05, `cadence never drops below 0.05 (${w()})`);
 
   // 4. Live model.
+  // lines saved in the same millisecond keep the order they were saved in
+  const same = Date.now();
+  ["first", "second", "third"].forEach((x) => db.addMessage(gordo.id, "me", `tie ${x}`, same));
+  ["first", "second", "third"].forEach((x) => db.addRoomMessage("me", `tie ${x}`));
+  check(db.lastMessages(gordo.id, 3).map((m) => m.text).join() === "tie first,tie second,tie third" &&
+    db.roomMessages(3).map((m) => m.text).join() === "tie first,tie second,tie third", "lines with the same timestamp keep their order");
   // a damaged settings value keeps its default instead of stopping the app
   require("better-sqlite3")(path.join(process.env.NETPALS_DATA, "netpals.db")).prepare("UPDATE settings SET value = '{oops' WHERE key = 'quietStart'").run();
   db.setSettings({ quietStart: 22 });

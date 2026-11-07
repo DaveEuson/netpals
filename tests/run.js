@@ -26,6 +26,7 @@ const TESTS = [
   { name: "single", electron: "ui/single.js" },
   { name: "security", electron: "ui/security.js" },
   { name: "stress", electron: "ui/stress.js", timeout: 600, only: true }, // long: run it by name
+  { name: "screenshots", electron: "ui/screenshots.js", only: true }, // the README's pictures, into docs/images
 ];
 
 const argv = process.argv.slice(2);

@@ -1,6 +1,6 @@
-# Runs the whole test suite and a smoke test of the packaged app on a real Mac (the Windows side is tested locally).
-# By hand only (Actions tab, or: gh workflow run test.yml), since macOS minutes count ten times on a private repo.
-# Screenshots from the window tests are kept as an artifact, to see how Netpals looks on macOS.
+# Runs the whole test suite on a real Mac, builds the disk images (Apple Silicon and Intel), and smoke-tests the
+# packaged app. By hand only (Actions tab, or: gh workflow run test.yml), since macOS minutes count ten times on a
+# private repo. Keeps the window tests' screenshots and the disk images as artifacts.
 name: test
 on:
   workflow_dispatch:
@@ -22,10 +22,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test -- --verbose
-      - name: Package without an installer (ad-hoc signed on macOS)
+      - name: Build (the Mac disk images ad-hoc signed)
         shell: bash
         run: |
-          if [ "$RUNNER_OS" = "macOS" ]; then npx electron-builder --mac --dir -c.mac.identity=- -c.mac.hardenedRuntime=false
+          if [ "$RUNNER_OS" = "macOS" ]; then npx electron-builder --mac -c.mac.identity=- -c.mac.hardenedRuntime=false
           else npx electron-builder --win --dir; fi
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
@@ -33,7 +33,7 @@ jobs:
         shell: bash
         run: |
           if [ "$RUNNER_OS" = "macOS" ]; then
-            app=$(ls -d dist/mac*/Netpals.app | head -1)
+            app=dist/mac-arm64/Netpals.app
             codesign --verify --deep --strict --verbose=2 "$app" && echo "codesign: valid (ad-hoc)"
             node scripts/smoke.js "$app/Contents/MacOS/Netpals"
           else node scripts/smoke.js dist/win-unpacked/Netpals.exe; fi
@@ -42,3 +42,9 @@ jobs:
         with:
           name: screenshots-${{ inputs.os }}
           path: tests/out/*.png
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'macOS'
+        with:
+          name: netpals-mac
+          path: dist/*.dmg
+          if-no-files-found: error
