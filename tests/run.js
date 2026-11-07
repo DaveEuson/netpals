@@ -23,6 +23,7 @@ const TESTS = [
   { name: "room", electron: "ui/room.js" },
   { name: "settings", electron: "ui/settings.js" },
   { name: "polish", electron: "ui/polish.js" },
+  { name: "single", electron: "ui/single.js" },
   { name: "stress", electron: "ui/stress.js", timeout: 600, only: true }, // long: run it by name
 ];
 

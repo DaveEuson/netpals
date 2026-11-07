@@ -6,6 +6,9 @@
 const { app, BrowserWindow, clipboard, dialog, ipcMain, shell } = require("electron");
 const path = require("path");
 const fs = require("fs");
+// One Netpals at a time: a second launch (a double-click, or starting it by hand after Windows already did) hands
+// over to the first and quits, so two schedulers never share one database.
+if (!app.requestSingleInstanceLock()) app.exit(0);
 // An installed copy keeps its data in AppData, not inside the read-only app bundle.
 if (app.isPackaged) process.env.NETPALS_DATA ||= app.getPath("userData");
 const db = require("./lib/db");
@@ -69,5 +72,12 @@ app.whenReady().then(async () => {
   else ctx.openWindow("signon");
 });
 app.on("window-all-closed", () => app.quit());
+app.on("second-instance", () => {
+  const w = ctx.isSignedOn() ? ctx.openWindow("list") : BrowserWindow.getAllWindows().find((x) => !x.isDestroyed());
+  if (!w) return;
+  if (w.isMinimized()) w.restore();
+  w.show();
+  w.focus();
+});
 
 module.exports = ctx; // the tests reach openWindow, broadcast, scheduler, idleCheck, blinkTray and trayState through it

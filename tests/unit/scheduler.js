@@ -98,6 +98,7 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   check(prompts().cleanMessage("Hey gordo_in_accounting, perks of being a night owl, huh?", gordo) === "Hey, perks of being a night owl, huh?" && prompts().cleanMessage("hey there Gordon! lunch?", gordo) === "hey, lunch?", "a buddy greeting you with their own name loses the name");
   check(prompts().cleanMessage("<note>Boss moved deadlines, huh. Guess you'll burn the midnight oil again.<br> Lemme know if you wanna grab a bite", gordo) === "Boss moved deadlines, huh. Guess you'll burn the midnight oil again.", "a reply wrapped in an unclosed note still gets through, minus the tags");
   check(prompts().cleanMessage("i <3 this. ok?", gordo) === "i <3 this. ok?", "<3 isn't a tag");
+  check(prompts().cleanMessage('"<note>unclosed, but hey!! long day?', gordo) === "unclosed, but hey!! long day?", "a stray quote before an unclosed note doesn't swallow the reply");
   check(prompts().appendNote("They have a cat named Pixel; Starts a library job Monday", "They have a cat") === "They have a cat named Pixel; Starts a library job Monday" && prompts().appendNote("They have a cat", "They have a cat named Pixel") === "They have a cat named Pixel", "a note that says less than one already kept is dropped; one that says more replaces it");
   const modern = { ...gordo, era: 0 };
   check(/present day/.test(prompts().buddySystem(modern, {})) && !/stuck in/.test(prompts().buddySystem(modern, {})) && prompts().usesEmoji(modern) && /stuck in 2003/.test(prompts().buddySystem(gordo, {})), "era 0 is the present day: no year, emoji allowed; Gordon stays stuck in 2003");
@@ -186,6 +187,19 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   check(w() === 0.05, `cadence never drops below 0.05 (${w()})`);
 
   // 4. Live model.
+  // a damaged settings value keeps its default instead of stopping the app
+  require("better-sqlite3")(path.join(process.env.NETPALS_DATA, "netpals.db")).prepare("UPDATE settings SET value = '{oops' WHERE key = 'quietStart'").run();
+  db.setSettings({ quietStart: 22 });
+  require("better-sqlite3")(path.join(process.env.NETPALS_DATA, "netpals.db")).prepare("UPDATE settings SET value = '{oops' WHERE key = 'quietStart'").run();
+  check(db.settings().quietStart === 22 && db.settings().chattiness !== undefined, "a damaged settings value falls back to its default");
+  // a burst of lines gets one answer
+  let burstCalls = 0;
+  const burst = createScheduler({ replyPause: 300, chat: async ({ system }) => { if (!/tiny notebook/.test(system)) burstCalls++; return "ok ok, one at a time"; } });
+  db.updateBuddy(gordo.id, { status: "online" });
+  const answers = [];
+  for (const line of ["hey", "you there", "?"]) { db.addMessage(gordo.id, "me", line); answers.push(burst.reply(gordo.id)); await new Promise((r) => setTimeout(r, 100)); }
+  await Promise.all(answers);
+  check(burstCalls === 1 && db.lastMessages(gordo.id, 1)[0].text === "ok ok, one at a time", `three quick lines, one answer (${burstCalls})`);
   if (process.argv.includes("--live")) {
     const cfg = await llm.detect();
     if (cfg.provider === "openrouter") cfg.apiKey = process.env.OPENROUTER_API_KEY || "";
