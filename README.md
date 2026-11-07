@@ -14,7 +14,13 @@ away, remember what you tell them, and check in if you leave them hanging. Every
 [releases page](https://github.com/DaveEuson/netpals/releases) and run it. The installer isn't code-signed yet, so
 Windows may say "Windows protected your PC" the first time: choose **More info**, then **Run anyway**.
 
-**macOS:** see [Platforms](#platforms).
+**macOS (Apple Silicon or Intel):** download `Netpals-0.2.0-arm64.dmg` (Apple Silicon) or `Netpals-0.2.0-x64.dmg`
+(Intel) from the same page, open it and drag Netpals to Applications. It isn't signed by Apple yet, so macOS refuses
+to open a downloaded copy until you run this once in Terminal:
+
+```bash
+xattr -cr /Applications/Netpals.app
+```
 
 ## Give it a brain
 
@@ -127,7 +133,8 @@ conversations stay.
 |---|---|
 | Windows 11, 64-bit | Yes |
 | Windows 10, 64-bit | Should work (same build), not yet tested |
-| macOS | Not in this release |
+| macOS on Apple Silicon | Yes, not yet signed by Apple (see [Get it](#get-it)) |
+| macOS on Intel | Built, not yet tested on an Intel Mac |
 | Linux | Not yet |
 
 ## Something wrong?
