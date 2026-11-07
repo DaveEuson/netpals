@@ -193,6 +193,9 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   ["first", "second", "third"].forEach((x) => db.addRoomMessage("me", `tie ${x}`));
   check(db.lastMessages(gordo.id, 3).map((m) => m.text).join() === "tie first,tie second,tie third" &&
     db.roomMessages(3).map((m) => m.text).join() === "tie first,tie second,tie third", "lines with the same timestamp keep their order");
+  // a Mac starts in Pinstripe and ignores dark mode until you choose; everywhere else starts in Dial-Up
+  const mac = process.platform === "darwin";
+  check(db.settings().theme === (mac ? "pinstripe" : "dialup") && db.settings().darkWithSystem === !mac, `this ${mac ? "Mac" : "PC"} starts in ${db.settings().theme}`);
   // a damaged settings value keeps its default instead of stopping the app
   require("better-sqlite3")(path.join(process.env.NETPALS_DATA, "netpals.db")).prepare("UPDATE settings SET value = '{oops' WHERE key = 'quietStart'").run();
   db.setSettings({ quietStart: 22 });

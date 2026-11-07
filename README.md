@@ -88,10 +88,16 @@ buddies sign on one by one, with a door sound each:
 
 ![Buddy Chat with three buddies arguing about the game](docs/images/room.png)
 
-**Themes.** Setup has five: Dial-Up, Olive, Silver, Midnight (dark) and Bubblegum, plus your own colors, which you
-can save to a file and share. Netpals can go dark when your system does.
+**Themes.** Setup has six: Dial-Up, Pinstripe, Olive, Silver, Midnight (dark) and Bubblegum, plus your own colors,
+which you can save to a file and share. Netpals can go dark when your system does.
 
 ![The Buddy List in Dial-Up, Midnight and Bubblegum](docs/images/themes.png)
+
+**On a Mac**, Netpals starts in **Pinstripe**, its own early-2000s Mac look: pinstriped windows, gel buttons, the
+red and yellow window buttons on the left, and a default button that gently pulses. It's free, and it's in Setup on
+Windows too.
+
+![The Buddy List and an IM in Pinstripe](docs/images/mac.png)
 
 ## Netpals Plus
 
@@ -99,7 +105,7 @@ can save to a file and share. Netpals can go dark when your system does.
 |---|---|
 | Up to 3 buddies, built by hand | As many buddies as you like, plus Randomize |
 | IMs, Buddy Chat, away messages, check-ins, pictures | Everything in Free |
-| Dial-Up and Midnight themes | Every theme, custom colors and theme files |
+| Dial-Up, Pinstripe and Midnight themes | Every theme, custom colors and theme files |
 
 Paste your key in **Setup** under **Netpals Plus** and press **Unlock**. Keys are checked on your computer; nothing
 is sent anywhere.

@@ -2,7 +2,7 @@
 // Cancel (or the X) puts back whatever this window changed; OK just closes.
 const orig = api.settingsSync(), s = { ...orig }, touched = new Set();
 const OPENROUTER = "https://openrouter.ai/api/v1";
-const TITLE = { dialup: "#0a50cc", olive: "#5f7a2e", silver: "#c6c6d6", midnight: "#1c2c5e", bubblegum: "#b82c7a" }; // title bars are gradients; these are their middles
+const TITLE = { dialup: "#0a50cc", pinstripe: "#d9d9d9", olive: "#5f7a2e", silver: "#c6c6d6", midnight: "#1c2c5e", bubblegum: "#b82c7a" }; // title bars are gradients; these are their middles
 const COLORS = [["win", "Window"], ["panel", "Panels"], ["ink", "Text"], ["title", "Title bar"], ["accent", "Links, icons"], ["them", "Buddy names"]];
 
 const save = (patch) => { Object.assign(s, patch); Object.keys(patch).forEach((k) => touched.add(k)); return api.invoke("settings:set", patch); };
@@ -87,6 +87,10 @@ $("load-theme").onclick = async () => {
   say("Loaded.", "good", "file-result");
 };
 $("save-theme").onclick = async () => { if (await api.invoke("theme:save", s.customTheme)) say("Saved.", "good", "file-result"); };
+if (/Mac/.test(navigator.userAgent)) {
+  $("dark-label").textContent = "Go dark automatically when macOS does";
+  $("startup-label").textContent = "Start Netpals when you log in";
+}
 $("idle").value = s.autoAwayMinutes;
 $("idle").onchange = () => save({ autoAwayMinutes: Number($("idle").value) });
 const CHECKBOXES = { autologin: "autoLogin", startup: "startWithWindows", nudges: "nudges", dark: "darkWithSystem", ontop: "alwaysOnTop", sound: "sound", notify: "notify" };
@@ -96,11 +100,11 @@ for (const [id, key] of Object.entries(CHECKBOXES)) {
 }
 
 // ---- Netpals Plus --------------------------------------------------------------------------
-// Free gets Dial-Up and Midnight. A key unlocks the other presets, custom colors and theme files (main gates buddies).
-const FREE_THEMES = ["dialup", "midnight"];
+// Free gets Dial-Up, Pinstripe and Midnight. A key unlocks the other presets, custom colors and theme files (main gates buddies).
+const FREE_THEMES = ["dialup", "pinstripe", "midnight"];
 function showPlus() {
   $("plus-status").textContent = s.licensedTo ? `Licensed to ${s.licensedTo}. Thanks for supporting Netpals!`
-    : "You're on the free version: 3 buddies and the Dial-Up and Midnight themes. Plus adds unlimited buddies, Randomize and every theme.";
+    : "You're on the free version: 3 buddies and the Dial-Up, Pinstripe and Midnight themes. Plus adds unlimited buddies, Randomize and every theme.";
   $("plus-entry").hidden = Boolean(s.licensedTo);
   $("plus-buy").hidden = !s.buyUrl || Boolean(s.licensedTo); $("buy").dataset.href = s.buyUrl;
   for (const o of $("theme").options) o.disabled = !s.licensedTo && !FREE_THEMES.includes(o.value);

@@ -4,7 +4,7 @@ const fs = require("fs");
 const { app, BrowserWindow, dialog, ipcMain } = require("electron");
 
 const THEME_KEYS = ["win", "panel", "ink", "title", "accent", "them"]; // a theme file: { base, ...these six colors }
-const BASES = ["dialup", "olive", "silver", "midnight", "bubblegum"];
+const BASES = ["dialup", "pinstripe", "olive", "silver", "midnight", "bubblegum"];
 const FILTERS = [{ name: "Netpals theme", extensions: ["json"] }];
 // Settings only main sets: the key goes through license:set, away through away:set, the room through room:members,
 // and the rest is bookkeeping. A page asking to set one is ignored.

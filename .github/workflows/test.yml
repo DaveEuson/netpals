@@ -27,6 +27,8 @@ jobs:
       - run: npm ci
       - run: npm test -- --verbose
         if: inputs.tests
+      - run: npm test -- screenshots
+        if: inputs.tests
       - name: Build (the Mac disk images ad-hoc signed)
         shell: bash
         run: |
@@ -46,7 +48,9 @@ jobs:
         if: always() && inputs.tests
         with:
           name: screenshots-${{ inputs.os }}
-          path: tests/out/*.png
+          path: |
+            tests/out/*.png
+            docs/images/*.png
       - uses: actions/upload-artifact@v4
         if: always() && runner.os == 'macOS'
         with:

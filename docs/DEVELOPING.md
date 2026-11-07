@@ -75,7 +75,8 @@ closed under a storm of presence changes.
 npm test -- screenshots
 ```
 
-Remakes the README's pictures in `docs/images` from the real app, with a staged conversation.
+Remakes the README's pictures in `docs/images` from the real app, with a staged conversation. Run on a Mac (the
+test workflow does), `mac.png` shows Pinstripe in Lucida Grande, as Mac users see it.
 
 Checks that need the seller's signing key (unlocking Plus) skip on machines that don't have it.
 

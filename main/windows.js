@@ -34,7 +34,7 @@ module.exports = function windows({ db }) {
     const [width, height, resizable = false] = SIZE[kind];
     const w = new BrowserWindow({
       width, height, resizable, minWidth: Math.min(width, 220), minHeight: Math.min(height, 360), frame: false, show: false,
-      icon: path.join(ROOT, "assets", "icon.png"), backgroundColor: isDark(s) ? "#1f2433" : "#ece9d8",
+      icon: path.join(ROOT, "assets", "icon.png"), backgroundColor: isDark(s) ? "#1f2433" : s.theme === "pinstripe" ? "#ececec" : "#ece9d8",
       alwaysOnTop: kind === "list" && s.alwaysOnTop, webPreferences: { preload: path.join(ROOT, "preload.js") },
     });
     const b = s.bounds?.[kind];

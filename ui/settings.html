@@ -22,7 +22,7 @@
     <quiz-form id="quiz"></quiz-form>
     <span class="small" id="you-result" role="status"></span>
     <label class="check"><input type="checkbox" id="autologin"><span>Sign on automatically when Netpals starts</span></label>
-    <label class="check"><input type="checkbox" id="startup"><span>Start Netpals when Windows starts</span></label>
+    <label class="check"><input type="checkbox" id="startup"><span id="startup-label">Start Netpals when Windows starts</span></label>
   </fieldset>
   <fieldset class="group">
     <legend>Brain</legend>
@@ -63,7 +63,7 @@
     <div class="row">
       <label for="theme">Theme</label>
       <select id="theme" style="width: 140px">
-        <option value="dialup">Dial-Up</option><option value="olive">Olive</option><option value="silver">Silver</option>
+        <option value="dialup">Dial-Up</option><option value="pinstripe">Pinstripe</option><option value="olive">Olive</option><option value="silver">Silver</option>
         <option value="midnight">Midnight (dark)</option><option value="bubblegum">Bubblegum</option><option value="custom">Custom</option>
       </select>
     </div>
@@ -76,7 +76,7 @@
       <button class="btn" id="save-theme">Save theme file…</button>
       <span class="small" id="file-result" role="status"></span>
     </div>
-    <label class="check"><input type="checkbox" id="dark"><span>Go dark automatically when Windows does</span></label>
+    <label class="check"><input type="checkbox" id="dark"><span id="dark-label">Go dark automatically when Windows does</span></label>
     <label class="check"><input type="checkbox" id="ontop"><span>Keep the Buddy List on top of other windows</span></label>
     <label class="check"><input type="checkbox" id="sound"><span>Play sounds (new IM, door open and close)</span></label>
     <label class="check"><input type="checkbox" id="notify"><span>Show a desktop notification for new IMs</span></label>

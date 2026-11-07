@@ -89,3 +89,34 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: 
 #picker button:hover { background: var(--hover); }
 #text { flex: 1; height: 58px; }
 #send { flex: none; width: 72px; height: 58px; flex-direction: column; gap: 4px; font-weight: bold; }
+
+/* ---- Pinstripe: the early-2000s Mac look, the default on macOS ---------------------------------
+   Pinstriped windows, gel buttons with a pulsing default, round red and yellow window buttons on the left, a
+   centered title, blue capsule scroll bars. All drawn here in CSS; no system artwork is used. */
+.th-pinstripe{--win:#ececec;--panel:#ffffff;--ink:#000000;--muted:#5c5c5c;--line:#9b9b9b;--groove:#c3c3c3;--frame:#8d8d8d;--title:repeating-linear-gradient(180deg,rgba(255,255,255,.35) 0 1px,transparent 1px 2px),linear-gradient(180deg,#f4f4f4 0%,#dcdcdc 55%,#cbcbcb 100%);--title-ink:#1e1e1e;--btn:linear-gradient(180deg,#ffffff 0%,#f6f6f6 42%,#dedede 50%,#ececec 100%);--btn-line:#8c8c8c;--btn-ink:#000000;--ring:#6aa0e8;--accent:#1d5cc2;--hot:#c0331f;--icon:#2c6bd1;--hover:#dce9fc;--glow:#79acee;--sel:#3876d8;--sel-ink:#ffffff;--them:#a3141c;--banner:linear-gradient(180deg,#fdfdfd 0%,#e4e4e4 100%);--banner-line:#b9b9b9;--note:#fffbe3;--note-line:#d6c67c;--note-ink:#7a6000;--badge:#d6382a;--ok:#2a7a2a;--tile:#f7f7f7;--tab:linear-gradient(180deg,#ffffff,#dedede)}
+.th-pinstripe body { background: repeating-linear-gradient(180deg, #ebebeb 0 2px, #f6f6f6 2px 4px); font-family: "Lucida Grande", "Lucida Sans Unicode", Tahoma, Verdana, sans-serif; }
+.th-pinstripe .titlebar { height: 22px; gap: 7px; padding: 0 9px; font-weight: normal; border-bottom: 1px solid #9d9d9d; }
+.th-pinstripe .titlebar > svg { display: none; }
+.th-pinstripe .titlebar .t { order: 3; text-align: center; padding-right: 42px; }
+.th-pinstripe .titlebar button, .th-pinstripe .titlebar::before { width: 13px; height: 13px; border: 1px solid rgba(0, 0, 0, .38); border-radius: 50%; box-shadow: inset 0 1px 1px rgba(255, 255, 255, .7); }
+.th-pinstripe .tb-close { order: 0; background: radial-gradient(circle at 50% 28%, #ffd0c6 0%, #f05a43 42%, #b9230f 100%); }
+.th-pinstripe .tb-min { order: 1; background: radial-gradient(circle at 50% 28%, #fff1c2 0%, #f3bd2e 42%, #c3840a 100%); }
+.th-pinstripe .titlebar::before { content: ""; order: 2; flex: none; background: radial-gradient(circle at 50% 28%, #fbfbfb 0%, #cfcfcf 50%, #a9a9a9 100%); } /* zoom, which these windows don't do */
+.th-pinstripe .titlebar button svg { opacity: 0; }
+.th-pinstripe .titlebar:hover button svg { opacity: .7; }
+.th-pinstripe .titlebar button path { stroke: #3d1a10; stroke-width: 1.6; }
+.th-pinstripe .btn { border-radius: 11px; box-shadow: inset 0 1px 0 #ffffff, 0 1px 1px rgba(0, 0, 0, .12); }
+.th-pinstripe .btn.default { background: linear-gradient(180deg, #e3efff 0%, #9cc3f5 42%, #4f90e6 50%, #86b8f4 100%); border-color: #386fbd; animation: throb 1.6s ease-in-out infinite; }
+.th-pinstripe .btn:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--glow), 0 1px 1px rgba(0, 0, 0, .12); }
+@keyframes throb { 50% { filter: brightness(1.13) saturate(1.15); } }
+.th-pinstripe .btn.default:disabled { animation: none; }
+@media (prefers-reduced-motion: reduce) { .th-pinstripe .btn.default { animation: none; } }
+.th-pinstripe fieldset.group { border-color: #c3c3c3; border-radius: 6px; background: rgba(0, 0, 0, .035); }
+.th-pinstripe fieldset.group > legend { color: #1e1e1e; }
+.th-pinstripe input[type=text], .th-pinstripe input[type=password], .th-pinstripe input[type=number], .th-pinstripe textarea { box-shadow: inset 0 1px 2px rgba(0, 0, 0, .2); }
+.th-pinstripe .tile { border-radius: 5px; }
+.th-pinstripe you-form { grid-template-columns: 90px minmax(0, 1fr); } /* Lucida is wider than Tahoma */
+.th-pinstripe ::-webkit-scrollbar { width: 15px; height: 15px; }
+.th-pinstripe ::-webkit-scrollbar-track { background: repeating-linear-gradient(90deg, #e2e2e2 0 2px, #ececec 2px 4px); border-left: 1px solid #c8c8c8; }
+.th-pinstripe ::-webkit-scrollbar-thumb { background: linear-gradient(90deg, #a9cdf7 0%, #4f90e6 45%, #3a7ad6 55%, #8bbcf4 100%); border: 1px solid #2f63b0; border-radius: 8px; }
+.th-pinstripe ::-webkit-scrollbar-button { display: none; }

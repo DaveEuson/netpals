@@ -38,7 +38,7 @@ t.run(async () => {
   const st = await open(main, "settings");
   check(/free version/.test(await text(st, "plus-status")) && !(await js(st, "document.getElementById('plus-entry').hidden")), "Setup shows the free version and a key box");
   const themes = await js(st, "[...document.getElementById('theme').options].map((o) => o.value + (o.disabled ? ':off' : ':on')).join(' ')");
-  check(themes === "dialup:on olive:off silver:off midnight:on bubblegum:off custom:off", `free gets Dial-Up and Midnight (${themes})`);
+  check(themes === "dialup:on pinstripe:on olive:off silver:off midnight:on bubblegum:off custom:off", `free gets Dial-Up, Pinstripe and Midnight (${themes})`);
   check(await js(st, "document.getElementById('load-theme').disabled"), "and can't load theme files");
   check(!(await js(st, "document.getElementById('plus-buy').hidden")) && (await js(st, "document.getElementById('buy').dataset.href")) === "https://example.com/plus", "free shows the Get Netpals Plus link");
   await set(st, { license: "not-a-real-key.at-all" }); await click(st, "unlock"); await sleep(400);

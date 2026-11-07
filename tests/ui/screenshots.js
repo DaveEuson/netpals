@@ -1,5 +1,5 @@
 // The README's pictures, taken from the real app with a staged conversation:  npm test -- screenshots
-// Writes docs/images/{hero,connect,room,themes}.png. Every buddy and line here is made up.
+// Writes docs/images/{hero,connect,room,themes,mac}.png. Every buddy and line here is made up.
 const path = require("path");
 const fs = require("fs");
 const { BrowserWindow } = require("electron");
@@ -80,4 +80,13 @@ t.run(async () => {
     shots.push(await shot(list));
   }
   await compose("themes.png", 900, 640, shots.map((png, i) => ({ png, x: 40 + i * 290, y: 36 })));
+
+  // the Mac's own look: the Buddy List and an IM in Pinstripe
+  db.setSettings({ theme: "pinstripe" });
+  main.broadcast("settings", db.settings());
+  await sleep(500);
+  const macChat = await open(main, "chat", { id: String(gordo.id) });
+  main.broadcast("typing", { id: gordo.id, on: true });
+  await compose("mac.png", 820, 640, [{ png: await shot(list), x: 40, y: 36 }, { png: await shot(macChat), x: 320, y: 120 }],
+    "linear-gradient(170deg, #6c8fc7 0%, #3e65a8 50%, #27467f 100%)");
 });
