@@ -1,4 +1,4 @@
-// Runnable check for lib/scheduler.js:  npm run check:scheduler   (add -- --live to also ping the real model)
+// Runnable check for lib/scheduler.js:  npm test -- scheduler   (add -- --live to also ping the real model)
 // 1. Simulates 400 days of 5-minute ticks per chattiness level and checks each averages its daily target.
 // 2. Checks the gates (quiet hours, 20-minute gap, away) and the weighted buddy pick.
 // 3. Fires against a fake model to check message cleanup, the away-message handoff, what buddies know about you,
@@ -10,9 +10,9 @@ const os = require("os");
 const path = require("path");
 process.env.NETPALS_DATA = fs.mkdtempSync(path.join(os.tmpdir(), "netpals-check-"));
 
-const db = require("../lib/db");
-const llm = require("../lib/llm");
-const { createScheduler, inQuiet, fireChance, canPing, pickBuddy, TARGET, TICK_MS, GAP_MS } = require("../lib/scheduler");
+const db = require("../../lib/db");
+const llm = require("../../lib/llm");
+const { createScheduler, inQuiet, fireChance, canPing, pickBuddy, TARGET, TICK_MS, GAP_MS } = require("../../lib/scheduler");
 
 let failed = 0;
 const check = (ok, label) => { console.log(`${ok ? "PASS" : "FAIL"}  ${label}`); if (!ok) failed++; };
@@ -208,4 +208,4 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   process.exit(failed ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });
 
-function prompts() { return require("../lib/prompts"); }
+function prompts() { return require("../../lib/prompts"); }
