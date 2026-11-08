@@ -8,6 +8,8 @@
 // from then on, untagged names as name:latest the way Ollama lists them.
 // And it's a calendar, at /calendar.ics: a dentist appointment on right now, a team sync every day from 1 to 3 this
 // computer's time, and a cancelled meeting that must never show. /page.html is a web page, not a calendar.
+// And Open-Meteo, at /v1/search and /v1/forecast: two Springfields (Missouri is the bigger), a Paris, and no Nowhere;
+// light rain at 37 °F (3 °C) with a 40% chance of more.
 const http = require("http");
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -55,6 +57,19 @@ const calendar = (now = Date.now()) => ["BEGIN:VCALENDAR", "VERSION:2.0",
   "BEGIN:VEVENT", "UID:gone", "SUMMARY:Cancelled meeting", `DTSTART:${stamp(now - 5 * 60_000)}`, `DTEND:${stamp(now + 60 * 60_000)}`, "STATUS:CANCELLED", "END:VEVENT",
   "END:VCALENDAR"].join("\r\n");
 
+const PLACES = [
+  { name: "Springfield", latitude: 37.2, longitude: -93.3, country_code: "US", country: "United States", admin1: "Missouri" },
+  { name: "Springfield", latitude: 39.8, longitude: -89.6, country_code: "US", country: "United States", admin1: "Illinois" },
+  { name: "Paris", latitude: 48.9, longitude: 2.35, country_code: "FR", country: "France", admin1: "Île-de-France" },
+];
+function sky(url) {
+  const q = new URL(url, "http://x").searchParams;
+  if (url.startsWith("/v1/search")) return { results: PLACES.filter((p) => p.name.toLowerCase() === q.get("name").toLowerCase()) };
+  const f = q.get("temperature_unit") === "fahrenheit";
+  return { current: { temperature_2m: f ? 37.3 : 2.9, weather_code: 61 },
+    daily: { temperature_2m_max: [f ? 60.4 : 15.8], temperature_2m_min: [f ? 36.2 : 2.3], precipitation_probability_max: [40] } };
+}
+
 function start(port = 0) {
   const pulled = new Set();
   const server = http.createServer((req, res) => {
@@ -66,6 +81,7 @@ function start(port = 0) {
       if (req.method === "GET" && /\/(v1\/)?models$/.test(req.url)) return send(200, { data: names.map((id) => ({ id })) });
       if (req.method === "GET" && req.url === "/calendar.ics") { res.writeHead(200, { "Content-Type": "text/calendar" }); return res.end(calendar()); }
       if (req.method === "GET" && req.url === "/page.html") { res.writeHead(200, { "Content-Type": "text/html" }); return res.end("<!doctype html><p>not a calendar"); }
+      if (req.method === "GET" && /^\/v1\/(search|forecast)\?/.test(req.url)) return send(200, sky(req.url));
       if (req.method === "GET" && req.url === "/api/tags") return send(200, { models: names.map((n, i) => ({ name: n, details: { parameter_size: i ? "8B" : "7B" } })) });
       let b = {};
       try { b = JSON.parse(body || "{}"); } catch { return send(400, { error: "bad json" }); }

@@ -68,11 +68,15 @@
     </div>
   </fieldset>
   <fieldset class="group">
-    <legend>Calendar</legend>
-    <span class="small muted">Link your calendar and buddies know your day: they don't IM you while something's on, and ask how it went after.</span>
+    <legend>Your day</legend>
+    <span class="small muted">Buddies can know your day. Each part is off until you fill it in, and Check it shows exactly what buddies are told.</span>
+    <label for="cal"><b>Calendar.</b> <span class="small muted">They don't IM you while something's on, and ask how it went after.</span></label>
     <div class="row"><input id="cal" type="password" spellcheck="false" autocomplete="off" placeholder="Your calendar's secret iCal link" style="flex: 1"><button class="btn" id="cal-check">Check it</button></div>
     <span class="tiny muted">Google Calendar: Settings, your calendar, then Secret address in iCal format. Outlook: Settings, Calendar, Shared calendars, Publish a calendar, then the ICS link. Event names go into what buddies are told, so with OpenRouter they leave this computer.</span>
     <span class="small" id="cal-result" role="status"></span>
+    <label for="wx"><b>Weather.</b> <span class="small muted">From Open-Meteo, free. Only your town goes out.</span></label>
+    <div class="row"><input id="wx" type="text" spellcheck="false" autocomplete="off" placeholder="Your town or postal code, like Springfield, Illinois" style="flex: 1"><button class="btn" id="wx-check">Check it</button></div>
+    <span class="small" id="wx-result" role="status"></span>
   </fieldset>
   <fieldset class="group">
     <legend>Look and sounds</legend>

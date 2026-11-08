@@ -86,10 +86,12 @@ buddies sign on one by one, with a door sound each:
   their slang comes from, 1985 to now, or **Today**.
 - **Add** makes a new buddy: build one yourself, or (with Plus) **Randomize** one from a one-line vibe.
 - **Save…** in an IM window writes the conversation to a text file.
-- **Link your calendar** in Setup and buddies know your day: they don't IM you first while something's on, and ask
-  how it went after. Paste the calendar's secret iCal link (Google Calendar: Settings, your calendar, **Secret address
-  in iCal format**; Outlook: Settings, Calendar, Shared calendars, **Publish a calendar**). No sign-in, and **Check
-  it** shows exactly what buddies are told.
+- **Your day**, in Setup, lets buddies know what's going on. Each part is off until you fill it in, and **Check it**
+  shows exactly what buddies are told.
+  - **Calendar:** buddies don't IM you first while something's on, and ask how it went after. Paste the calendar's
+    secret iCal link (Google Calendar: Settings, your calendar, **Secret address in iCal format**; Outlook: Settings,
+    Calendar, Shared calendars, **Publish a calendar**). No sign-in.
+  - **Weather:** type your town or postal code and buddies know it's raining where you are. Free, from Open-Meteo.
 - **Closing the Buddy List** keeps you signed on, in the tray (the menu bar on a Mac); its icon blinks when an IM is
   waiting. Right-click it for **Sign Off**.
 
@@ -125,11 +127,13 @@ is sent anywhere.
   account, no server and no analytics.
 - With a model on your computer, nothing leaves it.
 - With OpenRouter, what a buddy needs to answer goes to OpenRouter and the model's maker: the conversation so far,
-  what you told setup about yourself, what the buddy remembers, today's event names and times if you linked a
-  calendar, and any picture you send. Your password never does.
+  what you told setup about yourself, what the buddy remembers, today's event names and times and your weather if
+  you filled those in, and any picture you send. Your password never does.
 - A linked calendar comes straight from Google or Outlook to your computer, with nothing in between. Netpals only
   reads it, never changes it, and keeps the link in your data folder. Treat that link like a password: anyone who
   has it can see your calendar.
+- For the weather, the town you typed and its map position go to [Open-Meteo](https://open-meteo.com), at most twice an
+  hour while you're signed on. Nothing else does.
 - The password locks the Sign On window. It doesn't encrypt your conversations.
 
 ## Your data

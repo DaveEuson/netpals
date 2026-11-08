@@ -1,8 +1,9 @@
 // main/settings.js — Setup's side of things: reading and saving settings, the brain (model list, Test it, finding
-// one, downloading one into Ollama), checking a calendar link, and theme files.
+// one, downloading one into Ollama), checking what buddies know about your day, and theme files.
 const fs = require("fs");
 const { app, BrowserWindow, dialog, ipcMain } = require("electron");
 const calendar = require("../lib/calendar");
+const weather = require("../lib/weather");
 
 const THEME_KEYS = ["win", "panel", "ink", "title", "accent", "them"]; // a theme file: { base, ...these six colors }
 const BASES = ["dialup", "pinstripe", "olive", "silver", "midnight", "bubblegum"];
@@ -79,12 +80,16 @@ module.exports = function settings(ctx) {
     return { ms: Date.now() - t0, text };
   }));
 
-  // ---- the calendar: Check it reads the link now and says what buddies would be told.
+  // ---- your day: each Check it reads its source now and says what buddies would be told.
   ipcMain.handle("calendar:check", attempt(async (_e, link) => {
     if (!calendar.links(link).length) throw new Error("Paste your calendar's secret iCal link first.");
     const events = await calendar.load(String(link), { fresh: true });
     const now = new Date(), today = calendar.today(events, now);
     return { events: events.length, today: today.length, says: calendar.sayDay(today, now) };
+  }));
+  ipcMain.handle("weather:check", attempt(async (_e, place) => {
+    if (!String(place || "").trim()) throw new Error("Type your town, or your postal code.");
+    return { says: weather.say(await weather.load(String(place).trim(), { fresh: true })) };
   }));
 
   // ---- theme files. Loading checks every color before using any.

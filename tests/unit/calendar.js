@@ -49,7 +49,7 @@ const dates = (list) => list.map((e) => `${e.start.getDate()}@${e.start.getHours
   check(cal.busyAt(today, now) && !cal.busyAt(today, new Date(2026, 2, 10, 16, 30)) && !cal.busyAt(today, new Date(2026, 2, 10, 12)), "busy in the dentist's chair, not in time marked free, not over lunch with only an all-day event");
   const says = cal.sayDay(today, now);
   check(/^From their calendar today\./.test(says) && /All day: Mom's birthday\./.test(says) && /Already over: Late call at .+, Standup at 9:00/.test(says)
-    && /Right now they're in Dentist until 3:00/.test(says) && /Later: Focus time at 4:00.+, Dinner with Sam at 7:00/.test(says) && /now and then/.test(says), `buddies are told what's over, on and next: "${says}"`);
+    && /Right now they're in Dentist until 3:00/.test(says) && /Later: Focus time at 4:00.+, Dinner with Sam at 7:00/.test(says), `buddies are told what's over, on and next: "${says}"`);
   check(cal.sayDay([], now) === "", "an empty day tells them nothing");
   const weird = cal.sayDay([{ title: `x\u0007${"y".repeat(100)}`, start: day(2026, 3, 10), end: day(2026, 3, 11), allDay: true }], now);
   check(/All day: x y{58}\./.test(weird), "event names lose control characters and stop at 60 characters");

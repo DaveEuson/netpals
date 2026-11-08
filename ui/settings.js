@@ -115,16 +115,20 @@ for (const [id, key] of Object.entries(CHECKBOXES)) {
   $(id).onchange = () => save({ [key]: $(id).checked });
 }
 
-// ---- calendar: saved when the link changes; Check it reads it now and shows what buddies are told
-$("cal").value = s.calendarUrl;
-$("cal").onchange = () => { save({ calendarUrl: $("cal").value.trim() }); say("", "muted", "cal-result"); };
-$("cal-check").onclick = async () => {
-  $("cal-check").disabled = true; say("Reading it…", "muted", "cal-result");
-  const r = await api.invoke("calendar:check", $("cal").value);
-  $("cal-check").disabled = false;
-  if (!r.ok) return say(r.error, "err", "cal-result");
-  say(r.today ? `It works. Buddies are told: "${r.says}"` : "It works. Nothing on it today, so buddies hear nothing yet.", "good", "cal-result");
-};
+// ---- your day: each field saves when it changes; its Check it reads it now and shows what buddies are told
+function dayPart(id, key, channel, ok) {
+  $(id).value = s[key];
+  $(id).onchange = () => { save({ [key]: $(id).value.trim() }); say("", "muted", `${id}-result`); };
+  $(`${id}-check`).onclick = async () => {
+    $(`${id}-check`).disabled = true; say("Checking…", "muted", `${id}-result`);
+    const r = await api.invoke(channel, $(id).value);
+    $(`${id}-check`).disabled = false;
+    say(r.ok ? ok(r) : r.error, r.ok ? "good" : "err", `${id}-result`);
+  };
+}
+const told = (says) => `It works. Buddies are told: "${says}"`;
+dayPart("cal", "calendarUrl", "calendar:check", (r) => (r.today ? told(r.says) : "It works. Nothing on it today, so buddies hear nothing yet."));
+dayPart("wx", "weatherPlace", "weather:check", (r) => told(r.says));
 
 // ---- Netpals Plus --------------------------------------------------------------------------
 // Free gets Dial-Up, Pinstripe and Midnight. A key unlocks the other presets, custom colors and theme files (main gates buddies).

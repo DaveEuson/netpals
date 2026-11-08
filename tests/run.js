@@ -13,6 +13,7 @@ const fakeModel = require("./fake-model");
 const TESTS = [
   { name: "license", node: "unit/license.js" },
   { name: "calendar", node: "unit/calendar.js" },
+  { name: "weather", node: "unit/weather.js" },
   { name: "scheduler", electron: "unit/scheduler.js", args: (live) => (live ? ["--live"] : []), timeout: 240 },
   { name: "account", electron: "ui/account.js", phases: ["setup", "signon", "auto", { phase: "reset", args: ["--reset-password"] }] },
   { name: "connect", electron: "ui/connect.js" },
@@ -24,7 +25,7 @@ const TESTS = [
   { name: "room", electron: "ui/room.js" },
   { name: "settings", electron: "ui/settings.js" },
   { name: "models", electron: "ui/models.js" },
-  { name: "calendar-setup", electron: "ui/calendar.js" },
+  { name: "your-day", electron: "ui/day.js" },
   { name: "polish", electron: "ui/polish.js" },
   { name: "single", electron: "ui/single.js" },
   { name: "security", electron: "ui/security.js" },
