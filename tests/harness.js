@@ -11,6 +11,8 @@ const ROOT = path.join(__dirname, "..");
 const OUT = process.env.NETPALS_TEST_OUT || path.join(__dirname, "out");
 const MODEL = process.env.NETPALS_TEST_MODEL || "http://127.0.0.1:9/v1";
 const LIVE = process.env.NETPALS_TEST_LIVE === "1";
+// Setup's Ollama, detection and downloads go to the fake model too, unless a test wants the real Ollama.
+if (!LIVE) process.env.NETPALS_OLLAMA ||= MODEL.replace(/\/v1\/?$/, "");
 // Each test is its own Electron app as far as the single-instance lock goes, so tests never block each other.
 app.setPath("userData", path.join(process.env.NETPALS_DATA || os.tmpdir(), "electron"));
 const db = require(path.join(ROOT, "lib", "db"));

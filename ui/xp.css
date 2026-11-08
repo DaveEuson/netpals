@@ -34,6 +34,9 @@ a:hover { color: var(--hot); }
 
 /* ---- controls ------------------------------------------------------------------------------- */
 .sunken { background: var(--panel); border: 1px solid var(--line); }
+/* a segmented progress bar: Connecting, and a model downloading */
+.bar { height: 18px; display: flex; gap: 2px; padding: 2px; }
+.bar i { flex: 1; background: var(--accent); visibility: hidden; }
 fieldset.group { margin: 0; padding: 6px 12px 12px; border: 1px solid var(--groove); border-radius: 4px; display: flex; flex-direction: column; gap: 9px; min-width: 0; }
 fieldset.group > legend { padding: 0 4px; color: var(--accent); }
 .btn { height: 23px; min-width: 75px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--btn-line); border-radius: 3px; background: var(--btn); color: var(--btn-ink); font: inherit; cursor: pointer; }

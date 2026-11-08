@@ -79,8 +79,7 @@ app.setAppUserModelId(app.isPackaged ? "com.netpals.app" : process.execPath); //
 // First launch (or a cleared password): setup. After that: Sign On, or straight in with auto-login.
 app.whenReady().then(async () => {
   const s = db.settings();
-  const d = !s.provider && (await llm.detect());
-  if (d) db.setSettings({ provider: d.provider, baseUrl: d.baseUrl, model: d.model, detect: { models: d.models, small: d.small } });
+  if (!s.provider) await ctx.detectBrain();
   if (!s.provider || !s.passHash) ctx.openWindow("welcome");
   else if (s.autoLogin) ctx.signOn();
   else ctx.openWindow("signon");

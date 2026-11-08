@@ -1,7 +1,8 @@
-// main/settings.js — Setup's side of things: reading and saving settings, the brain (model list, Test it), and
-// theme files.
+// main/settings.js — Setup's side of things: reading and saving settings, the brain (model list, Test it, finding
+// one, downloading one into Ollama), checking a calendar link, and theme files.
 const fs = require("fs");
 const { app, BrowserWindow, dialog, ipcMain } = require("electron");
+const calendar = require("../lib/calendar");
 
 const THEME_KEYS = ["win", "panel", "ink", "title", "accent", "them"]; // a theme file: { base, ...these six colors }
 const BASES = ["dialup", "pinstripe", "olive", "silver", "midnight", "bubblegum"];
@@ -18,7 +19,8 @@ module.exports = function settings(ctx) {
   // environment changes what the key fields say.
   ipcMain.on("settings:getSync", (e) => {
     const s = db.settings();
-    e.returnValue = { ...s, hasEnvKey: Boolean(process.env.OPENROUTER_API_KEY), licensedTo: ctx.licensedTo(s), buyUrl: license.BUY_URL };
+    e.returnValue = { ...s, hasEnvKey: Boolean(process.env.OPENROUTER_API_KEY), licensedTo: ctx.licensedTo(s), buyUrl: license.BUY_URL,
+      localHosts: llm.LOCAL_HOSTS, recommended: llm.RECOMMENDED };
   });
   ipcMain.handle("settings:set", (_e, raw) => {
     const patch = Object.fromEntries(Object.entries(raw || {}).filter(([k]) => !MAIN_ONLY.includes(k)));
@@ -31,14 +33,58 @@ module.exports = function settings(ctx) {
 
   // ---- the brain
   ipcMain.handle("llm:listLocal", async (_e, host) => {
-    const models = await llm.listLocal(host);
-    return models && { models, pick: llm.pickModel(models)?.id };
+    const models = llm.LOCAL_HOSTS.includes(host) && (await llm.listLocal(host)); // only ever asks Ollama or LM Studio
+    return models ? { models, pick: llm.pickModel(models)?.id } : null;
   });
+  // Look for a brain and use it: at first launch, after installing Ollama, and after a download (`prefer`).
+  async function detectBrain(prefer) {
+    const d = await llm.detect(prefer);
+    db.setSettings({ provider: d.provider, baseUrl: d.baseUrl, model: d.model, detect: { models: d.models, small: d.small, ollama: d.ollama } });
+    broadcast("settings", db.settings());
+    return d;
+  }
+  ipcMain.handle("llm:detect", attempt(async (_e, prefer) => {
+    const d = await detectBrain(typeof prefer === "string" ? prefer : undefined);
+    return { provider: d.provider, model: d.model, ollama: d.ollama };
+  }));
+  // One download at a time, its progress sent to the window that asked (five times a second at most). Closing that
+  // window stops it; so does llm:stopPull.
+  let pulling = null;
+  ipcMain.handle("llm:pull", async (e, name) => {
+    if (pulling) return { ok: false, error: "A download is already running. Let it finish first." };
+    const ac = (pulling = new AbortController());
+    const stop = () => ac.abort();
+    e.sender.once("destroyed", stop);
+    let last = 0;
+    const onProgress = (p) => {
+      if (Date.now() - last < 200 || e.sender.isDestroyed()) return;
+      last = Date.now();
+      e.sender.send("pull", p);
+    };
+    try {
+      await llm.pull(String(name || "").trim(), { signal: ac.signal, onProgress });
+      return { ok: true };
+    } catch (err) {
+      return err.name === "AbortError" ? { ok: false, stopped: true } : { ok: false, error: err.message };
+    } finally {
+      pulling = null;
+      if (!e.sender.isDestroyed()) e.sender.removeListener("destroyed", stop);
+    }
+  });
+  ipcMain.handle("llm:stopPull", () => { pulling?.abort(); });
   ipcMain.handle("llm:test", attempt(async () => {
     const t0 = Date.now();
     const text = await llm.chat({ system: "You are a friend on an instant messenger. Reply with one short hello.",
       messages: [{ role: "user", content: "hi" }], maxTokens: 30 }, ctx.llmCfg());
     return { ms: Date.now() - t0, text };
+  }));
+
+  // ---- the calendar: Check it reads the link now and says what buddies would be told.
+  ipcMain.handle("calendar:check", attempt(async (_e, link) => {
+    if (!calendar.links(link).length) throw new Error("Paste your calendar's secret iCal link first.");
+    const events = await calendar.load(String(link), { fresh: true });
+    const now = new Date(), today = calendar.today(events, now);
+    return { events: events.length, today: today.length, says: calendar.sayDay(today, now) };
   }));
 
   // ---- theme files. Loading checks every color before using any.
@@ -58,5 +104,5 @@ module.exports = function settings(ctx) {
     })();
   });
 
-  return {};
+  return { detectBrain };
 };

@@ -107,7 +107,7 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   const zoomer = { ...gordo, era: 2019 };
   check(prompts().cleanMessage("omg hiii 🎉 u there??", zoomer) === "omg hiii 🎉 u there??" && /emoji or two/.test(prompts().buddySystem(zoomer, {})) && /No emoji/.test(prompts().buddySystem(gordo, {})), "a 2019 buddy keeps emoji and is told they're fine; 2003 Gordon isn't");
   check(prompts().cleanAway('"Out gettin snacks!! back soon? 🍕"') === "Out gettin snacks!!", "away line: one sentence, no quotes or emoji");
-  check(lastSystem.includes('"out to lunch"') && lastSystem.includes("2003") && lastSystem.includes("nothing specific yet"), "prompt carries away text, era and the context line");
+  check(lastSystem.includes('"out to lunch"') && lastSystem.includes("2003") && !lastSystem.includes("about their day"), "prompt carries away text and era, and no day line with no calendar");
   check(db.settings().lastAwayText === "", "away handoff is used once");
   await sched.fire(gordo, at(14, 30));
   check(!lastSystem.includes("out to lunch") && lastSystem.includes("hey! did you eat lunch?"), "next prompt drops the away note and shows the thread");
@@ -161,6 +161,20 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   db.setSettings({ awayMessage: "" });
   check((await nudger.checkIn(tasha.id, t3.id, at(23, 30))) === null, "no check-ins in quiet hours");
   check((await nudger.checkIn(tasha.id, t3.id, at(14, 30)))?.text === "helloooo, earth to you :P", "same IM, all clear: the check-in goes");
+
+  // 3b2. A calendar (the fake's: a team sync every day from 1 to 3): no IM out of the blue and no check-in during a
+  // meeting, and afterwards buddies know what was on.
+  let calSystem = "";
+  const pinger = createScheduler({ chat: async ({ system }) => { calSystem = system; return "so how'd it go?"; }, rand: () => 0 });
+  db.setSettings({ calendarUrl: `${process.env.NETPALS_TEST_MODEL.replace(/\/v1\/?$/, "")}/calendar.ics`, chattiness: 4 });
+  db.addMessage(tasha.id, "me", "ok ok");
+  const t4 = db.addMessage(tasha.id, "buddy", "so??");
+  check((await pinger.tick(at(14))) === null, "no IM out of the blue while a meeting's on");
+  check((await nudger.checkIn(tasha.id, t4.id, at(14, 30))) === null, "no check-in while a meeting's on");
+  check((await nudger.checkIn(tasha.id, t4.id, at(15, 5)))?.text === "helloooo, earth to you :P", "the check-in goes once it's over");
+  const after = await pinger.tick(at(16));
+  check(after?.text === "so how'd it go?" && /Already over: Team sync at 1(3)?:00/.test(calSystem) && /ask how it went/.test(calSystem), `after the meeting a buddy IMs, knowing what was on: "${calSystem.match(/From their calendar[^\n]*/)?.[0]}"`);
+  db.setSettings({ calendarUrl: "", chattiness: 2 });
 
   // 3c. Feedback: thumbs nudge cadence, votes can be changed or taken back, the third 👎 of a day drops chattiness once.
   const tash = db.buddies().find((b) => b.screenName === "xXtashaRAWRxX");

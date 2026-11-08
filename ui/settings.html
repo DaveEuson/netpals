@@ -27,12 +27,21 @@
   <fieldset class="group">
     <legend>Brain</legend>
     <label class="check"><input type="radio" name="provider" id="p-local"><span>On this computer (Ollama or LM Studio)</span></label>
-    <label class="check"><input type="radio" name="provider" id="p-or"><span>OpenRouter (over the internet)</span></label>
+    <label class="check"><input type="radio" name="provider" id="p-or"><span>OpenRouter (optional, over the internet, paid)</span></label>
     <div class="grid" id="local-fields">
       <label for="server">Server</label>
-      <select id="server"><option value="11434">Ollama · localhost:11434</option><option value="1234">LM Studio · localhost:1234</option></select>
+      <select id="server"></select>
       <label for="model">Model</label><select id="model"></select>
     </div>
+    <div class="grid" id="get-fields">
+      <label for="get-name">Download</label>
+      <div class="row"><input id="get-name" type="text" list="get-list" spellcheck="false" autocomplete="off" placeholder="a model, like llama3.1:8b" style="flex: 1"><button class="btn" id="get">Download</button></div>
+      <span></span><pull-bar id="get-bar"></pull-bar>
+      <span></span><span class="tiny muted">Pick one from the list, or type any name from <a data-href="https://ollama.com/library">Ollama's library</a>.</span>
+      <span></span><span class="small" id="get-result" role="status"></span>
+    </div>
+    <datalist id="get-list"></datalist>
+    <rigmatch-note></rigmatch-note>
     <div class="grid" id="or-fields">
       <label for="or-model">Model</label><input id="or-model" type="text" spellcheck="false">
       <label for="key">API key</label><input id="key" type="password" placeholder="sk-or-…" autocomplete="off">
@@ -57,6 +66,13 @@
       <select id="idle"><option value="0">never</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option></select>
       <span class="small muted">without touching the mouse or keyboard</span>
     </div>
+  </fieldset>
+  <fieldset class="group">
+    <legend>Calendar</legend>
+    <span class="small muted">Link your calendar and buddies know your day: they don't IM you while something's on, and ask how it went after.</span>
+    <div class="row"><input id="cal" type="password" spellcheck="false" autocomplete="off" placeholder="Your calendar's secret iCal link" style="flex: 1"><button class="btn" id="cal-check">Check it</button></div>
+    <span class="tiny muted">Google Calendar: Settings, your calendar, then Secret address in iCal format. Outlook: Settings, Calendar, Shared calendars, Publish a calendar, then the ICS link. Event names go into what buddies are told, so with OpenRouter they leave this computer.</span>
+    <span class="small" id="cal-result" role="status"></span>
   </fieldset>
   <fieldset class="group">
     <legend>Look and sounds</legend>
@@ -93,7 +109,6 @@
     <span class="small" id="storage"></span>
     <div class="row"><button class="btn" id="show-data">Show the folder</button><span class="tiny muted">Copy it somewhere to back up everything.</span></div>
   </fieldset>
-  <rigmatch-note></rigmatch-note>
 </main>
 <footer>
   <button class="btn default" data-win="close">OK</button>

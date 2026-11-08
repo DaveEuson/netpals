@@ -1,5 +1,5 @@
 // chrome.js — loaded in <head> of every window, before its own script. Paints the theme before first paint and holds
-// what every window shares: the $ / el / say helpers, the <title-bar>, <rigmatch-note> and <you-form> elements,
+// what every window shares: the $ / el / say helpers, the <title-bar>, <rigmatch-note>, <pull-bar> and <you-form> elements,
 // title-bar buttons (data-win="close|min") and external links (data-href, https only).
 // A preset is a .th-<id> class from xp.css. A custom theme is six picked colors; its lines, banner, buttons and muted
 // text are mixed from those six so it hangs together whatever base it started from. "Go dark with Windows" swaps in Midnight.
@@ -28,8 +28,32 @@ tag("title-bar", (e) => {
 tag("rigmatch-note", (e) => {
   e.className = "note";
   e.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7 6v4 M7 3.8v.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>' +
-    '<span>Buddies feel slow or dumb? <a data-href="https://github.com/DaveEuson/RigMatch">Run RigMatch</a> to find a model that fits your machine.</span>';
+    '<span>Not sure which model fits your computer? <a data-href="https://github.com/DaveEuson/RigMatch">RigMatch</a> tries them on your machine and tells you which runs best. Netpals can download it for you.</span>';
 });
+// <pull-bar>: a model downloading into Ollama, in Connecting's segmented bar, with how much is done and Stop.
+// pullModel(name, bar) shows it, runs the download and resolves to llm:pull's answer: { ok }, { ok: false, stopped } or { ok: false, error }.
+tag("pull-bar", (e) => {
+  e.className = "col"; e.hidden = true; e.style.gap = "4px";
+  e.innerHTML = '<div class="bar sunken"></div><div style="display: flex; align-items: center; gap: 8px"><span class="small muted" style="flex: 1"></span><button class="btn">Stop</button></div>';
+  for (let i = 0; i < 20; i++) e.firstChild.append(el("i"));
+  e.querySelector("button").onclick = () => window.api.invoke("llm:stopPull");
+});
+let onPull = null;
+window.api.on("pull", (p) => onPull?.(p));
+async function pullModel(name, box) {
+  const gb = (b) => (b / 1e9).toFixed(1);
+  const draw = (frac, text) => {
+    [...box.querySelector(".bar").children].forEach((c, i) => { c.style.visibility = i < Math.round(frac * 20) ? "visible" : "hidden"; });
+    box.querySelector("span").textContent = text;
+  };
+  box.hidden = false;
+  draw(0, `Asking Ollama for ${name}…`);
+  onPull = ({ status, done, total }) => draw(total ? done / total : 0, total ? `${gb(done)} of ${gb(total)} GB · ${Math.floor((100 * done) / total)}%` : status);
+  const r = await window.api.invoke("llm:pull", name);
+  onPull = null;
+  box.hidden = true;
+  return r;
+}
 // <you-form>: your screen name, password and the A/S/L-style bits your buddies get to read. Setup and Settings share it.
 tag("you-form", (e) => {
   e.innerHTML = `<label for="y-sn">Screen name</label><input id="y-sn" type="text" maxlength="16" spellcheck="false" autocomplete="off">

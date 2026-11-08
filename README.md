@@ -24,14 +24,13 @@ xattr -cr /Applications/Netpals.app
 
 ## Give it a brain
 
-Netpals needs a language model to write your buddies' lines. There are two ways to give it one.
+Netpals needs a language model to write your buddies' lines. The free way runs it on your computer. OpenRouter is
+an optional paid alternative, if you'd rather not run one yourself.
 
 **On your computer, free and private.** Install [Ollama](https://ollama.com) (or [LM Studio](https://lmstudio.ai))
-and a model, and Netpals finds it by itself:
-
-```bash
-ollama pull llama3.1:8b
-```
+and Netpals finds it by itself. No model yet? Netpals downloads one for you: the welcome screen offers
+`llama3.1:8b`, and **Download** in Setup takes any model from [Ollama's library](https://ollama.com/library), with a
+progress bar and a Stop button. A stopped download picks up where it left off next time.
 
 | Model | What it's like |
 |---|---|
@@ -41,18 +40,24 @@ ollama pull llama3.1:8b
 
 A 7B or 8B model wants about 8 GB of memory, and a graphics card makes it much quicker. What to expect: charm, not
 brilliance. A model this size forgets, repeats itself, mixes up the date and won't pass the Turing test. That's
-the trade for keeping everything on your computer. If your buddies feel slow or dumb,
-[RigMatch](https://github.com/DaveEuson/RigMatch) finds the best model your machine can run.
+the trade for keeping everything on your computer.
 
-**OpenRouter, over the internet.** Get a key at [openrouter.ai](https://openrouter.ai) and paste it on the welcome
-screen (or set `OPENROUTER_API_KEY`). Netpals uses `google/gemini-2.5-flash`, which is sharper than any local model
-and costs a fraction of a cent per message. Your messages go to OpenRouter to be answered.
+**Not sure which model your computer can handle?** [RigMatch](https://github.com/DaveEuson/RigMatch) tries Ollama
+models on your own hardware and tells you which one runs best. Type its pick into Setup's **Download** box and your
+buddies use it as soon as it's in. New models come out all the time; RigMatch is how you find out whether one beats
+what you have.
+
+**OpenRouter, over the internet (optional).** You don't need it: a model on your computer is all Netpals needs. If
+you'd rather not run one, or want sharper buddies, get a key at [openrouter.ai](https://openrouter.ai) and paste it
+on the welcome screen or in Setup (or set `OPENROUTER_API_KEY`). Netpals uses `google/gemini-2.5-flash`, which is
+sharper than any local model and costs a fraction of a cent per message. Your messages go to OpenRouter to be
+answered.
 
 ## First run
 
 Setup takes a minute: pick a screen name and password, answer five optional quick questions (what you do all day,
 what you're into, your hours, a pet peeve, what your buddies should bug you about), and see which brain Netpals
-found. Press **Sign On** and it dials up:
+found. If there's no good one on your computer, it offers to download one. Press **Sign On** and it dials up:
 
 ![The Connecting to Netpals window, halfway through dialing](docs/images/connect.png)
 
@@ -81,6 +86,10 @@ buddies sign on one by one, with a door sound each:
   their slang comes from, 1985 to now, or **Today**.
 - **Add** makes a new buddy: build one yourself, or (with Plus) **Randomize** one from a one-line vibe.
 - **Save…** in an IM window writes the conversation to a text file.
+- **Link your calendar** in Setup and buddies know your day: they don't IM you first while something's on, and ask
+  how it went after. Paste the calendar's secret iCal link (Google Calendar: Settings, your calendar, **Secret address
+  in iCal format**; Outlook: Settings, Calendar, Shared calendars, **Publish a calendar**). No sign-in, and **Check
+  it** shows exactly what buddies are told.
 - **Closing the Buddy List** keeps you signed on, in the tray (the menu bar on a Mac); its icon blinks when an IM is
   waiting. Right-click it for **Sign Off**.
 
@@ -116,7 +125,11 @@ is sent anywhere.
   account, no server and no analytics.
 - With a model on your computer, nothing leaves it.
 - With OpenRouter, what a buddy needs to answer goes to OpenRouter and the model's maker: the conversation so far,
-  what you told setup about yourself, what the buddy remembers, and any picture you send. Your password never does.
+  what you told setup about yourself, what the buddy remembers, today's event names and times if you linked a
+  calendar, and any picture you send. Your password never does.
+- A linked calendar comes straight from Google or Outlook to your computer, with nothing in between. Netpals only
+  reads it, never changes it, and keeps the link in your data folder. Treat that link like a password: anyone who
+  has it can see your calendar.
 - The password locks the Sign On window. It doesn't encrypt your conversations.
 
 ## Your data

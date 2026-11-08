@@ -21,24 +21,40 @@ $("you").onchange = async () => {
 $("quiz").onchange = () => { save({ quiz: readQuiz() }); say("Saved.", "good", "you-result"); };
 
 // ---- brain ---------------------------------------------------------------------------------
+const [OLLAMA, LMSTUDIO] = s.localHosts, bare = (u) => u.replace(/^https?:\/\//, "");
+$("server").append(new Option(`Ollama · ${bare(OLLAMA)}`, OLLAMA), new Option(`LM Studio · ${bare(LMSTUDIO)}`, LMSTUDIO));
+for (const m of s.recommended) $("get-list").append(new Option(`${m.gb} GB, ${m.note}`, m.id));
 function showProvider() {
   const local = s.provider === "local";
   $("p-local").checked = $("or-fields").hidden = local;
   $("p-or").checked = $("local-fields").hidden = !local;
+  $("get-fields").hidden = !local || $("server").value !== OLLAMA; // LM Studio downloads models in its own window
   say("", "muted", "test-result"); // a result for the other brain would mislead
 }
-async function loadModels() {
-  const port = $("server").value;
-  const r = await api.invoke("llm:listLocal", `http://localhost:${port}`);
+// The models on the chosen server; `prefer` (one just downloaded, maybe listed as name:latest) gets picked if it's there.
+async function loadModels(prefer) {
+  const host = $("server").value;
+  const r = await api.invoke("llm:listLocal", host);
   const models = r?.models || [];
   $("model").replaceChildren(...models.map((m) => new Option(m.b ? `${m.id} (${m.b}B)` : m.id, m.id)));
-  if (!models.length) return $("model").add(new Option(`nothing answering on :${port}`, ""));
-  $("model").value = models.some((m) => m.id === s.model) ? s.model : r.pick || models[0].id;
-  save({ baseUrl: `http://localhost:${port}/v1`, model: $("model").value });
+  if (!models.length) return $("model").add(new Option(`nothing answering on ${bare(host)}`, ""));
+  const want = models.find((m) => m.id === prefer || m.id === `${prefer}:latest`);
+  $("model").value = want ? want.id : models.some((m) => m.id === s.model) ? s.model : r.pick || models[0].id;
+  save({ baseUrl: `${host}/v1`, model: $("model").value });
 }
 $("p-local").onchange = () => { save({ provider: "local" }); showProvider(); loadModels(); };
 $("p-or").onchange = () => { save({ provider: "openrouter", baseUrl: OPENROUTER, model: $("or-model").value.trim() }); showProvider(); };
-$("server").onchange = loadModels;
+$("server").onchange = () => { showProvider(); loadModels(); };
+$("get").onclick = async () => {
+  const name = $("get-name").value.trim();
+  if (!name) return say("Pick a model from the list, or type one's name.", "err", "get-result");
+  $("get").disabled = true; say("", "muted", "get-result");
+  const r = await pullModel(name, $("get-bar"));
+  $("get").disabled = false;
+  if (!r.ok) return say(r.stopped ? "Stopped. Download it again to pick up where it left off." : r.error, r.stopped ? "muted" : "err", "get-result");
+  await loadModels(name);
+  say(`Downloaded. Your buddies run on ${$("model").value} now.`, "good", "get-result");
+};
 $("model").onchange = () => { save({ model: $("model").value }); say("", "muted", "test-result"); };
 $("or-model").onchange = () => save({ model: $("or-model").value.trim() || "google/gemini-2.5-flash" });
 $("key").onchange = () => save({ apiKey: $("key").value.trim() });
@@ -99,6 +115,17 @@ for (const [id, key] of Object.entries(CHECKBOXES)) {
   $(id).onchange = () => save({ [key]: $(id).checked });
 }
 
+// ---- calendar: saved when the link changes; Check it reads it now and shows what buddies are told
+$("cal").value = s.calendarUrl;
+$("cal").onchange = () => { save({ calendarUrl: $("cal").value.trim() }); say("", "muted", "cal-result"); };
+$("cal-check").onclick = async () => {
+  $("cal-check").disabled = true; say("Reading it…", "muted", "cal-result");
+  const r = await api.invoke("calendar:check", $("cal").value);
+  $("cal-check").disabled = false;
+  if (!r.ok) return say(r.error, "err", "cal-result");
+  say(r.today ? `It works. Buddies are told: "${r.says}"` : "It works. Nothing on it today, so buddies hear nothing yet.", "good", "cal-result");
+};
+
 // ---- Netpals Plus --------------------------------------------------------------------------
 // Free gets Dial-Up, Pinstripe and Midnight. A key unlocks the other presets, custom colors and theme files (main gates buddies).
 const FREE_THEMES = ["dialup", "pinstripe", "midnight"];
@@ -136,7 +163,7 @@ $("cancel").onclick = x.onclick = async () => {
   api.invoke("win:close");
 };
 if (s.hasEnvKey) $("key").placeholder = "Using OPENROUTER_API_KEY from your environment";
-$("server").value = (s.baseUrl.match(/:(\d+)\//) || [])[1] === "1234" ? "1234" : "11434";
+$("server").value = s.baseUrl.startsWith(LMSTUDIO) ? LMSTUDIO : OLLAMA;
 $("or-model").value = s.provider === "openrouter" ? s.model : "google/gemini-2.5-flash";
 $("key").value = s.apiKey;
 fillYou(s); fillQuiz(s);
