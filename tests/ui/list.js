@@ -6,8 +6,8 @@ db.addMessage(buddy("gordo_in_accounting").id, "buddy", "breakroom coffee has en
 
 t.run(async () => {
   const list = await t.signedOn();
-  const sounds = await js(list, "Promise.all(['door-open','door-close','im'].map((n) => new Audio('../assets/' + n + '.wav').play().then(() => 'ok', (e) => n + ': ' + e.message)))");
-  check(sounds.every((s) => s === "ok"), `all three sounds decode (${sounds})`);
+  const sounds = await js(list, "Promise.all(['door-open','door-close','im','im-send'].map((n) => new Audio('../assets/' + n + '.wav').play().then(() => 'ok', (e) => n + ': ' + e.message)))");
+  check(sounds.every((s) => s === "ok"), `all four sounds decode (${sounds})`);
   check(await until(() => db.buddies().every((b) => b.status === "online"), 30_000), "then everyone signs on within half a minute");
   await sleep(300);
   check((await text(list, "me")).includes("1 new IM") && (await js(list, "document.querySelector('.pill')?.textContent")) === "1", "an unread IM shows as a count in the banner and a pill on the buddy");

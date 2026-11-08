@@ -21,7 +21,9 @@ t.run(async () => {
   check(/\(optional\)/.test(await text(w, "brain-name")) && /\(optional\)/.test(await js(w, "document.querySelector('label[for=key]').textContent")), "OpenRouter and its key are marked optional");
   await set(w, { key: "" }); await click(w, "signon"); await sleep(200);
   check(/Get Ollama below, or paste an OpenRouter key/.test(await text(w, "status")), "Sign On with no key and no Ollama points at both ways");
-  check(/Install Ollama/.test(await text(w, "get-text")) && !(await vis(w, "buddy-block")), "and says what to do, in place of the buddy list");
+  check(/Install Ollama/.test(await text(w, "get-text")), "and says what to do");
+  check((await js(w, "document.getElementById('b-or').checked")) && /GB of memory/.test(await text(w, "machine-text")), "OpenRouter is ticked, and the note sizes up this computer without a model to time");
+  check(/only work in their makers' own apps/.test(await text(w, "step-brain")), "and says a ChatGPT or Claude subscription isn't a key");
   check(!(await vis(w, "rigmatch")) && /RigMatch/.test(await text(w, "get")), "with RigMatch in the offer instead of under it");
   await snap(w, "models-no-ollama.png");
   await click(w, "get-look");
@@ -38,7 +40,8 @@ t.run(async () => {
   await click(w, "get-go");
   check(await until(() => db.settings().provider === "local" && db.settings().model === "llama3.1:8b", 8000), "Download gets it and switches the brain to it");
   await sleep(300);
-  check(/Downloaded/.test(await text(w, "status")) && !(await vis(w, "get")) && (await vis(w, "buddy-block")) && (await vis(w, "rigmatch")) && (await vis(w, "step-brain")), "says so, swaps the offer for the buddy list and RigMatch note, and stays on the brain step");
+  check(/Downloaded/.test(await text(w, "status")) && !(await vis(w, "get")) && (await vis(w, "rigmatch")) && (await vis(w, "step-brain")), "says so, swaps the offer for the RigMatch note, and stays on the brain step");
+  check(await until(async () => /answers an IM in about 2 seconds/.test(await text(w, "machine-text")), 5000) && (await vis(w, "rec-local")), "then times the new model, and recommends it");
   await snap(w, "models-downloaded.png");
   check(!(await js(w, "document.getElementById('signon').disabled")) && (await text(w, "model")) === "llama3.1:8b", "with Sign On ready and the new model shown");
 

@@ -47,6 +47,7 @@ async function send() {
   $("text").value = "";
   const r = await api.invoke("room:send", text);
   if (!r.ok) { $("text").value = text; sysLine(`Couldn't save that: ${r.error}`); }
+  else chime("im-send");
 }
 
 async function load() {
@@ -64,7 +65,7 @@ async function load() {
   $("log").scrollTop = $("log").scrollHeight;
 }
 
-api.on("room", ({ msg }) => { add(msg); if (msg.role === "buddy" && api.settingsSync().sound) new Audio("../assets/im.wav").play().catch(() => {}); });
+api.on("room", ({ msg }) => { add(msg); if (msg.role === "buddy") chime("im"); });
 api.on("room-typing", ({ buddy, on }) => { typing[on ? "add" : "delete"](buddy.screenName); showTyping(); });
 api.on("presence", ({ buddy }) => { buddies.set(buddy.id, buddy); renderMembers(); });
 api.on("buddies", load);

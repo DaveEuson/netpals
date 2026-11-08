@@ -6,9 +6,9 @@ const { BrowserWindow, dialog, ipcMain, nativeImage, shell } = require("electron
 
 module.exports = function pictures(ctx) {
   const { db, llm, attempt } = ctx;
-  const FILES = path.join(db.dir, "files");
+  const FILES = () => path.join(db.dir, "files"); // the screen name signed on, so asked each time
   const shrink = (file, width) => {
-    const i = nativeImage.createFromPath(path.join(FILES, file));
+    const i = nativeImage.createFromPath(path.join(FILES(), file));
     return i.getSize().width > width ? i.resize({ width }) : i;
   };
   const thumbs = new Map(); // made when a window asks for one; the 300 most recent are kept
@@ -24,9 +24,9 @@ module.exports = function pictures(ctx) {
     const buddy = db.buddy(id);
     if (!buddy || !/\.(png|jpe?g)$/i.test(src)) throw new Error("Pictures only: a png or jpg.");
     if (fs.statSync(src).size > 20e6) throw new Error("That picture is over 20 MB.");
-    fs.mkdirSync(FILES, { recursive: true });
+    fs.mkdirSync(FILES(), { recursive: true });
     const file = `${Date.now()}-${path.basename(src).replace(/[^\w.-]/g, "_")}`;
-    fs.copyFileSync(src, path.join(FILES, file));
+    fs.copyFileSync(src, path.join(FILES(), file));
     ctx.broadcast("message", { msg: db.addMessage(id, "me", "", Date.now(), file), buddy });
     ctx.scheduler.reply(id);
     return { seen: await llm.canSee(ctx.llmCfg()), model: db.settings().model };
@@ -39,7 +39,7 @@ module.exports = function pictures(ctx) {
       filters: [{ name: "Pictures", extensions: ["png", "jpg", "jpeg"] }] });
     return r.canceled ? { canceled: true } : sendFile(id, r.filePaths[0]);
   }));
-  ipcMain.handle("file:open", (_e, file) => shell.openPath(path.join(FILES, path.basename(String(file)))));
+  ipcMain.handle("file:open", (_e, file) => shell.openPath(path.join(FILES(), path.basename(String(file)))));
 
   // What the scheduler hands the model: the picture as a JPEG data URL, or null when the model is known to be blind.
   const picture = async (file) => ((await llm.canSee(ctx.llmCfg())) === false ? null

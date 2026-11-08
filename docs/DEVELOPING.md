@@ -29,7 +29,9 @@ npm run reset-password
 | `lib/scheduler.js` | When buddies talk, presence drift, replies, check-ins, Buddy Chat turns, away |
 | `lib/prompts.js` | Every prompt a buddy sees, and the cleanup that holds their answers to the house rules |
 | `lib/llm.js` | One `chat()` over Ollama, LM Studio, OpenRouter and Claude (Anthropic's SDK; `NETPALS_ANTHROPIC` points it elsewhere); model detection; whether a model can see; downloading a model into Ollama, and the models Setup suggests |
-| `lib/db.js` | Settings, buddies and messages, the starting buddies, and migrations for older databases |
+| `lib/db.js` | Settings, buddies and messages, the starting buddies, and migrations for older databases; `open()` switches screen names before sign-on |
+| `lib/accounts.js` | More than one screen name: a folder each (the first in the data folder, the rest in `screen-names/N`), `screen-names.json` listing them and the last one on |
+| `lib/machine.js` | Is this computer up to running buddies: memory, graphics, one timed reply (Ollama's own timings), and what the setup wizard says |
 | `lib/context.js` | What every buddy reads as "what you know about their day" (Setup's Your day), and whether a meeting's on |
 | `lib/calendar.js` | Reading a calendar's secret iCal link: repeats, skipped and moved ones, what's on now, what buddies are told |
 | `lib/weather.js` | The weather where you are, from Open-Meteo (no key); `NETPALS_WEATHER` points it elsewhere |
@@ -50,8 +52,8 @@ or open other windows (`main/windows.js`), and `settings:set` ignores the settin
 npm test
 ```
 
-The license, calendar, weather, Fieldy, Claude and scheduler checks, then a window test for each part of the app
-(setup and sign-on, Connecting, Plus, the Buddy List, Away, IMs, pictures, Buddy Chat, Setup, getting a model, Your
+The license, calendar, weather, Fieldy, Claude, machine and scheduler checks, then a window test for each part of the app
+(setup and sign-on, the setup wizard, several screen names, Connecting, Plus, the Buddy List, Away, IMs, pictures, Buddy Chat, Setup, getting a model, Your
 day, the Claude brain, window polish, one copy at a time, security).
 Each runs the real `main.js` under Electron in a throwaway data folder, with windows off-screen, against
 `tests/fake-model.js`: an OpenAI-compatible stand-in that answers in milliseconds and misbehaves on request

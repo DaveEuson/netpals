@@ -99,6 +99,28 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   check(prompts().cleanMessage("<note>Boss moved deadlines, huh. Guess you'll burn the midnight oil again.<br> Lemme know if you wanna grab a bite", gordo) === "Boss moved deadlines, huh. Guess you'll burn the midnight oil again.", "a reply wrapped in an unclosed note still gets through, minus the tags");
   check(prompts().cleanMessage("i <3 this. ok?", gordo) === "i <3 this. ok?", "<3 isn't a tag");
   check(prompts().cleanMessage('"<note>unclosed, but hey!! long day?', gordo) === "unclosed, but hey!! long day?", "a stray quote before an unclosed note doesn't swallow the reply");
+  check(prompts().cleanMessage("omg seriously?! it's this flowy synth stuff, ya know? wait what are you up to??", gordo) === "omg seriously?! it's this flowy synth stuff, ya know?"
+    && prompts().cleanMessage("u there?? i miss u!!", gordo) === "u there??", "an opening \"omg seriously?!\" doesn't end the message before the answer; a real question still does");
+  check(prompts().cleanMessage("(11:43 AM) you: omg rad! what kinda beats?", gordo) === "omg rad! what kinda beats?"
+    && prompts().cleanMessage("[11:43 AM] you (gordo_in_accounting): per my last IM, no.", gordo) === "per my last IM, no.", "a transcript prefix echoed in parentheses, or with the buddy's own label, comes off too");
+  // Who said what: Tasha said she was making beats, you asked what kind, and she asked you about your music.
+  const tasha0 = db.buddies().find((b) => b.screenName === "xXtashaRAWRxX");
+  const beats = [{ role: "me", text: "hey dude- whats up", ts: Date.now() }, { role: "buddy", text: "just making some beats", ts: Date.now() }];
+  const tsys = prompts().buddySystem(tasha0, { recent: beats, reply: true });
+  check(tsys.includes("you (xXtashaRAWRxX): just making some beats") && tsys.includes("them: hey dude") && /answer it about yourself/.test(tsys),
+    "a buddy's own lines carry their screen name, and they're told to answer about themselves");
+  check(/slang people really said in 2006/.test(tsys) && !/slang people really said/.test(prompts().buddySystem({ ...gordo, era: 0 }, {})), "a buddy with an era is told to keep to its slang; a present-day one isn't");
+  check(prompts().laterSlang("omg u r so on fleek!", tasha0) === "on fleek" && prompts().laterSlang("It's LIT!!", tasha0) === "it's lit"
+    && prompts().laterSlang("i lit a candle and the fire alarm went off", tasha0) === "" && prompts().laterSlang("so on fleek", { ...tasha0, era: 2019 }) === ""
+    && prompts().laterSlang("no cap", { ...tasha0, era: 0 }) === "", "slang from after a buddy's era is spotted; plain words, later eras and the present day aren't");
+  let tries = 0, canned = [];
+  const picky = createScheduler({ chat: async ({ system }) => (/tiny notebook/.test(system) ? "NONE" : canned[tries++]) });
+  canned = ["omg u r so on fleek!", "omg that's so tight!! mostly crunk stuff"];
+  db.addMessage(tasha0.id, "me", "No way- what kind of music?");
+  check((await picky.reply(tasha0.id))?.text === "omg that's so tight!! mostly crunk stuff" && tries === 2, "slang from after her era gets one more try");
+  tries = 0; canned = ["it's lit", "so lit"];
+  db.addMessage(tasha0.id, "me", "and the drums?");
+  check((await picky.reply(tasha0.id))?.text === "it's lit" && tries === 2, "and if the retry slips too, the first answer goes out: one retry, never a loop");
   check(prompts().appendNote("They have a cat named Pixel; Starts a library job Monday", "They have a cat") === "They have a cat named Pixel; Starts a library job Monday" && prompts().appendNote("They have a cat", "They have a cat named Pixel") === "They have a cat named Pixel", "a note that says less than one already kept is dropped; one that says more replaces it");
   const modern = { ...gordo, era: 0 };
   check(/present day/.test(prompts().buddySystem(modern, {})) && !/stuck in/.test(prompts().buddySystem(modern, {})) && prompts().usesEmoji(modern) && /stuck in 2003/.test(prompts().buddySystem(gordo, {})), "era 0 is the present day: no year, emoji allowed; Gordon stays stuck in 2003");

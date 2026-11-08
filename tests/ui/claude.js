@@ -21,7 +21,7 @@ t.run(async () => {
   const w = await open(main, "welcome");
   await js(w, "go('brain')"); await t.sleep(200);
   await click(w, "signon"); await t.sleep(200);
-  check(/Add your Anthropic API key in Setup/.test(await text(w, "status")), "the welcome screen's Sign On asks for the Anthropic key first");
+  check(/Paste your Anthropic API key/.test(await text(w, "status")) && (await vis(w, "claude-row")) && (await js(w, "document.getElementById('b-claude').checked")), "the welcome screen follows Setup to Claude, and its Next asks for the key right there");
 
   const testIt = async () => {
     await click(st, "test");
@@ -37,7 +37,7 @@ t.run(async () => {
   await t.sleep(300);
   await click(w, "signon");
   await until(async () => !/^Dialing/.test(await text(w, "status")), 5000);
-  check(!/Add your Anthropic API key/.test(await text(w, "status")), `once the key is in Setup, the open welcome screen knows: "${await text(w, "status")}"`);
+  check(!/Paste your Anthropic API key/.test(await text(w, "status")) && (await vis(w, "cal")), `once the key is in Setup, the open welcome screen knows, and moves on to your day`);
   await set(st, { "claude-model": "claude-haiku-5-5" });
   check(db.settings().model === "claude-haiku-5-5", "another model can be typed or picked");
   await js(st, "document.getElementById('p-claude').closest('fieldset').scrollIntoView()");

@@ -82,6 +82,7 @@ async function send() {
   $("text").value = "";
   const r = await api.invoke("chat:send", id, text);
   if (!r.ok) { $("text").value = text; note(`Couldn't save that: ${r.error}`); } // a full disk, say; your line stays in the box
+  else chime("im-send");
 }
 
 api.on("message", ({ msg, buddy: b }) => { if (b.id !== id) return; header(b); add(msg); markRead(); });
@@ -96,6 +97,7 @@ smileys($("text"), $("smile"), $("picker"));
 function sent(r) {
   if (!r || r.canceled) return;
   if (!r.ok) return note(r.error);
+  chime("im-send");
   if (r.seen === false) note(`${r.model} can't see pictures, so ${buddy.screenName} only hears the file name. Pick a model that can in Setup, like gemma3.`, "notice");
 }
 $("pic").onclick = async () => sent(await api.invoke("chat:pick", id));

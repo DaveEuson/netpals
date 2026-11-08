@@ -127,6 +127,13 @@ function start(port = 0) {
       let b = {};
       try { b = JSON.parse(body || "{}"); } catch { return send(400, { error: "bad json" }); }
       if (req.method === "POST" && req.url === "/api/pull") return pull(String(b.model || b.name), res, pulled);
+      // Ollama's own timings, for the welcome screen's speed check: fake:slow takes 30 s a reply, everything else 2 s.
+      if (req.method === "POST" && req.url === "/api/generate") {
+        server.lastGenerate = b;
+        const half = (b.model === "fake:slow" ? 15 : 1) * 1e9;
+        return send(200, { model: b.model, response: "hey", done: true, load_duration: 5e9, prompt_eval_count: 600, prompt_eval_duration: half,
+          eval_count: b.options?.num_predict || 40, eval_duration: half });
+      }
       if (req.method === "POST" && req.url.startsWith("/v1/messages")) return claude(req, b, send, server);
       if (req.method !== "POST" || !req.url.endsWith("/chat/completions")) return send(404, { error: "not here" });
       server.calls = (server.calls || 0) + 1;

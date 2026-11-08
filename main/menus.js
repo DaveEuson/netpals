@@ -20,6 +20,7 @@ module.exports = function menus(ctx) {
       { label: "Away…", click: () => openWindow("away") },
       { type: "separator" },
       { label: "Sign Off", click: () => ctx.signOff() },
+      { label: "Exit", click: () => ctx.exit() },
     ]));
     tray.on("click", () => openWindow("list"));
   }
@@ -46,6 +47,8 @@ module.exports = function menus(ctx) {
       { label: "Away…", accelerator: "Cmd+Shift+A", click: after("away") },
       { type: "separator" },
       { label: "Setup…", accelerator: "Cmd+,", click: after("settings") },
+      { type: "separator" },
+      { label: "Sign Off", click: () => { if (ctx.isSignedOn()) ctx.signOff(); } },
     ] },
     { role: "windowMenu" },
   ]) : null));

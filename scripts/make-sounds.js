@@ -1,4 +1,4 @@
-// Synthesizes the app's three original sounds into assets/*.wav: `npm run sounds`.
+// Synthesizes the app's four original sounds into assets/*.wav: `npm run sounds`.
 // Plain additive sine plucks plus a soft latch click; nothing sampled, nothing borrowed.
 // Door tones follow sparko's presence chime (C5 up to G5 on sign-on, G4 down to C4 on sign-off).
 const fs = require("fs");
@@ -41,6 +41,8 @@ const SOUNDS = {
   "door-open": { notes: [[523.25, 0.03, 0.45, 0.35], [783.99, 0.1, 0.55, 0.3]], clicks: [[0, 0.5]], total: 0.7 },
   "door-close": { notes: [[392.0, 0, 0.4, 0.3], [261.63, 0.08, 0.5, 0.3]], clicks: [[0.5, 0.6]], total: 0.6 },
   im: { notes: [[783.99, 0, 0.18, 0.3], [1046.5, 0.07, 0.2, 0.28], [1318.51, 0.14, 0.35, 0.25]], total: 0.5 },
+  // Sending: two quick notes stepping down (D6 to A5), shorter and softer than an IM coming in.
+  "im-send": { notes: [[1174.66, 0, 0.12, 0.22], [880.0, 0.06, 0.2, 0.2]], total: 0.3 },
 };
 const dir = path.join(__dirname, "..", "assets");
 fs.mkdirSync(dir, { recursive: true });

@@ -5,6 +5,7 @@ const { app, BrowserWindow, dialog, ipcMain } = require("electron");
 const calendar = require("../lib/calendar");
 const weather = require("../lib/weather");
 const fieldy = require("../lib/fieldy");
+const machine = require("../lib/machine");
 
 const THEME_KEYS = ["win", "panel", "ink", "title", "accent", "them"]; // a theme file: { base, ...these six colors }
 const BASES = ["dialup", "pinstripe", "olive", "silver", "midnight", "bubblegum"];
@@ -22,7 +23,7 @@ module.exports = function settings(ctx) {
   ipcMain.on("settings:getSync", (e) => {
     const s = db.settings();
     e.returnValue = { ...s, hasEnvKey: Boolean(process.env.OPENROUTER_API_KEY), hasEnvClaudeKey: Boolean(process.env.ANTHROPIC_API_KEY), licensedTo: ctx.licensedTo(s), buyUrl: license.BUY_URL,
-      localHosts: llm.LOCAL_HOSTS, recommended: llm.RECOMMENDED, claudeModels: llm.CLAUDE_MODELS };
+      localHosts: llm.LOCAL_HOSTS, recommended: llm.RECOMMENDED, claudeModels: llm.CLAUDE_MODELS, openrouter: llm.OPENROUTER, openrouterModel: llm.OPENROUTER_MODEL };
   });
   ipcMain.handle("settings:set", (_e, raw) => {
     const patch = Object.fromEntries(Object.entries(raw || {}).filter(([k]) => !MAIN_ONLY.includes(k)));
@@ -74,6 +75,26 @@ module.exports = function settings(ctx) {
     }
   });
   ipcMain.handle("llm:stopPull", () => { pulling?.abort(); });
+  // Is this computer up to running buddies itself? Memory and graphics, plus how long the local model picked takes
+  // over one real-sized buddy prompt. A model's time is kept for the run: timing it again would only time a cache.
+  const timed = new Map();
+  ipcMain.handle("machine:check", async () => {
+    const s = db.settings();
+    const hw = machine.hardware(await app.getGPUInfo("basic").catch(() => null));
+    let seconds = null;
+    if (s.provider === "local" && s.model) {
+      const key = `${s.baseUrl}|${s.model}`, cfg = ctx.llmCfg(s);
+      const buddy = db.buddies()[0], now = new Date();
+      const prompt = buddy ? ctx.prompts.buddySystem(buddy, { now, you: s, reply: true, recent: [
+        { role: "buddy", text: "hey! long time no talk, what are you up to", ts: now - 300_000 },
+        { role: "me", text: "not much, just got back from the store. you?", ts: now - 240_000 },
+        { role: "buddy", text: "same old. did you get anything good", ts: now - 180_000 }] }) : "Say hi.";
+      if (!timed.has(key)) timed.set(key, machine.replySeconds(cfg, prompt, (o) => llm.chat(o, cfg)).catch(() => null));
+      seconds = await timed.get(key);
+      if (seconds == null) timed.delete(key);
+    }
+    return { ...hw, seconds, ...machine.verdict(hw, seconds) };
+  });
   ipcMain.handle("llm:test", attempt(async () => {
     const t0 = Date.now();
     const text = await llm.chat({ system: "You are a friend on an instant messenger. Reply with one short hello.",

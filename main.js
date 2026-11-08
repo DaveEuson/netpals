@@ -7,6 +7,11 @@
 const { app, BrowserWindow, clipboard, dialog, ipcMain, shell } = require("electron");
 const path = require("path");
 const fs = require("fs");
+// A copy pointed at another data folder (the smoke test, or `npm start` and its data/ folder) is a Netpals of its
+// own: Electron's folder, and with it the one-at-a-time lock below, lives inside that data folder. Otherwise it would
+// hand over to the copy you use, --reset-password and all.
+const ownData = process.env.NETPALS_DATA || (!app.isPackaged && path.join(__dirname, "data"));
+if (ownData) app.setPath("userData", path.join(ownData, "electron"));
 // An installed copy keeps its data in AppData, not inside the read-only app bundle.
 if (app.isPackaged) process.env.NETPALS_DATA ||= app.getPath("userData");
 
@@ -18,10 +23,11 @@ const resetPassword = () => require("./lib/db").setSettings({ passHash: "", save
 // One Netpals at a time: a second launch (a double-click, or starting it by hand after Windows already did) hands
 // over to the first and quits, so two schedulers never share one database. The lock has already told the running
 // copy by the time it returns false, so this copy stops on the spot (app.exit() this early doesn't take on macOS,
-// and app.quit() waits for an app that never finishes starting). A reset is done here too: macOS doesn't always
-// pass the flag on to the running copy.
+// and app.quit() waits for an app that never finishes starting). On macOS a reset is done here too: it doesn't always
+// pass the flag on to the running copy. (Elsewhere the running copy resets the screen name picked at Sign On, and this
+// one would reset the last one to sign on, which may be another.)
 if (!app.requestSingleInstanceLock()) {
-  if (process.argv.includes(RESET)) resetPassword();
+  if (process.argv.includes(RESET) && process.platform === "darwin") resetPassword();
   process.exit(0);
 }
 if (process.argv.includes(RESET)) resetPassword();
@@ -32,13 +38,13 @@ const prompts = require("./lib/prompts");
 const { createScheduler } = require("./lib/scheduler");
 
 // ---- when something breaks: a plain dialog with details to copy, and a line in the data folder's netpals.log
-const LOG = path.join(db.dir, "netpals.log");
+const LOG = () => path.join(db.dir, "netpals.log"); // in the folder of whichever screen name is on
 function snag(e) {
-  try { fs.appendFileSync(LOG, `${new Date().toISOString()} ${e?.stack || e}\n`); } catch { /* best effort */ }
+  try { fs.appendFileSync(LOG(), `${new Date().toISOString()} ${e?.stack || e}\n`); } catch { /* best effort */ }
   if (!app.isReady()) return;
   const r = dialog.showMessageBoxSync({ type: "error", title: "Netpals hit a snag", message: "Something went wrong. Your buddies and chats are safe.",
     detail: String(e?.message || e), buttons: ["Copy details", "Close"], defaultId: 1, noLink: true });
-  if (r === 0) clipboard.writeText(`${e?.stack || e}\n\n${LOG}`);
+  if (r === 0) clipboard.writeText(`${e?.stack || e}\n\n${LOG()}`);
 }
 process.on("uncaughtException", snag);
 process.on("unhandledRejection", snag);
@@ -78,12 +84,14 @@ ipcMain.handle("win:min", (e) => BrowserWindow.fromWebContents(e.sender)?.minimi
 ipcMain.handle("external", (_e, url) => { if (/^https:\/\//.test(url)) shell.openExternal(url); });
 
 app.setAppUserModelId(app.isPackaged ? "com.netpals.app" : process.execPath); // Windows needs this for notifications
-// First launch (or a cleared password): setup. After that: Sign On, or straight in with auto-login.
+// First launch (or a cleared password): setup. After that: Sign On, or straight in with auto-login (but not after
+// Sign Off, which starts Netpals over so you can pick a screen name).
 app.whenReady().then(async () => {
   const s = db.settings();
+  ctx.noteScreenName();
   if (!s.provider) await ctx.detectBrain();
   if (!s.provider || !s.passHash) ctx.openWindow("welcome");
-  else if (s.autoLogin) ctx.signOn();
+  else if (s.autoLogin && !process.argv.includes(ctx.SIGNED_OFF)) ctx.signOn();
   else ctx.openWindow("signon");
 });
 app.on("window-all-closed", () => app.quit());

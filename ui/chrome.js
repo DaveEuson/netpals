@@ -94,6 +94,10 @@ function eraOptions(select, value = 2003) {
 }
 const time = (ts) => new Date(ts).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 const stamp = (ts) => new Date(ts).toLocaleString([], { weekday: "long", hour: "numeric", minute: "2-digit" });
+// Plays assets/<name>.wav. Setup's Play sounds turns them all off; the Buddy List's two mutes silence sending
+// (im-send) and IMs coming in (im) on their own. Door sounds answer only to Setup.
+const MUTED_BY = { im: "muteReceive", "im-send": "muteSend" };
+const chime = (name, s = api.settingsSync()) => { if (s.sound && !s[MUTED_BY[name]]) new Audio(`../assets/${name}.wav`).play().catch(() => {}); };
 // A smiley picker that drops an emoji in at the cursor of a textarea. Instant Message and Buddy Chat both have one.
 const EMOJI = "😀 😂 🙂 😉 😍 😘 😛 😎 🤔 😮 😢 😭 😠 🙄 😴 🤒 👍 👎 👋 🙏 👀 💀 ❤️ 💔 🔥 ✨ 🎉 ☕ 🍕 🎮 🎵 💤".split(" ");
 function smileys(text, button, picker) {

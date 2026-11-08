@@ -6,12 +6,21 @@
 <link rel="stylesheet" href="xp.css">
 <script src="chrome.js"></script>
 <style>
-  main { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding: 14px 16px 0; }
+  main { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 12px; padding: 14px 16px 2px; }
   .banner { gap: 14px; padding: 18px 18px 16px; }
   .banner .wordmark { font-size: 28px; letter-spacing: -0.5px; }
+  #step-count { margin-left: auto; align-self: flex-end; }
   .brain { display: flex; align-items: flex-start; gap: 10px; }
   .facts { display: grid; grid-template-columns: 64px minmax(0, 1fr); row-gap: 5px; column-gap: 8px; padding: 8px 10px; font-size: 11px; }
   .buddy { display: flex; align-items: center; gap: 6px; }
+  .line { display: flex; align-items: center; gap: 6px; }
+  .line input[type=text], .line input[type=password] { flex: 1; min-width: 0; }
+  .pick { align-items: flex-start; }
+  .pick input { margin-top: 2px; }
+  .rec { margin-left: 4px; padding: 0 5px; border-radius: 7px; background: var(--ok); color: #fff; font-size: 10px; font-weight: bold; }
+  #machine.warn { background: color-mix(in srgb, var(--hot) 12%, var(--note)); border-color: var(--hot); }
+  #machine.warn > svg { color: var(--hot); }
+  .pairs { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 7px 10px; align-items: center; }
   footer { gap: 10px; padding: 12px 16px 14px; }
   #signon { height: 30px; min-width: 110px; font-weight: bold; }
 </style>
@@ -22,14 +31,18 @@
     <span class="wordmark">Netpals</span>
     <span class="muted">Your buddies are warming up the modem.</span>
   </div>
+  <span id="step-count" class="small muted"></span>
 </div>
+
 <main id="step-you">
   <fieldset class="group">
     <legend>Get a screen name</legend>
     <you-form></you-form>
   </fieldset>
   <span class="small muted">Your buddies read everything here except the password. Only the screen name and password are required.</span>
+  <a id="have-one" class="small" style="align-self: flex-start" hidden>I already have a screen name</a>
 </main>
+
 <main id="step-quiz" hidden>
   <fieldset class="group">
     <legend>Quick questions</legend>
@@ -37,7 +50,19 @@
   </fieldset>
   <span class="small muted">All optional. They give your buddies something to bring up besides the weather.</span>
 </main>
+
 <main id="step-brain" hidden>
+  <div class="note" id="machine" role="status">
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M5 1v2 M9 1v2 M5 11v2 M9 11v2 M1 5h2 M1 9h2 M11 5h2 M11 9h2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    <span id="machine-text">Checking what this computer can do…</span>
+  </div>
+  <fieldset class="group">
+    <legend>Where your buddies think</legend>
+    <label class="check pick"><input type="radio" name="brain" id="b-local"><span><b>On this computer</b> <span class="muted">· free and private, wants a strong computer</span><span class="rec" id="rec-local" hidden>Recommended</span></span></label>
+    <label class="check pick"><input type="radio" name="brain" id="b-or"><span><b>OpenRouter</b> <span class="muted">· over the internet, usually cents a day</span><span class="rec" id="rec-or" hidden>Recommended</span></span></label>
+    <label class="check pick"><input type="radio" name="brain" id="b-claude"><span><b>Claude</b> <span class="muted">· Anthropic's API, about a cent a message</span><span class="rec" id="rec-claude" hidden>Recommended</span></span></label>
+    <span class="tiny muted">Paying for ChatGPT Plus or Claude Pro or Max? Those plans only work in their makers' own apps. Netpals needs an API key, which is billed by what you use.</span>
+  </fieldset>
   <fieldset class="group">
     <legend id="legend"></legend>
     <div class="brain">
@@ -57,9 +82,13 @@
     <div class="col" id="key-row" style="gap: 3px" hidden>
       <label for="key"><b>OpenRouter API key</b> <span class="muted">(optional)</span></label>
       <input id="key" type="password" placeholder="sk-or-…" autocomplete="off">
-      <span class="tiny muted" id="key-hint">Skip it to use a free model on this computer instead. Saved here only.</span>
+      <span class="tiny muted" id="key-hint">Get one at <a data-href="https://openrouter.ai/settings/keys">openrouter.ai</a>. Skip it to use a free model on this computer instead. Saved here only.</span>
     </div>
-    <a id="pick" class="small" style="align-self: flex-start">Pick a different brain…</a>
+    <div class="col" id="claude-row" style="gap: 3px" hidden>
+      <label for="claude-key"><b>Anthropic API key</b></label>
+      <input id="claude-key" type="password" placeholder="sk-ant-…" autocomplete="off">
+      <span class="tiny muted" id="claude-hint">Get one at <a data-href="https://platform.claude.com/settings/keys">platform.claude.com</a>. Saved here only. Pick a cheaper model in Setup any time.</span>
+    </div>
   </fieldset>
   <div class="note" id="get" hidden>
     <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1.5v7 M4 5.8l3 3 3-3 M2 10.5v2h10v-2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -74,12 +103,49 @@
       <pull-bar id="get-bar"></pull-bar>
     </div>
   </div>
+  <rigmatch-note id="rigmatch"></rigmatch-note>
+</main>
+
+<main id="step-day" hidden>
+  <fieldset class="group">
+    <legend>Your day</legend>
+    <span class="small muted">Buddies who know your day have more to say. Both are optional, and Check it shows exactly what buddies are told.</span>
+    <label for="cal"><b>Calendar.</b> <span class="small muted">They don't IM you while something's on, and ask how it went after.</span></label>
+    <div class="line"><input id="cal" type="password" spellcheck="false" autocomplete="off" placeholder="Your calendar's secret iCal link"><button class="btn" id="cal-check">Check it</button></div>
+    <span class="tiny muted">Google Calendar: Settings, your calendar, then Secret address in iCal format. Outlook: Settings, Calendar, Shared calendars, Publish a calendar, then the ICS link.</span>
+    <span class="small" id="cal-result" role="status"></span>
+    <label for="wx"><b>Weather.</b> <span class="small muted">From Open-Meteo, free. Only your town goes out.</span></label>
+    <div class="line"><input id="wx" type="text" spellcheck="false" autocomplete="off" placeholder="Your town or postal code"><button class="btn" id="wx-check">Check it</button></div>
+    <span class="small" id="wx-result" role="status"></span>
+  </fieldset>
+  <span class="small muted">Fieldy, what you talked about today, comes with Netpals Plus. Add it in Setup once you have a key.</span>
+</main>
+
+<main id="step-touches" hidden>
+  <fieldset class="group">
+    <legend>How it feels</legend>
+    <div class="pairs">
+      <label for="t-chat">Buddies IM you</label><select id="t-chat"></select>
+      <label for="t-qs">Quiet hours</label><span class="line"><select id="t-qs"></select><label for="t-qe">to</label><select id="t-qe"></select></span>
+      <label for="t-theme">Theme</label><select id="t-theme"><option value="dialup">Dial-Up</option><option value="pinstripe">Pinstripe</option><option value="midnight">Midnight (dark)</option></select>
+    </div>
+    <label class="check"><input type="checkbox" id="t-sound"><span>Play sounds</span></label>
+    <label class="check"><input type="checkbox" id="t-notify"><span>Show a desktop notification for new IMs</span></label>
+    <label class="check"><input type="checkbox" id="t-startup"><span id="t-startup-label">Start Netpals when Windows starts</span></label>
+    <label class="check"><input type="checkbox" id="t-auto"><span>Sign on automatically (keeps your password on this computer)</span></label>
+  </fieldset>
+  <fieldset class="group">
+    <legend>Netpals Plus <span class="muted">(optional)</span></legend>
+    <div class="line"><input id="t-license" type="text" spellcheck="false" autocomplete="off" placeholder="Paste your license key"><button class="btn" id="t-unlock">Unlock</button></div>
+    <span class="small muted" id="t-plus">Free is 3 buddies and three themes. Plus adds unlimited buddies, every theme and Fieldy.</span>
+  </fieldset>
   <div class="col" id="buddy-block" style="gap: 6px">
     <b id="buddy-count"></b>
     <div class="col small" id="buddies" style="gap: 3px"></div>
   </div>
-  <rigmatch-note id="rigmatch"></rigmatch-note>
+  <span class="small muted">All of this, and more, is in Setup any time.</span>
 </main>
+
 <footer>
   <span id="status" class="small muted" role="status"></span>
   <button class="btn" id="back" hidden>Back</button>

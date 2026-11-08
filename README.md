@@ -61,9 +61,21 @@ messages go to Anthropic to be answered.
 
 ## First run
 
-Setup takes a minute: pick a screen name and password, answer five optional quick questions (what you do all day,
-what you're into, your hours, a pet peeve, what your buddies should bug you about), and see which brain Netpals
-found. If there's no good one on your computer, it offers to download one. Press **Sign On** and it dials up:
+Setup walks through everything in five steps, a minute or two in all:
+
+1. **A screen name and password**, plus an optional age, gender and a few lines about you.
+2. **Five quick questions**, all optional: what you do all day, what you're into, your hours, a pet peeve, what your
+   buddies should bug you about.
+3. **A brain.** Netpals sizes up your computer (memory, graphics) and, if it found a model, times how long one reply
+   takes. When your computer is too slow for buddies to feel right, it says so in red and recommends OpenRouter or
+   Claude instead; you can pick either right there and paste a key. If there's no good model on your computer, it
+   offers to download one. A ChatGPT Plus or Claude Pro or Max subscription can't be used: those plans only work in
+   their makers' own apps, and Netpals needs an API key, billed by use.
+4. **Your day**: a calendar link and your town, both optional.
+5. **How it feels**: how often buddies IM you, quiet hours, a theme, sounds, notifications, starting with your
+   computer, signing on automatically, and a Netpals Plus key if you have one.
+
+All of it is in Setup later. Press **Sign On** and it dials up:
 
 ![The Connecting to Netpals window, halfway through dialing](docs/images/connect.png)
 
@@ -82,6 +94,9 @@ buddies sign on one by one, with a door sound each:
   burst of lines gets one answer, the way a person would give it.
 - **Chattiness** at the bottom of the Buddy List sets how often buddies IM you first: off, or about 2, 5, 10 or 20
   times a day. Quiet hours (10pm to 8am unless you change them) keep them quiet.
+- **Mute** with the two speaker buttons beside your status on the Buddy List: the first silences the sound when you
+  send, the second the sound when an IM comes in. **Play sounds** in Setup still turns every sound off, door sounds
+  included.
 - **Smileys and pictures.** The 🙂 button drops in an emoji, and classic emoticons like `:-)` are drawn as faces. The
   picture button (or dropping a png or jpg on the window) sends a picture; models that can see will look at it.
 - **👍 and 👎** on a message make that buddy IM you a little more or less.
@@ -102,7 +117,10 @@ buddies sign on one by one, with a door sound each:
     app and buddies know what you talked about today ("how was lunch with Sam?"). Titles and Fieldy's summaries only,
     never transcripts, and only with a model on your computer.
 - **Closing the Buddy List** keeps you signed on, in the tray (the menu bar on a Mac); its icon blinks when an IM is
-  waiting. Right-click it for **Sign Off**.
+  waiting. Right-click it for **Sign Off** (back to Sign On) or **Exit**.
+- **More than one screen name.** Each has its own buddies, chats, profile and day; a new one starts with the brain,
+  Plus key and theme of the one you were on. At Sign On, pick any of them from the list, or **New screen name…** for
+  setup. Netpals starts on whichever signed on last.
 
 **Buddy Chat** puts your buddies in one room. Say something and one to three of them answer, sometimes to each other:
 
@@ -151,7 +169,8 @@ is sent anywhere.
 ## Your data
 
 Setup's **Storage** section shows how much room your IMs and pictures take and how much your disk has left, and
-**Show the folder** opens it. That folder is everything: copy it to back up, delete it to start over.
+**Show the folder** opens it. That folder is everything: copy it to back up, delete it to start over. Your first
+screen name lives in it directly; any others live in its `screen-names` folder, one folder each.
 
 - Windows: `%APPDATA%\Netpals`
 - macOS: `~/Library/Application Support/Netpals`
@@ -160,7 +179,7 @@ A heavy year of IMs is about 5 MB; pictures take the room. If your disk drops un
 
 **Forgot your password?** On Windows, open **Reset Netpals password** from the Start menu. On a Mac, quit Netpals and
 run `open -a Netpals --args --reset-password` in Terminal. Either way you pick a new one, and your buddies and
-conversations stay.
+conversations stay. With several screen names, Windows resets the one picked at Sign On and a Mac the last one to sign on.
 
 ## Platforms
 

@@ -36,9 +36,17 @@ t.run(async () => {
     await click(w, "signon"); await sleep(400);
     const quiz = db.settings().quiz;
     check(quiz.work === "fixing printers" && quiz.bug === "finishing the album" && quiz.peeve === "", "Next saves the answers; blanks stay blank");
-    check((await vis(w, "model")) && (await text(w, "go")) === "Sign On" && (await vis(w, "back")), "then the brain step, with Sign On and Back");
+    check((await vis(w, "model")) && (await text(w, "go")) === "Next" && (await vis(w, "back")) && (await text(w, "step-count")) === "Step 3 of 5", "then the brain step, step 3 of 5");
     check(/Turing/.test(await text(w, "expect")), "the brain step says what a local model is like");
+    check(await until(async () => /answers an IM in about 2 seconds/.test(await text(w, "machine-text")), 5000), "and how fast this computer answers with it");
     await snap(w, "setup-brain.png");
+    await click(w, "signon");
+    check(await until(() => vis(w, "cal"), 5000), "Next says hi to the brain, then asks about your day");
+    await click(w, "signon");
+    check(await until(() => vis(w, "t-chat"), 3000) && (await text(w, "go")) === "Sign On", "then how it feels, with Sign On");
+    await set(w, { "t-chat": "3" }); await sleep(200);
+    check(db.settings().chattiness === 3, "choices there save as they change");
+    await snap(w, "setup-touches.png");
     await click(w, "signon");
     check(await until(() => win("list.html"), 30_000), "Sign On dials up and opens the Buddy List");
     const list = win("list.html");
@@ -92,7 +100,7 @@ t.run(async () => {
   if (PHASE === "signon") {
     const w = win("signon.html");
     check(Boolean(w) && !win("list.html") && !win("welcome.html"), "the second launch opens Sign On, not the list");
-    check((await value(w, "sn")) === "dialtone dave", "with your screen name filled in");
+    check(await until(async () => (await js(w, "document.getElementById('sn').selectedOptions[0]?.textContent")) === "dialtone dave", 3000), "with your screen name picked");
     await snap(w, "signon.png");
     const still = JSON.stringify(db.buddies().map((b) => [b.status, b.statusAt]));
     await sleep(2500);

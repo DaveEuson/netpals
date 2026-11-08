@@ -4,13 +4,15 @@ const path = require("path");
 const { app, BrowserWindow, nativeTheme, screen } = require("electron");
 
 const ROOT = path.join(__dirname, "..");
+const SIGNED_OFF = "--signed-off"; // started again by Sign Off: Sign On, even with auto-login
 // [width, height, resizable]
 const SIZE = {
-  welcome: [420, 560], signon: [280, 470], list: [260, 560, true], chat: [460, 480, true], settings: [420, 660],
+  welcome: [440, 680], signon: [280, 470], list: [260, 560, true], chat: [460, 480, true], settings: [420, 660],
   away: [340, 440], addbuddy: [400, 640], profile: [300, 520], connect: [360, 230], room: [520, 480, true],
 };
 
-module.exports = function windows({ db }) {
+module.exports = function windows(ctx) {
+  const { db } = ctx;
   const wins = new Map(); // "list" | "settings" | "chat:3" -> BrowserWindow
   let quitting = false;
   app.on("before-quit", () => { quitting = true; });
@@ -48,7 +50,7 @@ module.exports = function windows({ db }) {
     w.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
     w.loadFile(path.join(ROOT, "ui", `${kind}.html`), { query });
     w.once("ready-to-show", () => w.show());
-    w.on("closed", () => wins.delete(key));
+    w.on("closed", () => { wins.delete(key); if (!quitting) ctx.onClosed?.(kind); });
     w.on("close", (e) => {
       // The content size round-trips; the outer size would grow a few px every time.
       db.setSettings({ bounds: { ...db.settings().bounds, [kind]: w.getContentBounds() } });
@@ -59,6 +61,12 @@ module.exports = function windows({ db }) {
   }
 
   const broadcast = (channel, payload) => { for (const w of wins.values()) if (!w.isDestroyed()) w.webContents.send(channel, payload); };
-  const signOff = () => { quitting = true; app.quit(); };
-  return { wins, openWindow, broadcast, signOff };
+  // Sign Off starts Netpals over at Sign On (where you can pick another screen name); Exit just quits.
+  const signOff = () => {
+    quitting = true;
+    app.relaunch({ args: [...process.argv.slice(1).filter((a) => a !== SIGNED_OFF && a !== "--reset-password"), SIGNED_OFF] });
+    app.quit();
+  };
+  const exit = () => { quitting = true; app.quit(); };
+  return { wins, openWindow, broadcast, signOff, exit, SIGNED_OFF };
 };

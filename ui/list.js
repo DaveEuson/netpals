@@ -1,5 +1,6 @@
-// list.js — the Buddy List: groups, presence, unread counts, door and IM sounds, chattiness, away.
-// This window lives for the whole session, so it plays every sound. All buddy text goes in via textContent.
+// list.js — the Buddy List: groups, presence, unread counts, door and IM sounds and their two mutes, chattiness, away.
+// This window lives for the whole session, so it plays the door and incoming-IM sounds (the IM and Buddy Chat windows
+// play the one for sending). All buddy text goes in via textContent.
 // `api` is the global from preload.js (contextBridge makes it non-configurable, so it can't be redeclared).
 const LABELS = ["Off · nobody pings", "Quiet · about 2 a day", "Chatty · about 5 a day", "Gabby · about 10 a day", "Motormouth · about 20 a day"];
 const RANK = { online: 0, idle: 1, away: 2, offline: 3 };
@@ -11,7 +12,9 @@ let unread = {}; // buddyId -> { n, last }
 const signedOnAt = {}; // buddyId -> ms, for the bold "just signed on" minute
 const open = { on: true, off: false };
 
-const sound = (name) => { if (s.sound) new Audio(`../assets/${name}.wav`).play().catch(() => {}); };
+const sound = (name) => chime(name, s);
+// The two mutes beside your status: [button, setting, what it silences].
+const MUTES = [["mute-send", "muteSend", "the sound when you send"], ["mute-receive", "muteReceive", "the sound when buddies message you"]];
 const minsAgo = (t) => Math.max(1, Math.round((Date.now() - t) / 60_000));
 const fresh = (b) => Date.now() - (signedOnAt[b.id] || 0) < 60_000;
 const byStatusThenName = (a, b) => RANK[a.status] - RANK[b.status] || a.screenName.localeCompare(b.screenName, undefined, { sensitivity: "base" });
@@ -55,6 +58,7 @@ function render() {
   $("back").hidden = !s.awayMessage;
   $("chat").value = s.chattiness;
   $("chat-label").textContent = LABELS[s.chattiness];
+  for (const [id, key, what] of MUTES) { $(id).setAttribute("aria-pressed", String(Boolean(s[key]))); $(id).title = `${s[key] ? "Unmute" : "Mute"} ${what}`; }
 }
 
 const upsert = (b) => { const i = buddies.findIndex((x) => x.id === b.id); if (i >= 0) buddies[i] = b; else buddies.push(b); };
@@ -85,6 +89,7 @@ $("chat").oninput = () => { $("chat-label").textContent = LABELS[$("chat").value
 $("chat").onchange = () => api.invoke("settings:set", { chattiness: Number($("chat").value) });
 for (const [id, win] of [["away", "away"], ["add", "addbuddy"], ["chat", "room"], ["setup", "settings"]]) $(id).onclick = () => api.invoke("win:open", win);
 $("back").onclick = () => api.invoke("away:set", "");
+for (const [id, key] of MUTES) $(id).onclick = () => api.invoke("settings:set", { [key]: !s[key] });
 
 setInterval(render, 30_000); // idle minutes tick up, "just signed on" fades
 load();
