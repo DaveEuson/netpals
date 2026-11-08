@@ -33,7 +33,8 @@ npm run reset-password
 | `lib/context.js` | What every buddy reads as "what you know about their day" (Setup's Your day), and whether a meeting's on |
 | `lib/calendar.js` | Reading a calendar's secret iCal link: repeats, skipped and moved ones, what's on now, what buddies are told |
 | `lib/weather.js` | The weather where you are, from Open-Meteo (no key); `NETPALS_WEATHER` points it elsewhere |
-| `lib/keep.js` | Remembers what a slow fetch returned, so a buddy's answer never waits on the calendar or the weather |
+| `lib/fieldy.js` | Today's conversation titles and summaries from Fieldy's public API (Plus, local brains only); `NETPALS_FIELDY` points it elsewhere |
+| `lib/keep.js` | Remembers what a slow fetch returned, so a buddy's answer never waits on the calendar, the weather or Fieldy |
 | `lib/license.js` | Netpals Plus keys (see [SELLING.md](SELLING.md)) |
 | `ui/` | One HTML page and script per window; `chrome.js` and `xp.css` are shared by all of them |
 | `preload.js` | The whole renderer-to-main surface |
@@ -49,14 +50,15 @@ or open other windows (`main/windows.js`), and `settings:set` ignores the settin
 npm test
 ```
 
-The license, calendar, weather and scheduler checks, then a window test for each part of the app (setup and sign-on, Connecting,
-Plus, the Buddy List, Away, IMs, pictures, Buddy Chat, Setup, getting a model, Your day, window polish, one
-copy at a time, security).
+The license, calendar, weather, Fieldy and scheduler checks, then a window test for each part of the app (setup and
+sign-on, Connecting, Plus, the Buddy List, Away, IMs, pictures, Buddy Chat, Setup, getting a model, Your day, window
+polish, one copy at a time, security).
 Each runs the real `main.js` under Electron in a throwaway data folder, with windows off-screen, against
 `tests/fake-model.js`: an OpenAI-compatible stand-in that answers in milliseconds and misbehaves on request
 (`fake:error`, `fake:slow`, `fake:empty`, `fake:huge`, `fake:junk`). It downloads too, the way Ollama's `/api/pull`
 does, and the tests point `NETPALS_OLLAMA` at it. It's a calendar as well, at `/calendar.ics`, with an appointment
-on right now, and stands in for Open-Meteo (the tests point `NETPALS_WEATHER` at it). About four minutes; screenshots land in `tests/out`.
+on right now, and stands in for Open-Meteo and Fieldy's API (the tests point `NETPALS_WEATHER` and `NETPALS_FIELDY` at
+it). About four minutes; screenshots land in `tests/out`.
 
 ```bash
 npm test -- room settings --verbose

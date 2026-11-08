@@ -92,6 +92,9 @@ buddies sign on one by one, with a door sound each:
     secret iCal link (Google Calendar: Settings, your calendar, **Secret address in iCal format**; Outlook: Settings,
     Calendar, Shared calendars, **Publish a calendar**). No sign-in.
   - **Weather:** type your town or postal code and buddies know it's raining where you are. Free, from Open-Meteo.
+  - **Fieldy** (Plus): if you wear a [Fieldy](https://fieldy.ai), paste the key from Developer Settings in the Fieldy
+    app and buddies know what you talked about today ("how was lunch with Sam?"). Titles and Fieldy's summaries only,
+    never transcripts, and only with a model on your computer.
 - **Closing the Buddy List** keeps you signed on, in the tray (the menu bar on a Mac); its icon blinks when an IM is
   waiting. Right-click it for **Sign Off**.
 
@@ -117,6 +120,7 @@ Windows too.
 | Up to 3 buddies, built by hand | As many buddies as you like, plus Randomize |
 | IMs, Buddy Chat, away messages, check-ins, pictures | Everything in Free |
 | Dial-Up, Pinstripe and Midnight themes | Every theme, custom colors and theme files |
+| Your day: calendar and weather | Your day with Fieldy too |
 
 Paste your key in **Setup** under **Netpals Plus** and press **Unlock**. Keys are checked on your computer; nothing
 is sent anywhere.
@@ -125,7 +129,7 @@ is sent anywhere.
 
 - Your screen name, password, buddies and every conversation stay in one folder on your computer. Netpals has no
   account, no server and no analytics.
-- With a model on your computer, nothing leaves it.
+- With a model on your computer, your conversations never leave it.
 - With OpenRouter, what a buddy needs to answer goes to OpenRouter and the model's maker: the conversation so far,
   what you told setup about yourself, what the buddy remembers, today's event names and times and your weather if
   you filled those in, and any picture you send. Your password never does.
@@ -134,6 +138,8 @@ is sent anywhere.
   has it can see your calendar.
 - For the weather, the town you typed and its map position go to [Open-Meteo](https://open-meteo.com), at most twice an
   hour while you're signed on. Nothing else does.
+- With Fieldy, Netpals asks Fieldy for today's conversation titles and summaries, at most every ten minutes. They go
+  into what buddies are told only when the brain is on your computer, because they hold other people's words.
 - The password locks the Sign On window. It doesn't encrypt your conversations.
 
 ## Your data

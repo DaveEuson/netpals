@@ -13,8 +13,9 @@ const MODEL = process.env.NETPALS_TEST_MODEL || "http://127.0.0.1:9/v1";
 const LIVE = process.env.NETPALS_TEST_LIVE === "1";
 // Setup's Ollama, detection and downloads go to the fake model too, unless a test wants the real Ollama.
 if (!LIVE) process.env.NETPALS_OLLAMA ||= MODEL.replace(/\/v1\/?$/, "");
-// The weather always comes from the fake, live or not.
+// The weather and Fieldy always come from the fake, live or not.
 process.env.NETPALS_WEATHER ||= MODEL.replace(/\/v1\/?$/, "");
+process.env.NETPALS_FIELDY ||= `${MODEL.replace(/\/v1\/?$/, "")}/api/public/v2`;
 // Each test is its own Electron app as far as the single-instance lock goes, so tests never block each other.
 app.setPath("userData", path.join(process.env.NETPALS_DATA || os.tmpdir(), "electron"));
 const db = require(path.join(ROOT, "lib", "db"));

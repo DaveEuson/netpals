@@ -4,6 +4,7 @@ const fs = require("fs");
 const { app, BrowserWindow, dialog, ipcMain } = require("electron");
 const calendar = require("../lib/calendar");
 const weather = require("../lib/weather");
+const fieldy = require("../lib/fieldy");
 
 const THEME_KEYS = ["win", "panel", "ink", "title", "accent", "them"]; // a theme file: { base, ...these six colors }
 const BASES = ["dialup", "pinstripe", "olive", "silver", "midnight", "bubblegum"];
@@ -90,6 +91,13 @@ module.exports = function settings(ctx) {
   ipcMain.handle("weather:check", attempt(async (_e, place) => {
     if (!String(place || "").trim()) throw new Error("Type your town, or your postal code.");
     return { says: weather.say(await weather.load(String(place).trim(), { fresh: true })) };
+  }));
+  ipcMain.handle("fieldy:check", attempt(async (_e, raw) => {
+    if (!ctx.licensedTo()) throw new Error("Fieldy comes with Netpals Plus.");
+    const key = String(raw || "").trim();
+    if (!key) throw new Error("Paste your key from Developer Settings in the Fieldy app.");
+    const [{ email }, list] = await Promise.all([fieldy.me(key), fieldy.load(key, { fresh: true })]);
+    return { email, today: list.length, says: fieldy.say(list), local: db.settings().provider === "local" };
   }));
 
   // ---- theme files. Loading checks every color before using any.

@@ -70,6 +70,24 @@ function sky(url) {
     daily: { temperature_2m_max: [f ? 60.4 : 15.8], temperature_2m_min: [f ? 36.2 : 2.3], precipitation_probability_max: [40] } };
 }
 
+// And Fieldy's public API, at /api/public/v2: the key sk-fieldy-good works, sk-fieldy-busy is over its rate limit, and
+// anything else is refused. Today has a standup three hours ago, lunch an hour ago (a long summary, in markdown), and a
+// conversation a free Fieldy plan has locked.
+function fieldy(req) {
+  const key = req.headers.authorization;
+  if (key === "Bearer sk-fieldy-busy") return [429, { error: "Too Many Requests" }];
+  if (key !== "Bearer sk-fieldy-good") return [401, { error: "Unauthorized" }];
+  if (req.url === "/api/public/v2/user/me") return [200, { email: "pat@example.com" }];
+  if (!req.url.startsWith("/api/public/v2/conversations?")) return [404, { error: "not here" }];
+  const at = (hours) => new Date(Date.now() - hours * 3_600_000).toISOString();
+  return [200, { nextCursor: null, items: [
+    { id: "2", title: "Lunch with Sam", locked: false, startTime: at(1), endTime: at(0.5),
+      summary: `## Summary\n- **Sam** is moving to Denver in March\n- A long argument about whether a hot dog is a sandwich, ${"and on ".repeat(30)}` },
+    { id: "1", title: "Standup", summary: "Launch slips a week.", locked: false, startTime: at(3), endTime: at(2.8) },
+    { id: "3", title: "Locked one", summary: null, locked: true, startTime: at(2), endTime: at(1.9) },
+  ] }];
+}
+
 function start(port = 0) {
   const pulled = new Set();
   const server = http.createServer((req, res) => {
@@ -82,6 +100,7 @@ function start(port = 0) {
       if (req.method === "GET" && req.url === "/calendar.ics") { res.writeHead(200, { "Content-Type": "text/calendar" }); return res.end(calendar()); }
       if (req.method === "GET" && req.url === "/page.html") { res.writeHead(200, { "Content-Type": "text/html" }); return res.end("<!doctype html><p>not a calendar"); }
       if (req.method === "GET" && /^\/v1\/(search|forecast)\?/.test(req.url)) return send(200, sky(req.url));
+      if (req.method === "GET" && req.url.startsWith("/api/public/v2/")) { server.fieldyUrl = req.url; return send(...fieldy(req)); }
       if (req.method === "GET" && req.url === "/api/tags") return send(200, { models: names.map((n, i) => ({ name: n, details: { parameter_size: i ? "8B" : "7B" } })) });
       let b = {};
       try { b = JSON.parse(body || "{}"); } catch { return send(400, { error: "bad json" }); }

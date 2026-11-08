@@ -1,7 +1,7 @@
-// Setup's Your day: a calendar link and your town for the weather. Each Check it says what's wrong with a bad entry,
-// and with a good one shows what buddies are told. Once filled in, buddies know your day and hold their IMs while a
-// meeting's on; Cancel takes it all back out. Against the fake's /calendar.ics (a dentist appointment on right now)
-// and its stand-in for Open-Meteo.
+// Setup's Your day: a calendar link, your town for the weather, and (with Plus) a Fieldy key. Each Check it says
+// what's wrong with a bad entry, and with a good one shows what buddies are told. Once filled in, buddies know your day
+// and hold their IMs while a meeting's on; Fieldy only reaches a brain on this computer; Cancel takes it all back out.
+// Against the fake's /calendar.ics (a dentist appointment on right now) and its stand-ins for Open-Meteo and Fieldy.
 const path = require("path");
 const t = require("../harness");
 const { db, check, click, text, set, open, snap, until, js } = t;
@@ -33,6 +33,25 @@ t.run(async () => {
   const sky = await tryIt("wx", "Springfield, Illinois");
   check(/^It works\. Buddies are told: "Where they are \(Springfield, Illinois, US\) it's 37°F, light rain\./.test(sky), `a town shows the weather buddies are told: ${sky}`);
   check(db.settings().weatherPlace === "Springfield, Illinois", "and it's saved");
+
+  // ---- Fieldy: Plus only, and only with a brain on this computer
+  check((await js(st, "document.getElementById('fy').disabled && document.getElementById('fy-check').disabled")), "Fieldy is locked without Plus");
+  check(/comes with Netpals Plus/.test((await js(st, "api.invoke('fieldy:check', 'sk-fieldy-good')")).error), "and main says so too, whatever the page does");
+  const key = t.plusKey("Your Day Test");
+  if (!key) t.skip("Fieldy with Plus (needs the seller's key on this machine)");
+  else {
+    await set(st, { license: key }); await click(st, "unlock");
+    await until(() => js(st, "!document.getElementById('fy').disabled"), 3000);
+    check(/didn't take that key/.test(await tryIt("fy", "sk-fieldy-wrong")), "with Plus, a wrong Fieldy key says to copy it again");
+    const talk = await tryIt("fy", "sk-fieldy-good");
+    check(/^Connected as pat@example\.com\. Buddies are told: "From what they recorded today\. .*Standup: Launch slips a week\. .*Lunch with Sam/.test(talk) && !/Locked one/.test(talk),
+      `a good key shows whose Fieldy it is and what buddies are told: ${talk.slice(0, 140)}…`);
+    check(db.settings().fieldyKey === "sk-fieldy-good" && /Lunch with Sam/.test(await context.get()), "buddies with a model on this computer hear about lunch");
+    db.setSettings({ provider: "openrouter" });
+    check(!/Lunch with Sam/.test(await context.get()) && /Dentist/.test(await context.get()), "with OpenRouter they don't, and the rest stays");
+    check(/only hear it once your brain is on this computer/.test(await tryIt("fy", "sk-fieldy-good")), "and Check it says why");
+    db.setSettings({ provider: "local" });
+  }
   await js(st, "document.getElementById('cal').closest('fieldset').scrollIntoView()");
   await snap(st, "your-day-setup.png");
 
@@ -40,6 +59,6 @@ t.run(async () => {
   check(/Dentist, Dr\. Ruiz/.test(day) && /Springfield, Illinois/.test(day) && /now and then/.test(day) && (await context.inMeeting()),
     "buddies know about the appointment and the weather, and hold their IMs during the appointment");
   await click(st, "cancel");
-  check((await until(() => !t.win("settings.html"), 3000)) && db.settings().calendarUrl === "" && db.settings().weatherPlace === "", "Cancel takes both back out");
+  check((await until(() => !t.win("settings.html"), 3000)) && ["calendarUrl", "weatherPlace", "fieldyKey"].every((k) => db.settings()[k] === ""), "Cancel takes it all back out");
   check((await context.get()) === "" && !(await context.inMeeting()), "and buddies know nothing about the day again");
 });

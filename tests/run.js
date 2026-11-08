@@ -14,6 +14,7 @@ const TESTS = [
   { name: "license", node: "unit/license.js" },
   { name: "calendar", node: "unit/calendar.js" },
   { name: "weather", node: "unit/weather.js" },
+  { name: "fieldy", node: "unit/fieldy.js" },
   { name: "scheduler", electron: "unit/scheduler.js", args: (live) => (live ? ["--live"] : []), timeout: 240 },
   { name: "account", electron: "ui/account.js", phases: ["setup", "signon", "auto", { phase: "reset", args: ["--reset-password"] }] },
   { name: "connect", electron: "ui/connect.js" },

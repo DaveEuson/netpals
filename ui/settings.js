@@ -129,17 +129,21 @@ function dayPart(id, key, channel, ok) {
 const told = (says) => `It works. Buddies are told: "${says}"`;
 dayPart("cal", "calendarUrl", "calendar:check", (r) => (r.today ? told(r.says) : "It works. Nothing on it today, so buddies hear nothing yet."));
 dayPart("wx", "weatherPlace", "weather:check", (r) => told(r.says));
+dayPart("fy", "fieldyKey", "fieldy:check", (r) => `Connected as ${r.email}. ${r.today ? `Buddies are told: "${r.says}"` : "Nothing recorded today yet."}` +
+  (r.local ? "" : " They'll only hear it once your brain is on this computer."));
 
 // ---- Netpals Plus --------------------------------------------------------------------------
-// Free gets Dial-Up, Pinstripe and Midnight. A key unlocks the other presets, custom colors and theme files (main gates buddies).
+// Free gets Dial-Up, Pinstripe and Midnight. A key unlocks the other presets, custom colors, theme files and Fieldy
+// (main gates buddies, and Fieldy again).
 const FREE_THEMES = ["dialup", "pinstripe", "midnight"];
 function showPlus() {
   $("plus-status").textContent = s.licensedTo ? `Licensed to ${s.licensedTo}. Thanks for supporting Netpals!`
-    : "You're on the free version: 3 buddies and the Dial-Up, Pinstripe and Midnight themes. Plus adds unlimited buddies, Randomize and every theme.";
+    : "You're on the free version: 3 buddies and the Dial-Up, Pinstripe and Midnight themes. Plus adds unlimited buddies, Randomize, every theme and Fieldy.";
   $("plus-entry").hidden = Boolean(s.licensedTo);
   $("plus-buy").hidden = !s.buyUrl || Boolean(s.licensedTo); $("buy").dataset.href = s.buyUrl;
   for (const o of $("theme").options) o.disabled = !s.licensedTo && !FREE_THEMES.includes(o.value);
   $("load-theme").disabled = !s.licensedTo;
+  $("fy").disabled = $("fy-check").disabled = !s.licensedTo;
 }
 $("unlock").onclick = async () => {
   const r = await api.invoke("license:set", $("license").value);
