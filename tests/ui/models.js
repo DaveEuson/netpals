@@ -80,6 +80,8 @@ t.run(async () => {
 
   await set(st, { server: (await js(st, "document.getElementById('server').options[1].value")) });
   check(!(await vis(st, "get-fields")), "LM Studio gets no Download (it has its own)");
+  await until(() => db.settings().baseUrl === "http://localhost:1234/v1", 3000);
+  check(db.settings().baseUrl === "http://localhost:1234/v1", "and with nothing answering there, the brain still points there, not at the old one");
   await set(st, { server: OLLAMA }); await sleep(300);
   check(await vis(st, "get-fields"), "and Ollama gets it back");
 

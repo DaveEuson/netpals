@@ -58,7 +58,7 @@ window.api.invoke("buddies:list").then((list) => {
 });
 
 // A different brain (picked in Setup, found, or just downloaded) redraws the brain step where you are.
-const brain = (x) => JSON.stringify([x.provider, x.model, x.baseUrl, x.detect]);
+const brain = (x) => JSON.stringify([x.provider, x.model, x.baseUrl, x.detect, Boolean(x.claudeKey)]);
 window.api.on("settings", (n) => { if (brain(n) !== brain(s)) draw(); });
 
 $("pick").onclick = () => window.api.invoke("win:open", "settings");

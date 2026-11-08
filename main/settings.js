@@ -97,7 +97,7 @@ module.exports = function settings(ctx) {
     const key = String(raw || "").trim();
     if (!key) throw new Error("Paste your key from Developer Settings in the Fieldy app.");
     const [{ email }, list] = await Promise.all([fieldy.me(key), fieldy.load(key, { fresh: true })]);
-    return { email, today: list.length, says: fieldy.say(list), local: db.settings().provider === "local" };
+    return { email, today: list.length, says: fieldy.say(list), local: llm.isLocal(db.settings()) };
   }));
 
   // ---- theme files. Loading checks every color before using any.

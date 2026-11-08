@@ -17,6 +17,12 @@ t.run(async () => {
   check((await vis(st, "claude-fields")) && !(await vis(st, "or-fields")) && !(await vis(st, "local-fields")), "and shows only Claude's fields");
   check((await js(st, "[...document.getElementById('claude-list').options].map((o) => o.value).join(' ')")) === "claude-opus-5-5 claude-sonnet-5-5 claude-haiku-5-5", "suggesting Opus, Sonnet and Haiku");
 
+  // The welcome screen, open while Setup picks Claude: no key yet, so Sign On says where to add one.
+  const w = await open(main, "welcome");
+  await js(w, "go('brain')"); await t.sleep(200);
+  await click(w, "signon"); await t.sleep(200);
+  check(/Add your Anthropic API key in Setup/.test(await text(w, "status")), "the welcome screen's Sign On asks for the Anthropic key first");
+
   const testIt = async () => {
     await click(st, "test");
     await until(async () => !/Dialing/.test(await text(st, "test-result")) && (await text(st, "test-result")) !== "", 8000);
@@ -28,6 +34,10 @@ t.run(async () => {
   await set(st, { "claude-key": "sk-ant-good" });
   check(/^claude-opus-5-5 said hi/.test(await testIt()), "the right key says hi");
   check(db.settings().claudeKey === "sk-ant-good" && db.settings().apiKey === "sk-or-kept", "Claude's key is saved apart from OpenRouter's");
+  await t.sleep(300);
+  await click(w, "signon");
+  await until(async () => !/^Dialing/.test(await text(w, "status")), 5000);
+  check(!/Add your Anthropic API key/.test(await text(w, "status")), `once the key is in Setup, the open welcome screen knows: "${await text(w, "status")}"`);
   await set(st, { "claude-model": "claude-haiku-5-5" });
   check(db.settings().model === "claude-haiku-5-5", "another model can be typed or picked");
   await js(st, "document.getElementById('p-claude').closest('fieldset').scrollIntoView()");
@@ -41,8 +51,6 @@ t.run(async () => {
   const msg = await main.scheduler.fire(gordo, new Date());
   check(msg?.text === "hey :) long day?", `a buddy IMs through Claude: "${msg?.text}"`);
 
-  const w = await open(main, "welcome");
-  await js(w, "go('brain')"); await t.sleep(200);
   check(/run on Claude/.test(await text(w, "legend")) && /Claude/.test(await text(w, "brain-name")) && /Anthropic/.test(await text(w, "privacy")), "the welcome screen says the buddies run on Claude, and where chats go");
   check(!(await vis(w, "key-row")) && !(await vis(w, "get")), "with no OpenRouter key box and no download offer");
   w.close();

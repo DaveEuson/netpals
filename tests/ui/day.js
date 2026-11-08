@@ -47,6 +47,10 @@ t.run(async () => {
     check(/^Connected as pat@example\.com\. Buddies are told: "From what they recorded today\. .*Standup: Launch slips a week\. .*Lunch with Sam/.test(talk) && !/Locked one/.test(talk),
       `a good key shows whose Fieldy it is and what buddies are told: ${talk.slice(0, 140)}…`);
     check(db.settings().fieldyKey === "sk-fieldy-good" && /Lunch with Sam/.test(await context.get()), "buddies with a model on this computer hear about lunch");
+    const here = db.settings().baseUrl;
+    db.setSettings({ baseUrl: "https://openrouter.ai/api/v1" });
+    check(!/Lunch with Sam/.test(await context.get()), "a brain marked local but still pointed at OpenRouter doesn't");
+    db.setSettings({ baseUrl: here });
     db.setSettings({ provider: "openrouter" });
     check(!/Lunch with Sam/.test(await context.get()) && /Dentist/.test(await context.get()), "with OpenRouter they don't, and the rest stays");
     check(/only hear it once your brain is on this computer/.test(await tryIt("fy", "sk-fieldy-good")), "and Check it says why");

@@ -61,6 +61,8 @@ const PLACES = [
   { name: "Springfield", latitude: 37.2, longitude: -93.3, country_code: "US", country: "United States", admin1: "Missouri" },
   { name: "Springfield", latitude: 39.8, longitude: -89.6, country_code: "US", country: "United States", admin1: "Illinois" },
   { name: "Paris", latitude: 48.9, longitude: 2.35, country_code: "FR", country: "France", admin1: "Île-de-France" },
+  { name: "Portland", latitude: 45.5, longitude: -122.7, country_code: "US", country: "United States", admin1: "Oregon" },
+  { name: "Portland", latitude: 43.7, longitude: -70.3, country_code: "US", country: "United States", admin1: "Maine" },
 ];
 function sky(url) {
   const q = new URL(url, "http://x").searchParams;
@@ -70,12 +72,17 @@ function sky(url) {
     daily: { temperature_2m_max: [f ? 60.4 : 15.8], temperature_2m_min: [f ? 36.2 : 2.3], precipitation_probability_max: [40] } };
 }
 
-// And Fieldy's public API, at /api/public/v2: the key sk-fieldy-good works, sk-fieldy-busy is over its rate limit, and
-// anything else is refused. Today has a standup three hours ago, lunch an hour ago (a long summary, in markdown), and a
-// conversation a free Fieldy plan has locked.
+// And Fieldy's public API, at /api/public/v2: the key sk-fieldy-good works, sk-fieldy-busy is over its rate limit,
+// sk-fieldy-odd has odd data, and anything else is refused. Today has a standup three hours ago, lunch an hour ago (a
+// long summary, in markdown), and a conversation a free Fieldy plan has locked.
 function fieldy(req) {
   const key = req.headers.authorization;
   if (key === "Bearer sk-fieldy-busy") return [429, { error: "Too Many Requests" }];
+  if (key === "Bearer sk-fieldy-odd") { // an account with no email, and conversations missing their times
+    if (req.url === "/api/public/v2/user/me") return [200, {}];
+    return [200, { nextCursor: null, items: [{ id: "a", title: "No time", startTime: null }, { id: "b", title: "Bad time", startTime: "soon" }, null,
+      { id: "c", title: "Fine", summary: null, startTime: new Date().toISOString() }] }];
+  }
   if (key !== "Bearer sk-fieldy-good") return [401, { error: "Unauthorized" }];
   if (req.url === "/api/public/v2/user/me") return [200, { email: "pat@example.com" }];
   if (!req.url.startsWith("/api/public/v2/conversations?")) return [404, { error: "not here" }];

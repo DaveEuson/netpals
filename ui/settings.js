@@ -40,7 +40,10 @@ async function loadModels(prefer) {
   const r = await api.invoke("llm:listLocal", host);
   const models = r?.models || [];
   $("model").replaceChildren(...models.map((m) => new Option(m.b ? `${m.id} (${m.b}B)` : m.id, m.id)));
-  if (!models.length) return $("model").add(new Option(`nothing answering on ${bare(host)}`, ""));
+  if (!models.length) { // still point the brain here, so nothing goes on to wherever it pointed before
+    $("model").add(new Option(`nothing answering on ${bare(host)}`, ""));
+    return save({ baseUrl: `${host}/v1` });
+  }
   const want = models.find((m) => m.id === prefer || m.id === `${prefer}:latest`);
   $("model").value = want ? want.id : models.some((m) => m.id === s.model) ? s.model : r.pick || models[0].id;
   save({ baseUrl: `${host}/v1`, model: $("model").value });
@@ -135,7 +138,7 @@ function dayPart(id, key, channel, ok) {
 const told = (says) => `It works. Buddies are told: "${says}"`;
 dayPart("cal", "calendarUrl", "calendar:check", (r) => (r.today ? told(r.says) : "It works. Nothing on it today, so buddies hear nothing yet."));
 dayPart("wx", "weatherPlace", "weather:check", (r) => told(r.says));
-dayPart("fy", "fieldyKey", "fieldy:check", (r) => `Connected as ${r.email}. ${r.today ? `Buddies are told: "${r.says}"` : "Nothing recorded today yet."}` +
+dayPart("fy", "fieldyKey", "fieldy:check", (r) => `Connected${r.email ? ` as ${r.email}` : ""}. ${r.today ? `Buddies are told: "${r.says}"` : "Nothing recorded today yet."}` +
   (r.local ? "" : " They'll only hear it once your brain is on this computer."));
 
 // ---- Netpals Plus --------------------------------------------------------------------------

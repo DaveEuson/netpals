@@ -12,6 +12,7 @@ const fakeModel = require("./fake-model");
 
 const TESTS = [
   { name: "license", node: "unit/license.js" },
+  { name: "keep", node: "unit/keep.js" },
   { name: "calendar", node: "unit/calendar.js" },
   { name: "weather", node: "unit/weather.js" },
   { name: "fieldy", node: "unit/fieldy.js" },

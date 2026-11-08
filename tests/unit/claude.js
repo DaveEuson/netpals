@@ -22,6 +22,8 @@ const check = (ok, label) => { console.log(`${ok ? "PASS" : "FAIL"}  ${label}`);
   check(body.fallbacks === "default" && /server-side-fallback-2026-07-01/.test(headers["anthropic-beta"] || ""), "Opus asks for Anthropic's fallback when a safety check declines");
   await ask(cfg("claude-haiku-5-5"));
   check(!("fallbacks" in server.lastClaude.body) && !server.lastClaude.headers["anthropic-beta"], "Haiku, which has no fallback, doesn't ask for one");
+  await ask(cfg("claude-haiku-4-5"));
+  check(!("output_config" in server.lastClaude.body), "an older model typed into Setup isn't sent an effort it would refuse");
   check(llm.CLAUDE_MODELS[0] === "claude-opus-5-5" && llm.CLAUDE_MODELS.includes("claude-haiku-5-5"), "Setup suggests the current Claude models, Opus first");
 
   const png = "data:image/png;base64,iVBORw0KGgo=";

@@ -15,7 +15,10 @@ const check = (ok, label) => { console.log(`${ok ? "PASS" : "FAIL"}  ${label}`);
 
   check((await told("Springfield")) === "Where they are (Springfield, Missouri, US) it's 37°F, light rain. Today: high 60°F, low 36°F, 40% chance of rain.",
     `a town with no state gets the biggest one, in °F in the US: "${await told("Springfield")}"`);
-  check(/Springfield, Illinois/.test(await told("Springfield, Illinois")) && /Springfield, Illinois/.test(await told("springfield, il")), "adding the state picks that one, spelled out or as its first letters");
+  check(/Springfield, Illinois/.test(await told("Springfield, Illinois")) && /Springfield, Illinois/.test(await told("springfield, il")), "adding the state picks that one, spelled out or abbreviated");
+  check(/Portland, Maine/.test(await told("Portland, ME")) && /Portland, Oregon/.test(await told("Portland")) && /Springfield, Missouri/.test(await told("Springfield, MO")),
+    "a state's abbreviation works even when it isn't the start of its name");
+  check(/Springfield, Illinois/.test(await told("Springfield, Illinois, US")), "the place as Check it shows it (town, state, country) finds the same place");
   check((await told("Paris")) === "Where they are (Paris, Île-de-France, FR) it's 3°C, light rain. Today: high 16°C, low 2°C, 40% chance of rain.", "°C everywhere else");
   check(/Couldn't find "Nowhere"/.test(await err("Nowhere")) && /Type your town/.test(await err("x")) && /Type your town/.test(await err(" , Ohio")), "a place it can't find, or nothing typed, says so");
   check(weather.say({ place: "Here", temp: 70, sky: "clear", high: 75, low: 60, rain: 10, unit: "°F" }) === "Where they are (Here) it's 70°F, clear. Today: high 75°F, low 60°F.", "a small chance of rain isn't mentioned");

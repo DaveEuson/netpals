@@ -24,6 +24,9 @@ const check = (ok, label) => { console.log(`${ok ? "PASS" : "FAIL"}  ${label}`);
   check(fieldy.say([]) === "", "a quiet day tells them nothing");
   check(fieldy.clean("1. **Bold** move\n2. `code` and _this_", 100) === "Bold move; code and this", "numbered lists and code marks come out too");
   check((await fieldy.me("sk-fieldy-good")).email === "pat@example.com", "Check it can say whose Fieldy it is");
+  const odd = await fieldy.load("sk-fieldy-odd", { fresh: true });
+  check(odd.map((c) => c.title).join("|") === "Fine" && fieldy.say(odd).includes("Fine") && (await fieldy.me("sk-fieldy-odd")).email === undefined,
+    "conversations with no time or a broken one are left out, and an account with no email still works");
 
   const err = (key) => fieldy.load(key, { fresh: true }).then(() => "no error", (e) => e.message);
   check(/didn't take that key/.test(await err("sk-fieldy-wrong")), "a wrong key says to copy it again");
