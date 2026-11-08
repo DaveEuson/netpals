@@ -28,7 +28,7 @@ npm run reset-password
 | `main/` | One file per part of the main process, each registering its own IPC channels: `windows`, `menus`, `pictures`, `account`, `buddies`, `settings`, `storage` |
 | `lib/scheduler.js` | When buddies talk, presence drift, replies, check-ins, Buddy Chat turns, away |
 | `lib/prompts.js` | Every prompt a buddy sees, and the cleanup that holds their answers to the house rules |
-| `lib/llm.js` | One `chat()` over Ollama, LM Studio and OpenRouter; model detection; whether a model can see; downloading a model into Ollama, and the models Setup suggests |
+| `lib/llm.js` | One `chat()` over Ollama, LM Studio, OpenRouter and Claude (Anthropic's SDK; `NETPALS_ANTHROPIC` points it elsewhere); model detection; whether a model can see; downloading a model into Ollama, and the models Setup suggests |
 | `lib/db.js` | Settings, buddies and messages, the starting buddies, and migrations for older databases |
 | `lib/context.js` | What every buddy reads as "what you know about their day" (Setup's Your day), and whether a meeting's on |
 | `lib/calendar.js` | Reading a calendar's secret iCal link: repeats, skipped and moved ones, what's on now, what buddies are told |
@@ -50,15 +50,15 @@ or open other windows (`main/windows.js`), and `settings:set` ignores the settin
 npm test
 ```
 
-The license, calendar, weather, Fieldy and scheduler checks, then a window test for each part of the app (setup and
-sign-on, Connecting, Plus, the Buddy List, Away, IMs, pictures, Buddy Chat, Setup, getting a model, Your day, window
-polish, one copy at a time, security).
+The license, calendar, weather, Fieldy, Claude and scheduler checks, then a window test for each part of the app
+(setup and sign-on, Connecting, Plus, the Buddy List, Away, IMs, pictures, Buddy Chat, Setup, getting a model, Your
+day, the Claude brain, window polish, one copy at a time, security).
 Each runs the real `main.js` under Electron in a throwaway data folder, with windows off-screen, against
 `tests/fake-model.js`: an OpenAI-compatible stand-in that answers in milliseconds and misbehaves on request
 (`fake:error`, `fake:slow`, `fake:empty`, `fake:huge`, `fake:junk`). It downloads too, the way Ollama's `/api/pull`
 does, and the tests point `NETPALS_OLLAMA` at it. It's a calendar as well, at `/calendar.ics`, with an appointment
-on right now, and stands in for Open-Meteo and Fieldy's API (the tests point `NETPALS_WEATHER` and `NETPALS_FIELDY` at
-it). About four minutes; screenshots land in `tests/out`.
+on right now, and stands in for Open-Meteo, Fieldy's API and Anthropic's Messages API (the tests point
+`NETPALS_WEATHER`, `NETPALS_FIELDY` and `NETPALS_ANTHROPIC` at it). About four minutes; screenshots land in `tests/out`.
 
 ```bash
 npm test -- room settings --verbose

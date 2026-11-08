@@ -17,12 +17,12 @@ const MAIN_ONLY = ["license", "connected", "bounds", "autoAway", "awayMessage", 
 module.exports = function settings(ctx) {
   const { db, llm, license, attempt, broadcast, wins } = ctx;
 
-  // Windows read settings synchronously before they paint. hasEnvKey rides along: an OPENROUTER_API_KEY from the
+  // Windows read settings synchronously before they paint. hasEnvKey (and hasEnvClaudeKey) ride along: a key from the
   // environment changes what the key fields say.
   ipcMain.on("settings:getSync", (e) => {
     const s = db.settings();
-    e.returnValue = { ...s, hasEnvKey: Boolean(process.env.OPENROUTER_API_KEY), licensedTo: ctx.licensedTo(s), buyUrl: license.BUY_URL,
-      localHosts: llm.LOCAL_HOSTS, recommended: llm.RECOMMENDED };
+    e.returnValue = { ...s, hasEnvKey: Boolean(process.env.OPENROUTER_API_KEY), hasEnvClaudeKey: Boolean(process.env.ANTHROPIC_API_KEY), licensedTo: ctx.licensedTo(s), buyUrl: license.BUY_URL,
+      localHosts: llm.LOCAL_HOSTS, recommended: llm.RECOMMENDED, claudeModels: llm.CLAUDE_MODELS };
   });
   ipcMain.handle("settings:set", (_e, raw) => {
     const patch = Object.fromEntries(Object.entries(raw || {}).filter(([k]) => !MAIN_ONLY.includes(k)));

@@ -24,11 +24,14 @@ $("quiz").onchange = () => { save({ quiz: readQuiz() }); say("Saved.", "good", "
 const [OLLAMA, LMSTUDIO] = s.localHosts, bare = (u) => u.replace(/^https?:\/\//, "");
 $("server").append(new Option(`Ollama · ${bare(OLLAMA)}`, OLLAMA), new Option(`LM Studio · ${bare(LMSTUDIO)}`, LMSTUDIO));
 for (const m of s.recommended) $("get-list").append(new Option(`${m.gb} GB, ${m.note}`, m.id));
+const CLAUDE = s.claudeModels[0];
+for (const m of s.claudeModels) $("claude-list").append(new Option(m, m));
 function showProvider() {
-  const local = s.provider === "local";
-  $("p-local").checked = $("or-fields").hidden = local;
-  $("p-or").checked = $("local-fields").hidden = !local;
+  const local = s.provider === "local", claude = s.provider === "anthropic";
+  $("p-local").checked = local; $("p-claude").checked = claude; $("p-or").checked = !local && !claude;
+  $("local-fields").hidden = !local; $("claude-fields").hidden = !claude; $("or-fields").hidden = local || claude;
   $("get-fields").hidden = !local || $("server").value !== OLLAMA; // LM Studio downloads models in its own window
+  $("rigmatch").hidden = !local; // picking a local model is the only thing it helps with
   say("", "muted", "test-result"); // a result for the other brain would mislead
 }
 // The models on the chosen server; `prefer` (one just downloaded, maybe listed as name:latest) gets picked if it's there.
@@ -44,6 +47,7 @@ async function loadModels(prefer) {
 }
 $("p-local").onchange = () => { save({ provider: "local" }); showProvider(); loadModels(); };
 $("p-or").onchange = () => { save({ provider: "openrouter", baseUrl: OPENROUTER, model: $("or-model").value.trim() }); showProvider(); };
+$("p-claude").onchange = () => { save({ provider: "anthropic", baseUrl: "", model: $("claude-model").value.trim() || CLAUDE }); showProvider(); };
 $("server").onchange = () => { showProvider(); loadModels(); };
 $("get").onclick = async () => {
   const name = $("get-name").value.trim();
@@ -58,6 +62,8 @@ $("get").onclick = async () => {
 $("model").onchange = () => { save({ model: $("model").value }); say("", "muted", "test-result"); };
 $("or-model").onchange = () => save({ model: $("or-model").value.trim() || "google/gemini-2.5-flash" });
 $("key").onchange = () => save({ apiKey: $("key").value.trim() });
+$("claude-model").onchange = () => save({ model: $("claude-model").value.trim() || CLAUDE });
+$("claude-key").onchange = () => save({ claudeKey: $("claude-key").value.trim() });
 $("test").onclick = async () => {
   $("test").disabled = true; say("Dialing…", "muted", "test-result");
   const r = await api.invoke("llm:test");
@@ -171,9 +177,12 @@ $("cancel").onclick = x.onclick = async () => {
   api.invoke("win:close");
 };
 if (s.hasEnvKey) $("key").placeholder = "Using OPENROUTER_API_KEY from your environment";
+if (s.hasEnvClaudeKey) $("claude-key").placeholder = "Using ANTHROPIC_API_KEY from your environment";
 $("server").value = s.baseUrl.startsWith(LMSTUDIO) ? LMSTUDIO : OLLAMA;
 $("or-model").value = s.provider === "openrouter" ? s.model : "google/gemini-2.5-flash";
 $("key").value = s.apiKey;
+$("claude-model").value = s.provider === "anthropic" ? s.model : CLAUDE;
+$("claude-key").value = s.claudeKey;
 fillYou(s); fillQuiz(s);
 showProvider();
 showCustom();

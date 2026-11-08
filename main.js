@@ -47,9 +47,11 @@ process.on("unhandledRejection", snag);
 const attempt = (fn) => async (...args) => {
   try { return { ok: true, ...(await fn(...args)) }; } catch (e) { return { ok: false, error: e.message }; }
 };
-// An OPENROUTER_API_KEY in the environment stands in for a key never typed into Setup; it isn't copied to the database.
+// An OPENROUTER_API_KEY or ANTHROPIC_API_KEY in the environment stands in for a key never typed into Setup; neither is
+// copied to the database. Claude's key is kept apart from OpenRouter's, so switching between them keeps both.
 const llmCfg = (s = db.settings()) => ({ provider: s.provider, baseUrl: s.baseUrl, model: s.model,
-  apiKey: s.apiKey || (s.provider === "openrouter" ? process.env.OPENROUTER_API_KEY || "" : "") });
+  apiKey: s.provider === "anthropic" ? s.claudeKey || process.env.ANTHROPIC_API_KEY || ""
+    : s.apiKey || (s.provider === "openrouter" ? process.env.OPENROUTER_API_KEY || "" : "") });
 
 // What the parts share. Each adds what it offers; anything used later (the scheduler, the tray) is looked up on ctx
 // when it's called, so the order only matters for what runs while loading.

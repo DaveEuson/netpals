@@ -88,6 +88,21 @@ function fieldy(req) {
   ] }];
 }
 
+// And Anthropic's Messages API, at /v1/messages: the key sk-ant-good works, anything else is refused. claude-missing
+// doesn't exist and claude-refuses declines; every other model answers like the fake model, after an empty thinking
+// block the way current Claude models send one. The last request is kept in server.lastClaude for the tests.
+function claude(req, b, send, server) {
+  server.lastClaude = { headers: req.headers, body: b };
+  const err = (code, type, message) => send(code, { type: "error", error: { type, message } });
+  const key = req.headers["x-api-key"] || String(req.headers.authorization || "").replace(/^Bearer /, ""); // the SDK sends either
+  if (key !== "sk-ant-good") return err(401, "authentication_error", "invalid x-api-key");
+  if (b.model === "claude-missing") return err(404, "not_found_error", `model: ${b.model}`);
+  const refused = b.model === "claude-refuses";
+  const text = answer("fake:7b", typeof b.system === "string" ? b.system : JSON.stringify(b.system), JSON.stringify(b.messages || []));
+  send(200, { id: "msg_fake", type: "message", role: "assistant", model: b.model, stop_reason: refused ? "refusal" : "end_turn", stop_sequence: null,
+    content: refused ? [] : [{ type: "thinking", thinking: "", signature: "fake" }, { type: "text", text }], usage: { input_tokens: 10, output_tokens: 5 } });
+}
+
 function start(port = 0) {
   const pulled = new Set();
   const server = http.createServer((req, res) => {
@@ -105,6 +120,7 @@ function start(port = 0) {
       let b = {};
       try { b = JSON.parse(body || "{}"); } catch { return send(400, { error: "bad json" }); }
       if (req.method === "POST" && req.url === "/api/pull") return pull(String(b.model || b.name), res, pulled);
+      if (req.method === "POST" && req.url.startsWith("/v1/messages")) return claude(req, b, send, server);
       if (req.method !== "POST" || !req.url.endsWith("/chat/completions")) return send(404, { error: "not here" });
       server.calls = (server.calls || 0) + 1;
       if (b.model === "fake:error") return send(500, { error: { message: "the fake model fell over" } });

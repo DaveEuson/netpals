@@ -24,8 +24,8 @@ xattr -cr /Applications/Netpals.app
 
 ## Give it a brain
 
-Netpals needs a language model to write your buddies' lines. The free way runs it on your computer. OpenRouter is
-an optional paid alternative, if you'd rather not run one yourself.
+Netpals needs a language model to write your buddies' lines. The free way runs it on your computer. OpenRouter and
+Claude are optional paid alternatives, if you'd rather not run one yourself.
 
 **On your computer, free and private.** Install [Ollama](https://ollama.com) (or [LM Studio](https://lmstudio.ai))
 and Netpals finds it by itself. No model yet? Netpals downloads one for you: the welcome screen offers
@@ -52,6 +52,12 @@ you'd rather not run one, or want sharper buddies, get a key at [openrouter.ai](
 on the welcome screen or in Setup (or set `OPENROUTER_API_KEY`). Netpals uses `google/gemini-2.5-flash`, which is
 sharper than any local model and costs a fraction of a cent per message. Your messages go to OpenRouter to be
 answered.
+
+**Claude, over the internet (optional).** Pick **Claude** in Setup and paste an API key from
+[platform.claude.com](https://platform.claude.com/settings/keys) (or set `ANTHROPIC_API_KEY`). Netpals starts on Claude
+Opus 5.5, roughly a cent per message; type `claude-haiku-5-5` in its Model box for a few hundredths of a cent. A
+Claude Pro or Max plan can't be used: Anthropic doesn't let other apps sign in with one, so it's pay-as-you-go. Your
+messages go to Anthropic to be answered.
 
 ## First run
 
@@ -130,9 +136,9 @@ is sent anywhere.
 - Your screen name, password, buddies and every conversation stay in one folder on your computer. Netpals has no
   account, no server and no analytics.
 - With a model on your computer, your conversations never leave it.
-- With OpenRouter, what a buddy needs to answer goes to OpenRouter and the model's maker: the conversation so far,
-  what you told setup about yourself, what the buddy remembers, today's event names and times and your weather if
-  you filled those in, and any picture you send. Your password never does.
+- With OpenRouter or Claude, what a buddy needs to answer goes to OpenRouter and the model's maker, or to Anthropic:
+  the conversation so far, what you told setup about yourself, what the buddy remembers, today's event names and times
+  and your weather if you filled those in, and any picture you send. Your password never does.
 - A linked calendar comes straight from Google or Outlook to your computer, with nothing in between. Netpals only
   reads it, never changes it, and keeps the link in your data folder. Treat that link like a password: anyone who
   has it can see your calendar.
