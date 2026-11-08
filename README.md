@@ -10,17 +10,24 @@ away, remember what you tell them, and check in if you leave them hanging. Every
 
 ## Get it
 
-**Windows 10 or 11 (64-bit):** download `Netpals Setup 0.2.0.exe` from the
-[releases page](https://github.com/DaveEuson/netpals/releases) and run it. The installer isn't code-signed yet, so
-Windows may say "Windows protected your PC" the first time: choose **More info**, then **Run anyway**.
+Everything is on the [latest release](https://github.com/DaveEuson/netpals/releases/latest). Netpals is free; Plus
+keys are free for now too (see [Netpals Plus](#netpals-plus)).
 
-**macOS (Apple Silicon or Intel):** download `Netpals-0.2.0-arm64.dmg` (Apple Silicon) or `Netpals-0.2.0-x64.dmg`
-(Intel) from the same page, open it and drag Netpals to Applications. It isn't signed by Apple yet, so macOS refuses
-to open a downloaded copy until you run this once in Terminal:
+**Windows 10 or 11 (64-bit):** download `Netpals.Setup.<version>.exe` and run it. The installer isn't code-signed
+yet, so Windows says "Windows protected your PC" the first time: choose **More info**, then **Run anyway**.
+
+**macOS (Apple Silicon or Intel):** download the `arm64.dmg` (Apple Silicon) or the `x64.dmg` (Intel), open it and
+drag Netpals to Applications. It isn't signed by Apple yet, so macOS won't open a downloaded copy at first. Either
+run this once in Terminal:
 
 ```bash
 xattr -cr /Applications/Netpals.app
 ```
+
+or try to open it, then go to **System Settings**, **Privacy & Security**, and choose **Open Anyway** near the bottom.
+
+You also need a brain for your buddies: a free model on your computer, or a key for OpenRouter or Claude. Setup
+checks your computer and tells you which makes sense (see [Give it a brain](#give-it-a-brain)).
 
 ## Give it a brain
 
@@ -164,6 +171,9 @@ is sent anywhere.
   hour while you're signed on. Nothing else does.
 - With Fieldy, Netpals asks Fieldy for today's conversation titles and summaries, at most every ten minutes. They go
   into what buddies are told only when the brain is on your computer, because they hold other people's words.
+- Switching from a model on your computer to OpenRouter or Claude later sends what's already in your chats and in
+  your buddies' memory along with new messages, including anything a buddy repeated from your calendar or Fieldy.
+- Your keys and calendar link only reach Setup's window, not the Buddy List or IM windows.
 - The password locks the Sign On window. It doesn't encrypt your conversations.
 
 ## Your data

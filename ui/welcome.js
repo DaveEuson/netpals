@@ -171,6 +171,8 @@ function fillTouches() {
   $("t-auto").checked = t.autoLogin;
   if (/Mac/.test(navigator.userAgent)) $("t-startup-label").textContent = "Start Netpals when you log in";
   if (t.licensedTo) say(`Plus is on, for ${t.licensedTo}. Thanks!`, "good", "t-plus");
+  $("t-buy").hidden = !t.buyUrl || Boolean(t.licensedTo);
+  $("t-buy").dataset.href = t.buyUrl;
 }
 $("t-unlock").onclick = async () => {
   const r = await window.api.invoke("license:set", $("t-license").value);
