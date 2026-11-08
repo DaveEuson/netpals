@@ -36,4 +36,18 @@ t.run(async () => {
   const s = db.settings();
   check(s.license === "" && s.connected === true && s.awayMessage === "" && s.theme === "midnight" && s.passHash === hash,
     "settings:set ignores what only main sets, and still saves the rest");
+
+  // Keys reach only Setup (and the setup wizard): not the Buddy List, an IM window, or anything they're sent later.
+  db.setSettings({ apiKey: "sk-or-secret", claudeKey: "sk-ant-secret", fieldyKey: "sk-fieldy-secret", calendarUrl: "https://example.com/private/basic.ics" });
+  const SECRET = /sk-or-secret|sk-ant-secret|sk-fieldy-secret|private\/basic\.ics|"passHash"|"license"/;
+  check(!SECRET.test(JSON.stringify(await js(list, "api.settingsSync()"))) && !SECRET.test(JSON.stringify(await js(chat, "api.settingsSync()"))),
+    "the Buddy List and an IM window read settings without keys, the calendar link or the password's hash");
+  await js(list, "window.heard = []; api.on('settings', (n) => window.heard.push(n))");
+  main.broadcast("settings", db.settings()); await sleep(300);
+  const heard = await js(list, "window.heard");
+  check(heard.length === 1 && heard[0].screenName === "tester" && !SECRET.test(JSON.stringify(heard)), "and a settings change sent to them leaves those out too");
+  const st = await open(main, "settings");
+  const full = await js(st, "api.settingsSync()");
+  check(full.apiKey === "sk-or-secret" && full.claudeKey === "sk-ant-secret" && (await js(st, "document.getElementById('key').value")) === "sk-or-secret",
+    "Setup still gets them, to show and edit");
 });

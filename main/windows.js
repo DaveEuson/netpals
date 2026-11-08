@@ -5,6 +5,8 @@ const { app, BrowserWindow, nativeTheme, screen } = require("electron");
 
 const ROOT = path.join(__dirname, "..");
 const SIGNED_OFF = "--signed-off"; // started again by Sign Off: Sign On, even with auto-login
+const SECRETS = ["apiKey", "claudeKey", "fieldyKey", "calendarUrl", "passHash", "license"];
+const EDITORS = ["settings", "welcome"]; // the windows that edit those
 // [width, height, resizable]
 const SIZE = {
   welcome: [440, 680], signon: [280, 470], list: [260, 560, true], chat: [460, 480, true], settings: [420, 660],
@@ -60,7 +62,14 @@ module.exports = function windows(ctx) {
     return w;
   }
 
-  const broadcast = (channel, payload) => { for (const w of wins.values()) if (!w.isDestroyed()) w.webContents.send(channel, payload); };
+  // Settings that unlock something (the OpenRouter, Claude and Fieldy keys, the calendar's secret link, the Plus key)
+  // and the password's hash go only to the two windows that edit them: Setup and the setup wizard. Every other window
+  // gets settings without them, so a page that goes wrong has nothing to give away. key: a wins key ("chat:3").
+  const forWindow = (key, s) => (EDITORS.includes(String(key).split(":")[0]) ? s : Object.fromEntries(Object.entries(s).filter(([k]) => !SECRETS.includes(k))));
+  const keyOf = (webContents) => [...wins].find(([, w]) => !w.isDestroyed() && w.webContents === webContents)?.[0] || "";
+  const broadcast = (channel, payload) => {
+    for (const [key, w] of wins) if (!w.isDestroyed()) w.webContents.send(channel, channel === "settings" ? forWindow(key, payload) : payload);
+  };
   // Sign Off starts Netpals over at Sign On (where you can pick another screen name); Exit just quits.
   const signOff = () => {
     quitting = true;
@@ -68,5 +77,5 @@ module.exports = function windows(ctx) {
     app.quit();
   };
   const exit = () => { quitting = true; app.quit(); };
-  return { wins, openWindow, broadcast, signOff, exit, SIGNED_OFF };
+  return { wins, openWindow, broadcast, forWindow, keyOf, signOff, exit, SIGNED_OFF };
 };

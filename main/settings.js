@@ -19,10 +19,10 @@ module.exports = function settings(ctx) {
   const { db, llm, license, attempt, broadcast, wins } = ctx;
 
   // Windows read settings synchronously before they paint. hasEnvKey (and hasEnvClaudeKey) ride along: a key from the
-  // environment changes what the key fields say.
+  // environment changes what the key fields say. Keys only reach the windows that edit them (windows.js forWindow).
   ipcMain.on("settings:getSync", (e) => {
     const s = db.settings();
-    e.returnValue = { ...s, hasEnvKey: Boolean(process.env.OPENROUTER_API_KEY), hasEnvClaudeKey: Boolean(process.env.ANTHROPIC_API_KEY), licensedTo: ctx.licensedTo(s), buyUrl: license.BUY_URL,
+    e.returnValue = { ...ctx.forWindow(ctx.keyOf(e.sender), s), hasEnvKey: Boolean(process.env.OPENROUTER_API_KEY), hasEnvClaudeKey: Boolean(process.env.ANTHROPIC_API_KEY), licensedTo: ctx.licensedTo(s), buyUrl: license.BUY_URL,
       localHosts: llm.LOCAL_HOSTS, recommended: llm.RECOMMENDED, claudeModels: llm.CLAUDE_MODELS, openrouter: llm.OPENROUTER, openrouterModel: llm.OPENROUTER_MODEL };
   });
   ipcMain.handle("settings:set", (_e, raw) => {
