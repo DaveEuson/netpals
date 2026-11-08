@@ -24,7 +24,8 @@ t.run(async () => {
   check(/doesn't work any more/.test(await tryIt("cal", CAL.replace("calendar.ics", "old.ics"))), "a dead link says to copy it again");
   check(/isn't a calendar/.test(await tryIt("cal", CAL.replace("calendar.ics", "page.html"))), "a web page says it isn't a calendar");
   const ok = await tryIt("cal", CAL);
-  check(/^It works\. Buddies are told: ".*Right now they're in Dentist, Dr\. Ruiz until/.test(ok) && !/Cancelled/.test(ok), `a good link shows what buddies are told, without the cancelled meeting: ${ok}`);
+  // The fake's daily Team sync runs 1 to 3 PM, so between those hours it's on right now too.
+  check(/^It works\. Buddies are told: ".*Right now they're in (Team sync until [^,]+, and )?Dentist, Dr\. Ruiz until/.test(ok) && !/Cancelled/.test(ok), `a good link shows what buddies are told, without the cancelled meeting: ${ok}`);
   check(db.settings().calendarUrl === CAL && (await js(st, "document.getElementById('cal').type")) === "password", "it's saved, and hidden like a password");
 
   // ---- weather
