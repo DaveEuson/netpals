@@ -5,6 +5,7 @@
 const t = require("../harness");
 const { db, check, win, js, sleep, until, click, text, set, vis, snap } = t;
 delete process.env.OPENROUTER_API_KEY; delete process.env.ANTHROPIC_API_KEY; // never a real key, and Next has to ask
+process.env.NETPALS_OLLAMA ||= t.MODEL.replace(/\/v1\/?$/, ""); // the fake's models and timings, even with --live
 const main = t.start({ model: "fake:slow", sound: true });
 const CAL = `${t.MODEL.replace(/\/v1\/?$/, "")}/calendar.ics`;
 const radio = (w, id) => js(w, `(() => { const e = document.getElementById(${JSON.stringify(id)}); e.checked = true; e.dispatchEvent(new Event("change")); })()`);
