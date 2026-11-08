@@ -10,7 +10,7 @@ const GB = 2 ** 30;
 
 (async () => {
   const pc = (gpus, mem, platform = "win32", arch = "x64") => machine.hardware({ gpuDevice: gpus.map((vendorId) => ({ vendorId })) }, { mem: mem * GB, platform, arch });
-  const gamer = pc([0x8086, 0x10de], 32), laptop = pc([0x8086], 8), mac = pc([], 16, "darwin", "arm64"), bare = machine.hardware(null, { mem: 16 * GB });
+  const gamer = pc([0x8086, 0x10de], 32), laptop = pc([0x8086], 8), mac = pc([], 16, "darwin", "arm64"), bare = machine.hardware(null, { mem: 16 * GB, platform: "win32", arch: "x64" });
   check(gamer.gpu === "NVIDIA" && gamer.fast && gamer.ramGB === 32, "a laptop with Intel and NVIDIA graphics counts the NVIDIA");
   check(laptop.gpu === "Intel" && !laptop.fast && mac.gpu === "Apple" && mac.fast && bare.gpu === "", "Intel graphics isn't fast, an Apple chip is, and no report means none");
 
