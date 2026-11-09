@@ -6,6 +6,8 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+permissions:
+  contents: write # the repository's token is read-only by default; this lets electron-builder make the draft release
 jobs:
   build:
     strategy:
