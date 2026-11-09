@@ -72,7 +72,8 @@
       ]
     },
     "dmg": {
-      "title": "Netpals"
+      "title": "Netpals",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
     "publish": {
       "provider": "github",

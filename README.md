@@ -13,7 +13,7 @@ away, remember what you tell them, and check in if you leave them hanging. Every
 Everything is on the [latest release](https://github.com/DaveEuson/netpals/releases/latest). Netpals is free; Plus
 keys are free for now too (see [Netpals Plus](#netpals-plus)).
 
-**Windows 10 or 11 (64-bit):** download `Netpals.Setup.<version>.exe` and run it. The installer isn't code-signed
+**Windows 10 or 11 (64-bit):** download `Netpals-Setup-<version>.exe` and run it. The installer isn't code-signed
 yet, so Windows says "Windows protected your PC" the first time: choose **More info**, then **Run anyway**.
 
 **macOS (Apple Silicon or Intel):** download the `arm64.dmg` (Apple Silicon) or the `x64.dmg` (Intel), open it and
