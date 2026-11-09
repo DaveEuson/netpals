@@ -36,9 +36,10 @@ Back it up with the private key. A paid order with no line in `keys.csv` is some
 
 ## The store
 
-Sell through a store such as Gumroad or Lemon Squeezy and send keys by hand for now. Once there's a store page, put
-its address in `BUY_URL` at the top of `lib/license.js`; the free version's Setup then shows a **Get Netpals Plus**
-link. Sending keys automatically would take a small webhook that runs the command above.
+While keys are free, `BUY_URL` at the top of `lib/license.js` is the [request form](https://tally.so/r/WJrk4L) on
+Tally, which emails you each request; Setup and the setup wizard show it as **Get a Plus key** until Plus is
+unlocked. To sell, set up a store such as Gumroad or Lemon Squeezy, put its page in `BUY_URL` instead, and send keys
+by hand with `--paid`. Sending keys automatically would take a small webhook that runs the command above.
 
 ## The key pair
 

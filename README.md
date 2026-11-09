@@ -146,15 +146,16 @@ Windows too.
 
 ## Netpals Plus
 
-| Free | Plus, a one-time purchase |
+| Free | Plus, free for now |
 |---|---|
 | Up to 3 buddies, built by hand | As many buddies as you like, plus Randomize |
 | IMs, Buddy Chat, away messages, check-ins, pictures | Everything in Free |
 | Dial-Up, Pinstripe and Midnight themes | Every theme, custom colors and theme files |
 | Your day: calendar and weather | Your day with Fieldy too |
 
-Paste your key in **Setup** under **Netpals Plus** and press **Unlock**. Keys are checked on your computer; nothing
-is sent anywhere.
+Ask for a free key on the [request form](https://tally.so/r/WJrk4L) (Setup links to it too); it's emailed to you
+within a day. Paste it in **Setup** under **Netpals Plus** and press **Unlock**. Keys are checked on your computer;
+nothing is sent anywhere.
 
 ## Your privacy
 
