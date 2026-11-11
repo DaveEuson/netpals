@@ -124,6 +124,13 @@ function start(port = 0) {
       if (req.method === "GET" && /^\/v1\/(search|forecast)\?/.test(req.url)) return send(200, sky(req.url));
       if (req.method === "GET" && req.url.startsWith("/api/public/v2/")) { server.fieldyUrl = req.url; return send(...fieldy(req)); }
       if (req.method === "GET" && req.url === "/api/tags") return send(200, { models: names.map((n, i) => ({ name: n, details: { parameter_size: i ? "8B" : "7B" } })) });
+      // GitHub's latest release, three ways: /old has nothing new, /new has 99.0.0, /down is GitHub having a bad day.
+      const rel = req.method === "GET" && req.url.match(/^\/(old|new|down)\/repos\/DaveEuson\/netpals\/releases\/latest$/);
+      if (rel) {
+        if (rel[1] === "down") return send(503, { message: "Service Unavailable" });
+        const tag = rel[1] === "new" ? "v99.0.0" : "v0.0.1";
+        return send(200, { tag_name: tag, html_url: `https://github.com/DaveEuson/netpals/releases/tag/${tag}` });
+      }
       let b = {};
       try { b = JSON.parse(body || "{}"); } catch { return send(400, { error: "bad json" }); }
       if (req.method === "POST" && req.url === "/api/pull") return pull(String(b.model || b.name), res, pulled);

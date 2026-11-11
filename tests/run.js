@@ -19,6 +19,7 @@ const TESTS = [
   { name: "fieldy", node: "unit/fieldy.js" },
   { name: "claude", node: "unit/claude.js" },
   { name: "machine", node: "unit/machine.js" },
+  { name: "github", node: "unit/github.js" },
   { name: "scheduler", electron: "unit/scheduler.js", args: (live) => (live ? ["--live"] : []), timeout: 240 },
   { name: "account", electron: "ui/account.js", phases: ["setup", "signon", "auto", { phase: "reset", args: ["--reset-password"] }] },
   { name: "wizard", electron: "ui/wizard.js" },
@@ -38,6 +39,7 @@ const TESTS = [
   { name: "polish", electron: "ui/polish.js" },
   { name: "single", electron: "ui/single.js" },
   { name: "security", electron: "ui/security.js" },
+  { name: "updates", electron: "ui/updates.js" },
   { name: "stress", electron: "ui/stress.js", timeout: 600, only: true }, // long: run it by name
   { name: "screenshots", electron: "ui/screenshots.js", only: true }, // the README's pictures, into docs/images
 ];

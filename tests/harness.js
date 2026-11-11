@@ -17,6 +17,8 @@ if (!LIVE) process.env.NETPALS_OLLAMA ||= MODEL.replace(/\/v1\/?$/, "");
 process.env.NETPALS_WEATHER ||= MODEL.replace(/\/v1\/?$/, "");
 process.env.NETPALS_ANTHROPIC ||= MODEL.replace(/\/v1\/?$/, "");
 process.env.NETPALS_FIELDY ||= `${MODEL.replace(/\/v1\/?$/, "")}/api/public/v2`;
+// So does GitHub's latest release, with nothing newer out (tests/ui/updates.js asks for one that is).
+process.env.NETPALS_UPDATES ||= `${MODEL.replace(/\/v1\/?$/, "")}/old`;
 // Each test is its own Electron app as far as the single-instance lock goes, so tests never block each other.
 app.setPath("userData", path.join(process.env.NETPALS_DATA || os.tmpdir(), "electron"));
 const db = require(path.join(ROOT, "lib", "db"));

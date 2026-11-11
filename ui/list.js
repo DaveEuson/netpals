@@ -1,4 +1,5 @@
-// list.js — the Buddy List: groups, presence, unread counts, door and IM sounds and their two mutes, chattiness, away.
+// list.js — the Buddy List: groups, presence, unread counts, door and IM sounds and their two mutes, chattiness, away,
+// and a note when a newer Netpals is out.
 // This window lives for the whole session, so it plays the door and incoming-IM sounds (the IM and Buddy Chat windows
 // play the one for sending). All buddy text goes in via textContent.
 // `api` is the global from preload.js (contextBridge makes it non-configurable, so it can't be redeclared).
@@ -91,5 +92,16 @@ for (const [id, win] of [["away", "away"], ["add", "addbuddy"], ["chat", "room"]
 $("back").onclick = () => api.invoke("away:set", "");
 for (const [id, key] of MUTES) $(id).onclick = () => api.invoke("settings:set", { [key]: !s[key] });
 
+// A newer Netpals: shown until you get it, or Not now (which skips that version).
+function showUpdate(u) {
+  $("update").hidden = !u;
+  if (!u) return;
+  $("update-version").textContent = u.version;
+  $("update-get").dataset.href = u.url;
+}
+api.on("update", showUpdate);
+$("update-skip").onclick = () => api.invoke("update:skip");
+
 setInterval(render, 30_000); // idle minutes tick up, "just signed on" fades
 load();
+api.invoke("update:get").then(showUpdate);

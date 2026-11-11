@@ -25,7 +25,7 @@ npm run reset-password
 | Path | What's there |
 |---|---|
 | `main.js` | Wires the main process together, makes the scheduler, decides what opens first |
-| `main/` | One file per part of the main process, each registering its own IPC channels: `windows`, `menus`, `pictures`, `account`, `buddies`, `settings`, `storage` |
+| `main/` | One file per part of the main process, each registering its own IPC channels: `windows`, `menus`, `pictures`, `account`, `buddies`, `settings`, `storage`, `updates` |
 | `lib/scheduler.js` | When buddies talk, presence drift, replies, check-ins, Buddy Chat turns, away |
 | `lib/prompts.js` | Every prompt a buddy sees, and the cleanup that holds their answers to the house rules |
 | `lib/llm.js` | One `chat()` over Ollama, LM Studio, OpenRouter and Claude (Anthropic's SDK; `NETPALS_ANTHROPIC` points it elsewhere); model detection; whether a model can see; downloading a model into Ollama, and the models Setup suggests |
@@ -38,6 +38,7 @@ npm run reset-password
 | `lib/fieldy.js` | Today's conversation titles and summaries from Fieldy's public API (Plus, local brains only); `NETPALS_FIELDY` points it elsewhere |
 | `lib/keep.js` | Remembers what a slow fetch returned, so a buddy's answer never waits on the calendar, the weather or Fieldy |
 | `lib/license.js` | Netpals Plus keys (see [SELLING.md](SELLING.md)) |
+| `lib/github.js` | Whether a newer release is out (`NETPALS_UPDATES` points it elsewhere), and the Report a problem link |
 | `ui/` | One HTML page and script per window; `chrome.js` and `xp.css` are shared by all of them |
 | `preload.js` | The whole renderer-to-main surface |
 | `tests/` | The test runner, the harness the window tests share, a fake model, and the tests |
@@ -52,15 +53,16 @@ or open other windows (`main/windows.js`), and `settings:set` ignores the settin
 npm test
 ```
 
-The license, calendar, weather, Fieldy, Claude, machine and scheduler checks, then a window test for each part of the app
+The license, calendar, weather, Fieldy, Claude, machine, GitHub and scheduler checks, then a window test for each part of the app
 (setup and sign-on, the setup wizard, several screen names, Connecting, Plus, the Buddy List, Away, IMs, pictures, Buddy Chat, Setup, getting a model, Your
-day, the Claude brain, window polish, one copy at a time, security).
+day, the Claude brain, window polish, one copy at a time, security, new versions and Report a problem).
 Each runs the real `main.js` under Electron in a throwaway data folder, with windows off-screen, against
 `tests/fake-model.js`: an OpenAI-compatible stand-in that answers in milliseconds and misbehaves on request
 (`fake:error`, `fake:slow`, `fake:empty`, `fake:huge`, `fake:junk`). It downloads too, the way Ollama's `/api/pull`
 does, and the tests point `NETPALS_OLLAMA` at it. It's a calendar as well, at `/calendar.ics`, with an appointment
-on right now, and stands in for Open-Meteo, Fieldy's API and Anthropic's Messages API (the tests point
-`NETPALS_WEATHER`, `NETPALS_FIELDY` and `NETPALS_ANTHROPIC` at it). About four minutes; screenshots land in `tests/out`.
+on right now, and stands in for Open-Meteo, Fieldy's API, Anthropic's Messages API and GitHub's latest release (the
+tests point `NETPALS_WEATHER`, `NETPALS_FIELDY`, `NETPALS_ANTHROPIC` and `NETPALS_UPDATES` at it, so no test asks the
+real GitHub). About four minutes; screenshots land in `tests/out`.
 
 ```bash
 npm test -- room settings --verbose

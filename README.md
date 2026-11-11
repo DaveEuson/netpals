@@ -128,6 +128,8 @@ buddies sign on one by one, with a door sound each:
 - **More than one screen name.** Each has its own buddies, chats, profile and day; a new one starts with the brain,
   Plus key and theme of the one you were on. At Sign On, pick any of them from the list, or **New screen name…** for
   setup. Netpals starts on whichever signed on last.
+- **New versions.** Once a day Netpals asks GitHub whether a newer version is out, and if one is, the Buddy List says
+  so with a **Get it** link. **Not now** skips that version. **About Netpals** in Setup turns the check off.
 
 **Buddy Chat** puts your buddies in one room. Say something and one to three of them answer, sometimes to each other:
 
@@ -172,6 +174,8 @@ nothing is sent anywhere.
   hour while you're signed on. Nothing else does.
 - With Fieldy, Netpals asks Fieldy for today's conversation titles and summaries, at most every ten minutes. They go
   into what buddies are told only when the brain is on your computer, because they hold other people's words.
+- Once a day Netpals asks GitHub for its latest version number. The request carries nothing about you, though GitHub
+  sees it come from your internet address, as with any website. **About Netpals** in Setup turns it off.
 - Switching from a model on your computer to OpenRouter or Claude later sends what's already in your chats and in
   your buddies' memory along with new messages, including anything a buddy repeated from your calendar or Fieldy.
 - Your keys and calendar link only reach Setup's window, not the Buddy List or IM windows.
@@ -194,7 +198,7 @@ conversations stay. With several screen names, Windows resets the one picked at 
 
 ## Platforms
 
-| Platform | Netpals 0.2 |
+| Platform | Netpals 0.3 |
 |---|---|
 | Windows 11, 64-bit | Yes |
 | Windows 10, 64-bit | Should work (same build), not yet tested |
@@ -209,6 +213,9 @@ conversations stay. With several screen names, Windows resets the one picked at 
 - **Netpals hit a snag**: the box has a **Copy details** button; the same details are in `netpals.log` in your data
   folder.
 - **Starting Netpals again** brings the open one forward; only one runs at a time.
+- **Something else?** **Report a problem…** under **About Netpals** in Setup (or in the tray, or **Help** on a Mac)
+  opens a new issue on GitHub with your Netpals version, system and brain filled in. Nothing is sent until you submit
+  it there.
 
 ## Building from source
 

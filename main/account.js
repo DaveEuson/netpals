@@ -102,6 +102,8 @@ module.exports = function account(ctx) {
       setInterval(idleCheck, 30_000);
       ctx.diskCheck();
       setInterval(() => ctx.diskCheck(), 6 * 3600_000);
+      ctx.updateCheck();
+      setInterval(() => ctx.updateCheck(), 24 * 3600_000);
     }
     signedOn = true;
     db.setSettings({ connected: true });

@@ -118,7 +118,8 @@ if (/Mac/.test(navigator.userAgent)) {
 }
 $("idle").value = s.autoAwayMinutes;
 $("idle").onchange = () => save({ autoAwayMinutes: Number($("idle").value) });
-const CHECKBOXES = { autologin: "autoLogin", startup: "startWithWindows", nudges: "nudges", dark: "darkWithSystem", ontop: "alwaysOnTop", sound: "sound", notify: "notify" };
+const CHECKBOXES = { autologin: "autoLogin", startup: "startWithWindows", nudges: "nudges", dark: "darkWithSystem", ontop: "alwaysOnTop", sound: "sound", notify: "notify",
+  updates: "checkUpdates" };
 for (const [id, key] of Object.entries(CHECKBOXES)) {
   $(id).checked = s[key];
   $(id).onchange = () => save({ [key]: $(id).checked });
@@ -170,6 +171,10 @@ api.invoke("storage:get").then((u) => {
     low ? "err" : "muted", "storage");
 });
 $("show-data").onclick = () => api.invoke("storage:open");
+
+// ---- about ---------------------------------------------------------------------------------
+$("version").textContent = `This is Netpals ${s.version}.`;
+$("report").onclick = () => api.invoke("problem:report");
 
 // ---- open / close --------------------------------------------------------------------------
 // The title bar's X means Cancel here, not just close.

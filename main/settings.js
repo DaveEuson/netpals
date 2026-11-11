@@ -13,7 +13,7 @@ const FILTERS = [{ name: "Netpals theme", extensions: ["json"] }];
 // Settings only main sets: the key goes through license:set, away through away:set, the room through room:members,
 // and the rest is bookkeeping. A page asking to set one is ignored.
 const MAIN_ONLY = ["license", "connected", "bounds", "autoAway", "awayMessage", "awaySince", "awayUntil", "lastAwayText", "lastAwayMinutes",
-  "lastDropDay", "detect", "chatRoom"];
+  "lastDropDay", "detect", "chatRoom", "updateSkipped"];
 
 module.exports = function settings(ctx) {
   const { db, llm, license, attempt, broadcast, wins } = ctx;
@@ -23,7 +23,8 @@ module.exports = function settings(ctx) {
   ipcMain.on("settings:getSync", (e) => {
     const s = db.settings();
     e.returnValue = { ...ctx.forWindow(ctx.keyOf(e.sender), s), hasEnvKey: Boolean(process.env.OPENROUTER_API_KEY), hasEnvClaudeKey: Boolean(process.env.ANTHROPIC_API_KEY), licensedTo: ctx.licensedTo(s), buyUrl: license.BUY_URL,
-      localHosts: llm.LOCAL_HOSTS, recommended: llm.RECOMMENDED, claudeModels: llm.CLAUDE_MODELS, openrouter: llm.OPENROUTER, openrouterModel: llm.OPENROUTER_MODEL };
+      localHosts: llm.LOCAL_HOSTS, recommended: llm.RECOMMENDED, claudeModels: llm.CLAUDE_MODELS, openrouter: llm.OPENROUTER, openrouterModel: llm.OPENROUTER_MODEL,
+      version: ctx.VERSION };
   });
   ipcMain.handle("settings:set", (_e, raw) => {
     const patch = Object.fromEntries(Object.entries(raw || {}).filter(([k]) => !MAIN_ONLY.includes(k)));

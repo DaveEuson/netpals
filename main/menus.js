@@ -18,6 +18,7 @@ module.exports = function menus(ctx) {
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: "Buddy List", click: () => openWindow("list") },
       { label: "Away…", click: () => openWindow("away") },
+      { label: "Report a problem…", click: () => ctx.reportProblem() },
       { type: "separator" },
       { label: "Sign Off", click: () => ctx.signOff() },
       { label: "Exit", click: () => ctx.exit() },
@@ -51,6 +52,7 @@ module.exports = function menus(ctx) {
       { label: "Sign Off", click: () => { if (ctx.isSignedOn()) ctx.signOff(); } },
     ] },
     { role: "windowMenu" },
+    { role: "help", submenu: [{ label: "Report a Problem…", click: () => ctx.reportProblem() }] },
   ]) : null));
   app.on("activate", after("list")); // the Dock icon brings the Buddy List back
 
