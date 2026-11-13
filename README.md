@@ -215,7 +215,7 @@ conversations stay. With several screen names, Windows resets the one picked at 
 
 ## Platforms
 
-| Platform | Netpals 0.3 |
+| Platform | Netpals 0.4 |
 |---|---|
 | Windows 11, 64-bit | Yes |
 | Windows 10, 64-bit | Should work (same build), not yet tested |
