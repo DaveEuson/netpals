@@ -1,7 +1,7 @@
 {
   "name": "netpals",
   "productName": "Netpals",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A 2003-style buddy list where the buddies are AI personas who message you through the day. Local-first.",
   "main": "main.js",
   "private": true,
