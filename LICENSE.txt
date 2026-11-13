@@ -10,7 +10,8 @@ Netpals is made by Dave Euson. By installing it you agree to the following.
 
 3. Your data. Netpals keeps your settings, your buddies and your conversations on your computer. It sends your
    messages, and any picture you send a buddy, only to the model you chose: one running on your computer, or
-   OpenRouter or Anthropic's Claude if you set one up. Netpals itself has no server and collects nothing.
+   OpenRouter, Anthropic's Claude, OpenAI's ChatGPT models or Google's Gemini if you set one up. Netpals itself has
+   no server and collects nothing.
 
 4. The buddies are software. They say what a language model writes. Don't rely on them for advice.
 

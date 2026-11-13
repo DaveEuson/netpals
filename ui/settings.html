@@ -23,12 +23,18 @@
     <span class="small" id="you-result" role="status"></span>
     <label class="check"><input type="checkbox" id="autologin"><span>Sign on automatically when Netpals starts</span></label>
     <label class="check"><input type="checkbox" id="startup"><span id="startup-label">Start Netpals when Windows starts</span></label>
+    <div class="row">
+      <label for="close-list">Closing the Buddy List</label>
+      <select id="close-list"><option value="ask">asks what to do</option><option value="tray">keeps Netpals in the tray</option><option value="quit">quits Netpals</option></select>
+    </div>
   </fieldset>
   <fieldset class="group">
     <legend>Brain</legend>
     <label class="check"><input type="radio" name="provider" id="p-local"><span>On this computer (Ollama or LM Studio)</span></label>
     <label class="check"><input type="radio" name="provider" id="p-or"><span>OpenRouter (optional, over the internet, paid)</span></label>
     <label class="check"><input type="radio" name="provider" id="p-claude"><span>Claude, with an Anthropic API key (optional, over the internet, paid)</span></label>
+    <label class="check"><input type="radio" name="provider" id="p-openai"><span>ChatGPT, with an OpenAI API key (optional, over the internet, paid)</span></label>
+    <label class="check"><input type="radio" name="provider" id="p-gemini"><span>Gemini, with a Google AI Studio API key (optional, over the internet, paid)</span></label>
     <div class="grid" id="local-fields">
       <label for="server">Server</label>
       <select id="server"></select>
@@ -54,6 +60,13 @@
       <span></span><span class="tiny muted">From <a data-href="https://platform.claude.com/settings/keys">platform.claude.com</a>, paid per message. A Claude Pro or Max plan can't be used here: Anthropic doesn't let other apps sign in with one. Saved on this computer only.</span>
     </div>
     <datalist id="claude-list"></datalist>
+    <div class="grid" id="cloud-fields">
+      <label for="cloud-model">Model</label><input id="cloud-model" type="text" list="cloud-list" spellcheck="false" autocomplete="off">
+      <label for="cloud-key">API key</label><input id="cloud-key" type="password" autocomplete="off">
+      <span></span><span class="tiny muted"><span id="cloud-hint"></span> Saved on this computer only.</span>
+      <span></span><span class="small" id="cloud-result" role="status"></span>
+    </div>
+    <datalist id="cloud-list"></datalist>
     <span class="tiny muted" style="padding-left: 20px">A local model is charming and a little dim: it forgets, repeats itself and won't pass the Turing test. Bigger models help; OpenRouter helps more.</span>
     <div class="row" style="padding-left: 20px">
       <button class="btn" id="test">Test it</button>
@@ -73,6 +86,8 @@
       <select id="idle"><option value="0">never</option><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="30">30 minutes</option></select>
       <span class="small muted">without touching the mouse or keyboard</span>
     </div>
+    <label class="check"><input type="checkbox" id="gpu-away"><span>Go away by yourself while a game or another program keeps the graphics card busy</span></label>
+    <span class="tiny muted">Only with the brain on this computer, so buddies don't slow down what you're doing. They still answer if you IM them.</span>
   </fieldset>
   <fieldset class="group">
     <legend>Your day</legend>

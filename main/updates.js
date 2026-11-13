@@ -8,7 +8,7 @@ const github = require("../lib/github");
 
 const VERSION = require("../package.json").version; // app.getVersion() is Electron's own under the tests
 const SYSTEM = { win32: "Windows", darwin: "macOS", linux: "Linux" };
-const BRAIN = { local: "on this computer", openrouter: "OpenRouter", anthropic: "Claude" };
+const BRAIN = { local: "on this computer", openrouter: "OpenRouter", anthropic: "Claude", openai: "ChatGPT", gemini: "Gemini" };
 
 module.exports = function updates({ db, broadcast }) {
   let available = null; // { version, url } once a check finds one you haven't skipped

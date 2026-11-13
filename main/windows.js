@@ -1,11 +1,11 @@
 // main/windows.js — every window: its size, where you left it, the color it opens with, and broadcast(), the one
-// way to tell all of them something. Closing the Buddy List only hides it until you sign off.
+// way to tell all of them something. Closing the Buddy List asks whether to keep Netpals running in the tray or quit.
 const path = require("path");
-const { app, BrowserWindow, nativeTheme, screen } = require("electron");
+const { app, BrowserWindow, dialog, nativeTheme, screen } = require("electron");
 
 const ROOT = path.join(__dirname, "..");
 const SIGNED_OFF = "--signed-off"; // started again by Sign Off: Sign On, even with auto-login
-const SECRETS = ["apiKey", "claudeKey", "fieldyKey", "calendarUrl", "passHash", "license"];
+const SECRETS = ["apiKey", "claudeKey", "openaiKey", "geminiKey", "fieldyKey", "calendarUrl", "passHash", "license"];
 const EDITORS = ["settings", "welcome"]; // the windows that edit those
 // [width, height, resizable]
 const SIZE = {
@@ -56,13 +56,13 @@ module.exports = function windows(ctx) {
     w.on("close", (e) => {
       // The content size round-trips; the outer size would grow a few px every time.
       db.setSettings({ bounds: { ...db.settings().bounds, [kind]: w.getContentBounds() } });
-      if (kind === "list" && !quitting) { e.preventDefault(); w.hide(); } // it lives on in the tray
+      if (kind === "list" && !quitting) { e.preventDefault(); closeList(w); }
     });
     wins.set(key, w);
     return w;
   }
 
-  // Settings that unlock something (the OpenRouter, Claude and Fieldy keys, the calendar's secret link, the Plus key)
+  // Settings that unlock something (the OpenRouter, Claude, ChatGPT, Gemini and Fieldy keys, the calendar's secret link, the Plus key)
   // and the password's hash go only to the two windows that edit them: Setup and the setup wizard. Every other window
   // gets settings without them, so a page that goes wrong has nothing to give away. key: a wins key ("chat:3").
   const forWindow = (key, s) => (EDITORS.includes(String(key).split(":")[0]) ? s : Object.fromEntries(Object.entries(s).filter(([k]) => !SECRETS.includes(k))));
@@ -77,5 +77,31 @@ module.exports = function windows(ctx) {
     app.quit();
   };
   const exit = () => { quitting = true; app.quit(); };
+
+  // The Buddy List's X: keep Netpals running in the tray (where buddies can still IM you), or quit. It asks, unless
+  // you ticked Don't ask again; settings.closeList is then "tray" or "quit", and Setup changes it back.
+  let asking = false;
+  async function closeList(w) {
+    const choice = db.settings().closeList;
+    if (choice === "tray") return w.hide();
+    if (choice === "quit") return exit();
+    if (asking) return;
+    asking = true;
+    try {
+      const where = process.platform === "darwin" ? "menu bar" : "tray";
+      const { response, checkboxChecked } = await dialog.showMessageBox(w, {
+        type: "question", buttons: [`Keep running in the ${where}`, "Quit Netpals", "Cancel"], defaultId: 0, cancelId: 2, noLink: true,
+        message: "Keep Netpals running?",
+        detail: `In the ${where}, buddies can still IM you. If you quit, they're offline until you start Netpals again.`,
+        checkboxLabel: "Don't ask again (Setup can change this)",
+      });
+      if (response === 2 || w.isDestroyed()) return;
+      if (checkboxChecked) db.setSettings({ closeList: response === 0 ? "tray" : "quit" });
+      if (response === 0) w.hide();
+      else exit();
+    } finally {
+      asking = false;
+    }
+  }
   return { wins, openWindow, broadcast, forWindow, keyOf, signOff, exit, SIGNED_OFF };
 };

@@ -26,10 +26,21 @@ $("server").append(new Option(`Ollama · ${bare(OLLAMA)}`, OLLAMA), new Option(`
 for (const m of s.recommended) $("get-list").append(new Option(`${m.gb} GB, ${m.note}`, m.id));
 const CLAUDE = s.claudeModels[0];
 for (const m of s.claudeModels) $("claude-list").append(new Option(m, m));
+const CLOUD = s.cloud; // ChatGPT and Gemini: { name, maker, models, keys, hint, key, env, hasEnvKey }
 function showProvider() {
-  const local = s.provider === "local", claude = s.provider === "anthropic";
-  $("p-local").checked = local; $("p-claude").checked = claude; $("p-or").checked = !local && !claude;
-  $("local-fields").hidden = !local; $("claude-fields").hidden = !claude; $("or-fields").hidden = local || claude;
+  const local = s.provider === "local", claude = s.provider === "anthropic", cloud = CLOUD[s.provider];
+  $("p-local").checked = local; $("p-claude").checked = claude; $("p-or").checked = !local && !claude && !cloud;
+  $("p-openai").checked = s.provider === "openai"; $("p-gemini").checked = s.provider === "gemini";
+  $("local-fields").hidden = !local; $("claude-fields").hidden = !claude; $("or-fields").hidden = local || claude || Boolean(cloud);
+  $("cloud-fields").hidden = !cloud;
+  if (cloud) {
+    $("cloud-model").value = s.model;
+    $("cloud-key").value = s[cloud.key] || "";
+    $("cloud-key").placeholder = cloud.hasEnvKey ? `Using ${cloud.env} from your environment` : cloud.hint;
+    const a = Object.assign(document.createElement("a"), { textContent: new URL(cloud.keys).host });
+    a.dataset.href = cloud.keys;
+    $("cloud-hint").replaceChildren(`From `, a, `, paid per message.`);
+  }
   $("get-fields").hidden = !local || $("server").value !== OLLAMA; // LM Studio downloads models in its own window
   $("rigmatch").hidden = !local; // picking a local model is the only thing it helps with
   say("", "muted", "test-result"); // a result for the other brain would mislead
@@ -51,6 +62,29 @@ async function loadModels(prefer) {
 $("p-local").onchange = () => { save({ provider: "local" }); showProvider(); loadModels(); };
 $("p-or").onchange = () => { save({ provider: "openrouter", baseUrl: OPENROUTER, model: $("or-model").value.trim() }); showProvider(); };
 $("p-claude").onchange = () => { save({ provider: "anthropic", baseUrl: "", model: $("claude-model").value.trim() || CLAUDE }); showProvider(); };
+// ChatGPT or Gemini: its usual model to start, then whatever the key can use (listed in the Model box). A model the
+// key doesn't have gives way to one it does.
+async function loadCloud() {
+  const p = s.provider, cloud = CLOUD[p];
+  if (!cloud) return;
+  $("cloud-list").replaceChildren(...cloud.models.map((m) => new Option(m, m)));
+  if (!s[cloud.key] && !cloud.hasEnvKey) return say(`Paste your ${cloud.maker} API key to see its models.`, "muted", "cloud-result");
+  say("Asking for its models…", "muted", "cloud-result");
+  const r = await api.invoke("llm:listCloud", p);
+  if (s.provider !== p) return; // the brain changed while it asked
+  if (r.error) return say(r.error, "err", "cloud-result");
+  $("cloud-list").replaceChildren(...r.models.map((m) => new Option(m, m)));
+  if (r.pick && !r.models.includes(s.model)) { await save({ model: r.pick }); $("cloud-model").value = r.pick; }
+  say(`${r.models.length} model${r.models.length === 1 ? "" : "s"} for this key.`, "good", "cloud-result");
+}
+for (const p of ["openai", "gemini"]) {
+  $(`p-${p}`).onchange = async () => {
+    await save({ provider: p, baseUrl: "", model: CLOUD[p].models[0] });
+    showProvider(); say("", "muted", "cloud-result"); loadCloud();
+  };
+}
+$("cloud-key").onchange = async () => { await save({ [CLOUD[s.provider].key]: $("cloud-key").value.trim() }); loadCloud(); };
+$("cloud-model").onchange = () => { save({ model: $("cloud-model").value.trim() || CLOUD[s.provider].models[0] }); say("", "muted", "test-result"); };
 $("server").onchange = () => { showProvider(); loadModels(); };
 $("get").onclick = async () => {
   const name = $("get-name").value.trim();
@@ -115,11 +149,14 @@ $("save-theme").onclick = async () => { if (await api.invoke("theme:save", s.cus
 if (/Mac/.test(navigator.userAgent)) {
   $("dark-label").textContent = "Go dark automatically when macOS does";
   $("startup-label").textContent = "Start Netpals when you log in";
+  $("close-list").options[1].textContent = "keeps Netpals in the menu bar";
 }
+$("close-list").value = s.closeList;
+$("close-list").onchange = () => save({ closeList: $("close-list").value });
 $("idle").value = s.autoAwayMinutes;
 $("idle").onchange = () => save({ autoAwayMinutes: Number($("idle").value) });
 const CHECKBOXES = { autologin: "autoLogin", startup: "startWithWindows", nudges: "nudges", dark: "darkWithSystem", ontop: "alwaysOnTop", sound: "sound", notify: "notify",
-  updates: "checkUpdates" };
+  updates: "checkUpdates", "gpu-away": "awayWhenGpuBusy" };
 for (const [id, key] of Object.entries(CHECKBOXES)) {
   $(id).checked = s[key];
   $(id).onchange = () => save({ [key]: $(id).checked });
@@ -196,3 +233,4 @@ showProvider();
 showCustom();
 showPlus();
 if (s.provider === "local") loadModels();
+if (CLOUD[s.provider]) loadCloud();

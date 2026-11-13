@@ -16,9 +16,13 @@ if (!LIVE) process.env.NETPALS_OLLAMA ||= MODEL.replace(/\/v1\/?$/, "");
 // The weather, Fieldy and Claude always come from the fake, live or not.
 process.env.NETPALS_WEATHER ||= MODEL.replace(/\/v1\/?$/, "");
 process.env.NETPALS_ANTHROPIC ||= MODEL.replace(/\/v1\/?$/, "");
+process.env.NETPALS_OPENAI ||= `${MODEL.replace(/\/v1\/?$/, "")}/oa`;
+process.env.NETPALS_GEMINI ||= `${MODEL.replace(/\/v1\/?$/, "")}/gm`;
 process.env.NETPALS_FIELDY ||= `${MODEL.replace(/\/v1\/?$/, "")}/api/public/v2`;
 // So does GitHub's latest release, with nothing newer out (tests/ui/updates.js asks for one that is).
 process.env.NETPALS_UPDATES ||= `${MODEL.replace(/\/v1\/?$/, "")}/old`;
+// And no test reads this computer's graphics card: it's always idle, unless tests/ui/gpu.js says otherwise.
+process.env.NETPALS_GPU ??= "0";
 // Each test is its own Electron app as far as the single-instance lock goes, so tests never block each other.
 app.setPath("userData", path.join(process.env.NETPALS_DATA || os.tmpdir(), "electron"));
 const db = require(path.join(ROOT, "lib", "db"));
@@ -42,7 +46,8 @@ app.on("browser-window-created", (_e, w) => {
 // Settings every test starts from (the fake model, quiet, no sounds), then main.js. An error the app doesn't catch
 // fails the test instead of opening the "Netpals hit a snag" box and hanging.
 function start(settings = {}) {
-  db.setSettings({ provider: "local", baseUrl: MODEL, model: "fake:7b", darkWithSystem: false, theme: "dialup", chattiness: 0, sound: false, notify: false, ...settings });
+  // closeList "tray": the Buddy List X hides it, as before it asked (tests/ui/close.js answers the question itself).
+  db.setSettings({ provider: "local", baseUrl: MODEL, model: "fake:7b", darkWithSystem: false, theme: "dialup", chattiness: 0, sound: false, notify: false, closeList: "tray", ...settings });
   const main = require(path.join(ROOT, "main.js"));
   process.removeAllListeners("uncaughtException");
   process.removeAllListeners("unhandledRejection");

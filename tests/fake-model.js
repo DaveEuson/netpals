@@ -118,7 +118,7 @@ function start(port = 0) {
     req.on("end", async () => {
       const send = (code, obj) => { res.writeHead(code, { "Content-Type": "application/json" }); res.end(JSON.stringify(obj)); };
       const names = ["fake:7b", ...pulled];
-      if (req.method === "GET" && /\/(v1\/)?models$/.test(req.url)) return send(200, { data: names.map((id) => ({ id })) });
+      if (req.method === "GET" && /^\/(v1\/)?models$/.test(req.url)) return send(200, { data: names.map((id) => ({ id })) });
       if (req.method === "GET" && req.url === "/calendar.ics") { res.writeHead(200, { "Content-Type": "text/calendar" }); return res.end(calendar()); }
       if (req.method === "GET" && req.url === "/page.html") { res.writeHead(200, { "Content-Type": "text/html" }); return res.end("<!doctype html><p>not a calendar"); }
       if (req.method === "GET" && /^\/v1\/(search|forecast)\?/.test(req.url)) return send(200, sky(req.url));
@@ -131,8 +131,27 @@ function start(port = 0) {
         const tag = rel[1] === "new" ? "v99.0.0" : "v0.0.1";
         return send(200, { tag_name: tag, html_url: `https://github.com/DaveEuson/netpals/releases/tag/${tag}` });
       }
+      // OpenAI's API at /oa and Gemini's OpenAI-compatible one at /gm: the key bad-key is refused, each lists its models
+      // (with others that can't write IMs, and Gemini's "models/" prefix), and gpt-no-none and gemini-no-none refuse
+      // reasoning_effort "none" the way the real ones refuse a setting a model won't take. gpt-missing doesn't exist.
+      const cloud = req.url.match(/^\/(oa|gm)\//);
+      if (cloud && req.headers.authorization === "Bearer bad-key") return send(401, { error: { message: "Incorrect API key provided: bad-key." } });
+      if (cloud && req.method === "GET" && /\/models$/.test(req.url)) {
+        return send(200, cloud[1] === "oa"
+          ? { object: "list", data: ["gpt-6-astra", "gpt-5.6-luna", "gpt-no-none", "text-embedding-3-small", "gpt-realtime", "dall-e-3", "whisper-1"].map((id) => ({ id, object: "model" })) }
+          : { object: "list", data: ["gemini-4-hydrogen", "gemini-3.5-flash-lite", "gemini-no-none", "text-embedding-004", "gemini-2.5-flash-preview-tts"].map((id) => ({ id: `models/${id}`, object: "model" })) });
+      }
       let b = {};
       try { b = JSON.parse(body || "{}"); } catch { return send(400, { error: "bad json" }); }
+      if (cloud) {
+        server.lastCloud = { headers: req.headers, body: b };
+        server.cloudCalls = (server.cloudCalls || 0) + 1;
+        if (/-no-none$/.test(b.model) && b.reasoning_effort === "none") {
+          return send(400, cloud[1] === "oa" ? { error: { message: "Unsupported value: 'reasoning_effort' does not support 'none' with this model. Supported values are: 'low', 'medium' and 'high'.", param: "reasoning_effort" } }
+            : [{ error: { code: 400, message: "Thinking can't be disabled for this model.", status: "INVALID_ARGUMENT" } }]);
+        }
+        if (b.model === "gpt-missing") return send(404, { error: { message: "The model `gpt-missing` does not exist or you do not have access to it.", code: "model_not_found" } });
+      }
       if (req.method === "POST" && req.url === "/api/pull") return pull(String(b.model || b.name), res, pulled);
       // Ollama's own timings, for the welcome screen's speed check: fake:slow takes 30 s a reply, everything else 2 s.
       if (req.method === "POST" && req.url === "/api/generate") {

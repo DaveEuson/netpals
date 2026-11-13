@@ -1,12 +1,14 @@
 // main/account.js — you: your screen name and password, more than one screen name on a computer, signing on (the
-// dial-up, then your buddies), the Netpals Plus key, and going away by yourself when you leave the computer.
+// dial-up, then your buddies), the Netpals Plus key, and going away by yourself when you leave the computer or another
+// program keeps the graphics card busy.
 const crypto = require("crypto");
 const { app, ipcMain, powerMonitor } = require("electron");
 const accounts = require("../lib/accounts");
+const gpu = require("../lib/gpu");
 
 // What a new screen name starts with from the one you were on: the brain (and its keys), Plus and the look. Buddies,
 // chats, your profile and your day are its own.
-const CARRY = ["provider", "baseUrl", "model", "apiKey", "claudeKey", "detect", "license", "theme", "darkWithSystem", "customTheme"];
+const CARRY = ["provider", "baseUrl", "model", "apiKey", "claudeKey", "openaiKey", "geminiKey", "detect", "license", "theme", "darkWithSystem", "customTheme"];
 
 module.exports = function account(ctx) {
   const { db, license, attempt, broadcast, openWindow, wins } = ctx;
@@ -99,6 +101,7 @@ module.exports = function account(ctx) {
       ctx.scheduler.start();
       ctx.makeTray();
       setInterval(idleCheck, 30_000);
+      setInterval(gpuCheck, Number(process.env.NETPALS_GPU_EVERY) || 30_000); // the GPU test checks by hand instead
       ctx.diskCheck();
       setInterval(() => ctx.diskCheck(), 6 * 3600_000);
       ctx.updateCheck();
@@ -123,11 +126,43 @@ module.exports = function account(ctx) {
       broadcast("settings", db.settings());
     }
   }
+  // GPU away: with the brain on this computer, a game, a render or another AI app keeping the graphics card busy sends
+  // you away (lib/gpu.js: about a minute of it), and two quiet minutes bring you back. Buddies still answer your IMs.
+  // settings.gpuAway remembers that this set the away, as autoAway does for idle. The card is read only when no buddy
+  // has asked the model anything for `quietMs`, so Netpals' own model at work never counts.
+  const GPU_AWAY = "Busy with something else right now.";
+  const gpuRuns = { busy: 0, quiet: 0 };
+  let gpuHeld = false; // you came back yourself while the card was busy: stay back until it's been quiet once
+  let gpuReading = false;
+  async function gpuCheck(quietMs = 15_000) {
+    let s = db.settings();
+    if (!s.awayWhenGpuBusy || s.provider !== "local") {
+      gpuRuns.busy = gpuRuns.quiet = 0;
+      if (s.gpuAway) gpuSet(false); // turned off, or the brain moved off this computer, while away
+      return;
+    }
+    if (gpuReading || ctx.llm.localQuietFor() < quietMs) return;
+    gpuReading = true;
+    let reading;
+    try { reading = await gpu.load(); } finally { gpuReading = false; }
+    s = db.settings();
+    if (gpuHeld) { if (reading === null || reading < gpu.BUSY) gpuHeld = false; return; }
+    const verdict = gpu.step(gpuRuns, reading, s.gpuAway);
+    if (verdict === "away" && !s.awayMessage) gpuSet(true);
+    else if (verdict === "back" && s.gpuAway) gpuSet(false);
+  }
+  function gpuSet(away) {
+    gpuRuns.busy = gpuRuns.quiet = 0;
+    db.setSettings({ gpuAway: away });
+    ctx.scheduler.setAway(away ? GPU_AWAY : "");
+    broadcast("settings", db.settings());
+  }
   ipcMain.handle("away:set", (_e, text, minutes) => {
-    db.setSettings({ autoAway: false });
+    if (db.settings().gpuAway) gpuHeld = true;
+    db.setSettings({ autoAway: false, gpuAway: false });
     ctx.scheduler.setAway(text, Number(minutes) || 0);
     broadcast("settings", db.settings());
   });
 
-  return { licensedTo, signOn, isSignedOn: () => signedOn, idleCheck, noteScreenName };
+  return { licensedTo, signOn, isSignedOn: () => signedOn, idleCheck, gpuCheck, noteScreenName };
 };

@@ -26,13 +26,14 @@ xattr -cr /Applications/Netpals.app
 
 or try to open it, then go to **System Settings**, **Privacy & Security**, and choose **Open Anyway** near the bottom.
 
-You also need a brain for your buddies: a free model on your computer, or a key for OpenRouter or Claude. Setup
+You also need a brain for your buddies: a free model on your computer, or a key for OpenRouter, Claude, ChatGPT or
+Gemini. Setup
 checks your computer and tells you which makes sense (see [Give it a brain](#give-it-a-brain)).
 
 ## Give it a brain
 
-Netpals needs a language model to write your buddies' lines. The free way runs it on your computer. OpenRouter and
-Claude are optional paid alternatives, if you'd rather not run one yourself.
+Netpals needs a language model to write your buddies' lines. The free way runs it on your computer. OpenRouter,
+Claude, ChatGPT and Gemini are optional paid alternatives, if you'd rather not run one yourself.
 
 **On your computer, free and private.** Install [Ollama](https://ollama.com) (or [LM Studio](https://lmstudio.ai))
 and Netpals finds it by itself. No model yet? Netpals downloads one for you: the welcome screen offers
@@ -66,6 +67,13 @@ Opus 5.5, roughly a cent per message; type `claude-haiku-5-5` in its Model box f
 Claude Pro or Max plan can't be used: Anthropic doesn't let other apps sign in with one, so it's pay-as-you-go. Your
 messages go to Anthropic to be answered.
 
+**ChatGPT or Gemini, over the internet (optional).** Pick **ChatGPT** in Setup and paste an API key from
+[platform.openai.com](https://platform.openai.com/api-keys) (or set `OPENAI_API_KEY`), or pick **Gemini** and paste one
+from [Google AI Studio](https://aistudio.google.com/apikey) (or set `GEMINI_API_KEY`). Netpals starts on each one's
+small, quick model, a fraction of a cent per message; once your key is in, the Model box lists every model it can
+use. A ChatGPT Plus or Google AI Pro plan can't be used: those only work in their makers' own apps, so it's
+pay-as-you-go. Your messages go to OpenAI or Google to be answered.
+
 ## First run
 
 Setup walks through everything in five steps, a minute or two in all:
@@ -75,9 +83,9 @@ Setup walks through everything in five steps, a minute or two in all:
    buddies should bug you about.
 3. **A brain.** Netpals sizes up your computer (memory, graphics) and, if it found a model, times how long one reply
    takes. When your computer is too slow for buddies to feel right, it says so in red and recommends OpenRouter or
-   Claude instead; you can pick either right there and paste a key. If there's no good model on your computer, it
-   offers to download one. A ChatGPT Plus or Claude Pro or Max subscription can't be used: those plans only work in
-   their makers' own apps, and Netpals needs an API key, billed by use.
+   Claude instead; you can pick either, or ChatGPT or Gemini, right there and paste a key. If there's no good model
+   on your computer, it offers to download one. A ChatGPT Plus, Claude Pro or Max, or Google AI Pro subscription
+   can't be used: those plans only work in their makers' own apps, and Netpals needs an API key, billed by use.
 4. **Your day**: a calendar link and your town, both optional.
 5. **How it feels**: how often buddies IM you, quiet hours, a theme, sounds, notifications, starting with your
    computer, signing on automatically, and a Netpals Plus key if you have one.
@@ -108,7 +116,11 @@ buddies sign on one by one, with a door sound each:
   picture button (or dropping a png or jpg on the window) sends a picture; models that can see will look at it.
 - **👍 and 👎** on a message make that buddy IM you a little more or less.
 - **Away** pauses everyone. Pick when you'll be back and Netpals brings you back by itself. Leave the computer for
-  ten minutes and you go away on your own; touch anything and you're back. Buddies hear where you went.
+  ten minutes and you go away on your own; touch anything and you're back. Buddies hear where you went. With the
+  brain on your computer, you also go away while a game or another program keeps the graphics card busy (about a
+  minute of it), so buddies don't slow it down, and come back once the card has been quiet for two minutes. Buddies
+  still answer if you IM them. Setup turns it off. Netpals reads how busy the card is on your computer; nothing about
+  it is sent anywhere.
 - **Buddy Info** (click a buddy's name in their IM window) shows their profile and what they remember about you.
   **Edit…** changes anything about them, **Forget all this** clears their memory, and **Lives in** picks the year
   their slang comes from, 1985 to now, or **Today**.
@@ -123,8 +135,10 @@ buddies sign on one by one, with a door sound each:
   - **Fieldy** (Plus): if you wear a [Fieldy](https://fieldy.ai), paste the key from Developer Settings in the Fieldy
     app and buddies know what you talked about today ("how was lunch with Sam?"). Titles and Fieldy's summaries only,
     never transcripts, and only with a model on your computer.
-- **Closing the Buddy List** keeps you signed on, in the tray (the menu bar on a Mac); its icon blinks when an IM is
-  waiting. Right-click it for **Sign Off** (back to Sign On) or **Exit**.
+- **Closing the Buddy List** asks whether to keep Netpals running in the tray (the menu bar on a Mac), where you stay
+  signed on and the icon blinks when an IM is waiting, or to quit. Tick **Don't ask again** to keep your answer;
+  **Closing the Buddy List** in Setup changes it. Right-click the tray icon for **Sign Off** (back to Sign On) or
+  **Exit**.
 - **More than one screen name.** Each has its own buddies, chats, profile and day; a new one starts with the brain,
   Plus key and theme of the one you were on. At Sign On, pick any of them from the list, or **New screen name…** for
   setup. Netpals starts on whichever signed on last.
@@ -164,7 +178,8 @@ nothing is sent anywhere.
 - Your screen name, password, buddies and every conversation stay in one folder on your computer. Netpals has no
   account, no server and no analytics.
 - With a model on your computer, your conversations never leave it.
-- With OpenRouter or Claude, what a buddy needs to answer goes to OpenRouter and the model's maker, or to Anthropic:
+- With OpenRouter, Claude, ChatGPT or Gemini, what a buddy needs to answer goes to OpenRouter and the model's maker,
+  or to Anthropic, OpenAI or Google:
   the conversation so far, what you told setup about yourself, what the buddy remembers, today's event names and times
   and your weather if you filled those in, and any picture you send. Your password never does.
 - OpenRouter is also told the requests come from Netpals (its name and this GitHub page), which gives Netpals a
@@ -178,7 +193,7 @@ nothing is sent anywhere.
   into what buddies are told only when the brain is on your computer, because they hold other people's words.
 - Once a day Netpals asks GitHub for its latest version number. The request carries nothing about you, though GitHub
   sees it come from your internet address, as with any website. **About Netpals** in Setup turns it off.
-- Switching from a model on your computer to OpenRouter or Claude later sends what's already in your chats and in
+- Switching from a model on your computer to one over the internet later sends what's already in your chats and in
   your buddies' memory along with new messages, including anything a buddy repeated from your calendar or Fieldy.
 - Your keys and calendar link only reach Setup's window, not the Buddy List or IM windows.
 - The password locks the Sign On window. It doesn't encrypt your conversations.

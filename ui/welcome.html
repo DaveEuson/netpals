@@ -61,7 +61,9 @@
     <label class="check pick"><input type="radio" name="brain" id="b-local"><span><b>On this computer</b> <span class="muted">· free and private, wants a strong computer</span><span class="rec" id="rec-local" hidden>Recommended</span></span></label>
     <label class="check pick"><input type="radio" name="brain" id="b-or"><span><b>OpenRouter</b> <span class="muted">· over the internet, usually cents a day</span><span class="rec" id="rec-or" hidden>Recommended</span></span></label>
     <label class="check pick"><input type="radio" name="brain" id="b-claude"><span><b>Claude</b> <span class="muted">· Anthropic's API, about a cent a message</span><span class="rec" id="rec-claude" hidden>Recommended</span></span></label>
-    <span class="tiny muted">Paying for ChatGPT Plus or Claude Pro or Max? Those plans only work in their makers' own apps. Netpals needs an API key, which is billed by what you use.</span>
+    <label class="check pick"><input type="radio" name="brain" id="b-openai"><span><b>ChatGPT</b> <span class="muted">· OpenAI's API, a fraction of a cent a message</span></span></label>
+    <label class="check pick"><input type="radio" name="brain" id="b-gemini"><span><b>Gemini</b> <span class="muted">· Google's API, a fraction of a cent a message</span></span></label>
+    <span class="tiny muted">Paying for ChatGPT Plus, Claude Pro or Max, or Google AI Pro? Those plans only work in their makers' own apps. Netpals needs an API key, which is billed by what you use.</span>
   </fieldset>
   <fieldset class="group">
     <legend id="legend"></legend>
@@ -88,6 +90,11 @@
       <label for="claude-key"><b>Anthropic API key</b></label>
       <input id="claude-key" type="password" placeholder="sk-ant-…" autocomplete="off">
       <span class="tiny muted" id="claude-hint">Get one at <a data-href="https://platform.claude.com/settings/keys">platform.claude.com</a>. Saved here only. Pick a cheaper model in Setup any time.</span>
+    </div>
+    <div class="col" id="cloud-row" style="gap: 3px" hidden>
+      <label for="cloud-key"><b id="cloud-label"></b></label>
+      <input id="cloud-key" type="password" autocomplete="off">
+      <span class="tiny muted"><span id="cloud-hint"></span> Saved here only. Pick another model in Setup any time.</span>
     </div>
   </fieldset>
   <div class="note" id="get" hidden>

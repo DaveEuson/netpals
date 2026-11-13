@@ -1,10 +1,10 @@
 // welcome.js — the setup wizard, on first launch and for each new screen name: a screen name, five quick questions, a
 // brain, your day, and how it feels. The brain step checks what this computer can do and leans hard on OpenRouter or
-// Claude when it's slow; its Next checks the brain really answers. Sign On at the end signs you on with the password you
+// Claude when it's slow (ChatGPT and Gemini are there too); its Next checks the brain really answers. Sign On at the end signs you on with the password you
 // just chose. Choices save as you make them, and all of them are in Setup later.
 const STEPS = ["you", "quiz", "brain", "day", "touches"];
 const CHATTY = ["Never · nobody pings", "Quiet · about 2 a day", "Chatty · about 5 a day", "Gabby · about 10 a day", "Motormouth · about 20 a day"];
-let s, local, claude, where;
+let s, local, claude, cloud, where; // cloud: ChatGPT's or Gemini's { name, maker, models, keys, hint, key, env, hasEnvKey }
 let verdict = null, warned = false, choseOr = false;
 const R = window.api.settingsSync().recommended[0]; // the model the download button gets
 const set = (patch) => window.api.invoke("settings:set", patch);
@@ -14,28 +14,40 @@ function draw() {
   s = window.api.settingsSync();
   local = s.provider === "local";
   claude = s.provider === "anthropic";
+  cloud = s.cloud[s.provider];
   where = (() => { try { return new URL(s.baseUrl).host; } catch { return s.baseUrl; } })();
   const app = /:1234$/.test(where) ? "LM Studio" : "Ollama";
   const n = s.detect?.models?.length ?? 0;
   setText({
-    legend: local ? "We found a brain for your buddies" : claude ? "Your buddies run on Claude" : choseOr ? "Your buddies run on OpenRouter" : "No brain on this computer yet",
-    "brain-name": local ? `${app}, right here on this computer` : claude ? "Claude, over the internet (optional)" : "OpenRouter, over the internet (optional)",
-    "brain-where": local ? `${where} · ${n} model${n === 1 ? "" : "s"} found` : claude ? "With your Anthropic API key."
+    legend: local ? "We found a brain for your buddies" : claude ? "Your buddies run on Claude" : cloud ? `Your buddies run on ${cloud.name}` : choseOr ? "Your buddies run on OpenRouter" : "No brain on this computer yet",
+    "brain-name": local ? `${app}, right here on this computer` : claude ? "Claude, over the internet (optional)"
+      : cloud ? `${cloud.name}, over the internet (optional)` : "OpenRouter, over the internet (optional)",
+    "brain-where": local ? `${where} · ${n} model${n === 1 ? "" : "s"} found` : claude ? "With your Anthropic API key." : cloud ? `With your ${cloud.maker} API key.`
       : s.detect?.ollama ? "Ollama is running, but has no model that fits." : "Nothing answered on localhost:11434 or :1234.",
     model: s.model,
     why: s.detect?.small ? "No model 7B or bigger here, so this is the biggest you have. Buddies may sound a bit simple."
       : "Smallest instruct model 7B or bigger. Quick and still clever.",
-    privacy: local ? "Nothing leaves this computer." : `Chats go to ${claude ? "Anthropic" : "OpenRouter"} to be answered.`,
+    privacy: local ? "Nothing leaves this computer." : `Chats go to ${claude ? "Anthropic" : cloud ? cloud.maker : "OpenRouter"} to be answered.`,
     expect: local ? "Charming, a little dim. A model this size forgets, repeats itself and won't pass the Turing test. Bigger models help; OpenRouter helps more."
       : claude ? "The sharpest buddies. About a cent a message on Opus; pick Haiku in Setup for a fraction of that."
+        : cloud ? "Much sharper than a local model, and the model picked here costs a fraction of a cent a message. Bigger ones in Setup cost more."
         : "Sharper than a local model; each message costs about a cent or less.",
   });
-  $("b-local").checked = local; $("b-claude").checked = claude; $("b-or").checked = !local && !claude;
+  $("b-local").checked = local; $("b-claude").checked = claude; $("b-or").checked = !local && !claude && !cloud;
+  $("b-openai").checked = s.provider === "openai"; $("b-gemini").checked = s.provider === "gemini";
   $("ic-local").toggleAttribute("hidden", !local); // SVG has no .hidden property
   $("ic-cloud").toggleAttribute("hidden", local);
   $("why-label").hidden = $("why").hidden = !local;
-  $("key-row").hidden = local || claude;
+  $("key-row").hidden = local || claude || Boolean(cloud);
   $("claude-row").hidden = !claude;
+  $("cloud-row").hidden = !cloud;
+  if (cloud) {
+    $("cloud-label").textContent = `${cloud.maker} API key`;
+    $("cloud-key").placeholder = s[cloud.key] ? "Saved. Paste another to change it." : cloud.hasEnvKey ? `Using ${cloud.env} from your environment` : cloud.hint;
+    const a = Object.assign(document.createElement("a"), { textContent: new URL(cloud.keys).host });
+    a.dataset.href = cloud.keys;
+    $("cloud-hint").replaceChildren("Get one at ", a, ".");
+  }
   if (!local && s.hasEnvKey) {
     $("key").placeholder = "Using OPENROUTER_API_KEY from your environment";
     $("key-hint").textContent = "Leave it blank to keep using that key, or paste another.";
@@ -44,7 +56,7 @@ function draw() {
 
   // A download when Ollama is there but has nothing good, or where to get Ollama when it isn't. (LM Studio with a
   // small model gets neither: LM Studio downloads models in its own window.)
-  const ollama = Boolean(s.detect?.ollama), want = (!local && !claude) || s.detect?.small;
+  const ollama = Boolean(s.detect?.ollama), want = (!local && !claude && !cloud) || s.detect?.small;
   const weak = verdict && verdict.level !== "good" && verdict.level !== "ok";
   $("get").hidden = !want || (local && !ollama);
   $("rigmatch").hidden = !$("get").hidden; // the offer mentions RigMatch itself
@@ -89,6 +101,19 @@ $("b-or").onchange = () => {
 };
 $("b-claude").onchange = () => set({ provider: "anthropic", baseUrl: "", model: claude ? s.model : s.claudeModels[0] });
 $("claude-key").onchange = () => { const k = $("claude-key").value.trim(); if (k) set({ claudeKey: k }); };
+for (const p of ["openai", "gemini"]) {
+  $(`b-${p}`).onchange = () => set({ provider: p, baseUrl: "", model: s.provider === p && s.model ? s.model : s.cloud[p].models[0] });
+}
+// A pasted key: saved, then its models asked for, so the model is one this key really has.
+$("cloud-key").onchange = async () => {
+  const k = $("cloud-key").value.trim(), p = s.provider;
+  if (!k || !s.cloud[p]) return;
+  await set({ [s.cloud[p].key]: k });
+  const r = await window.api.invoke("llm:listCloud", p);
+  if (r.error) return say(r.error, "err");
+  if (r.pick && !r.models.includes(s.model)) await set({ model: r.pick });
+  say("");
+};
 
 $("get-go").onclick = async () => {
   $("get-buttons").hidden = true; $("signon").disabled = true; say("");
@@ -110,6 +135,10 @@ async function leaveBrain() {
     const k = $("claude-key").value.trim();
     if (k) await set({ claudeKey: k });
     else if (!s.claudeKey && !s.hasEnvClaudeKey) return say("Paste your Anthropic API key, or pick another brain.", "err");
+  } else if (cloud) {
+    const k = $("cloud-key").value.trim();
+    if (k) await set({ [cloud.key]: k });
+    else if (!s[cloud.key] && !cloud.hasEnvKey) return say(`Paste your ${cloud.maker} API key, or pick another brain.`, "err");
   } else if (!local) {
     const key = $("key").value.trim();
     if (key) await set({ apiKey: key });
@@ -120,7 +149,7 @@ async function leaveBrain() {
     return say("This computer is too slow for buddies to feel right. Pick OpenRouter or Claude, or press Next again to keep it anyway.", "err");
   }
   $("signon").disabled = true;
-  say(`Dialing ${local ? where : claude ? "Anthropic" : "OpenRouter"}…`);
+  say(`Dialing ${local ? where : claude ? "Anthropic" : cloud ? cloud.maker : "OpenRouter"}…`);
   const r = await window.api.invoke("llm:test");
   $("signon").disabled = false;
   if (!r.ok) return say(`Couldn't connect: ${r.error}`, "err");
@@ -233,7 +262,7 @@ $("signon").onclick = async () => {
 };
 
 // A different brain (picked here or in Setup, found, or just downloaded) redraws the brain step where you are.
-const brain = (x) => JSON.stringify([x.provider, x.model, x.baseUrl, x.detect, Boolean(x.claudeKey), Boolean(x.apiKey)]);
+const brain = (x) => JSON.stringify([x.provider, x.model, x.baseUrl, x.detect, Boolean(x.claudeKey), Boolean(x.apiKey), Boolean(x.openaiKey), Boolean(x.geminiKey)]);
 window.api.on("settings", (n) => {
   if (brain(n) === brain(s)) return;
   draw();

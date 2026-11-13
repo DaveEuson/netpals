@@ -12,7 +12,7 @@ const BASES = ["dialup", "pinstripe", "olive", "silver", "midnight", "bubblegum"
 const FILTERS = [{ name: "Netpals theme", extensions: ["json"] }];
 // Settings only main sets: the key goes through license:set, away through away:set, the room through room:members,
 // and the rest is bookkeeping. A page asking to set one is ignored.
-const MAIN_ONLY = ["license", "connected", "bounds", "autoAway", "awayMessage", "awaySince", "awayUntil", "lastAwayText", "lastAwayMinutes",
+const MAIN_ONLY = ["license", "connected", "bounds", "autoAway", "gpuAway", "awayMessage", "awaySince", "awayUntil", "lastAwayText", "lastAwayMinutes",
   "lastDropDay", "detect", "chatRoom", "updateSkipped"];
 
 module.exports = function settings(ctx) {
@@ -24,6 +24,8 @@ module.exports = function settings(ctx) {
     const s = db.settings();
     e.returnValue = { ...ctx.forWindow(ctx.keyOf(e.sender), s), hasEnvKey: Boolean(process.env.OPENROUTER_API_KEY), hasEnvClaudeKey: Boolean(process.env.ANTHROPIC_API_KEY), licensedTo: ctx.licensedTo(s), buyUrl: license.BUY_URL,
       localHosts: llm.LOCAL_HOSTS, recommended: llm.RECOMMENDED, claudeModels: llm.CLAUDE_MODELS, openrouter: llm.OPENROUTER, openrouterModel: llm.OPENROUTER_MODEL,
+      cloud: Object.fromEntries(Object.entries(llm.CLOUD).map(([id, c]) => [id, { name: c.name, maker: c.maker, models: c.models, keys: c.keys, hint: c.hint, key: c.key,
+        env: c.env, hasEnvKey: Boolean(process.env[c.env]) }])),
       version: ctx.VERSION };
   });
   ipcMain.handle("settings:set", (_e, raw) => {
@@ -95,6 +97,11 @@ module.exports = function settings(ctx) {
       if (seconds == null) timed.delete(key);
     }
     return { ...hw, seconds, ...machine.verdict(hw, seconds) };
+  });
+  // The models a ChatGPT or Gemini key can use, asked with the key main already has (a window never sends one).
+  ipcMain.handle("llm:listCloud", async (_e, provider) => {
+    if (!llm.CLOUD[provider]) return { error: "Not ChatGPT or Gemini." };
+    return llm.listCloud(provider, ctx.llmCfg({ ...db.settings(), provider }).apiKey);
   });
   ipcMain.handle("llm:test", attempt(async () => {
     const t0 = Date.now();
