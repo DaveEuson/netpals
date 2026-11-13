@@ -144,6 +144,7 @@ function start(port = 0) {
       if (req.method === "POST" && req.url.startsWith("/v1/messages")) return claude(req, b, send, server);
       if (req.method !== "POST" || !req.url.endsWith("/chat/completions")) return send(404, { error: "not here" });
       server.calls = (server.calls || 0) + 1;
+      server.lastChat = { headers: req.headers, body: b };
       if (b.model === "fake:error") return send(500, { error: { message: "the fake model fell over" } });
       if (b.model === "fake:slow") await new Promise((r) => setTimeout(r, 3000));
       const system = b.messages?.[0]?.content || "", user = JSON.stringify(b.messages?.slice(1) || []);

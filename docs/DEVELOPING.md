@@ -53,7 +53,7 @@ or open other windows (`main/windows.js`), and `settings:set` ignores the settin
 npm test
 ```
 
-The license, calendar, weather, Fieldy, Claude, machine, GitHub and scheduler checks, then a window test for each part of the app
+The license, calendar, weather, Fieldy, Claude, OpenRouter, machine, GitHub and scheduler checks, then a window test for each part of the app
 (setup and sign-on, the setup wizard, several screen names, Connecting, Plus, the Buddy List, Away, IMs, pictures, Buddy Chat, Setup, getting a model, Your
 day, the Claude brain, window polish, one copy at a time, security, new versions and Report a problem).
 Each runs the real `main.js` under Electron in a throwaway data folder, with windows off-screen, against

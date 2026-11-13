@@ -167,6 +167,8 @@ nothing is sent anywhere.
 - With OpenRouter or Claude, what a buddy needs to answer goes to OpenRouter and the model's maker, or to Anthropic:
   the conversation so far, what you told setup about yourself, what the buddy remembers, today's event names and times
   and your weather if you filled those in, and any picture you send. Your password never does.
+- OpenRouter is also told the requests come from Netpals (its name and this GitHub page), which gives Netpals a
+  public page in OpenRouter's app rankings. That part names the app, not you.
 - A linked calendar comes straight from Google or Outlook to your computer, with nothing in between. Netpals only
   reads it, never changes it, and keeps the link in your data folder. Treat that link like a password: anyone who
   has it can see your calendar.

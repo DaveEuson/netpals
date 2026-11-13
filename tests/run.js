@@ -18,6 +18,7 @@ const TESTS = [
   { name: "weather", node: "unit/weather.js" },
   { name: "fieldy", node: "unit/fieldy.js" },
   { name: "claude", node: "unit/claude.js" },
+  { name: "openrouter", node: "unit/openrouter.js" },
   { name: "machine", node: "unit/machine.js" },
   { name: "github", node: "unit/github.js" },
   { name: "scheduler", electron: "unit/scheduler.js", args: (live) => (live ? ["--live"] : []), timeout: 240 },
