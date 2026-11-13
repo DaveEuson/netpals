@@ -50,10 +50,9 @@ module.exports = function account(ctx) {
     if (kind === "welcome" && !leaving && !signedOn && !wins.has("connect") && !wins.has("signon") && others().length) back();
   };
 
-  // ---- Netpals Plus: free is 3 buddies (checked here) and two themes (checked in Setup); a key unlocks the rest.
+  // ---- Netpals Plus: a key adds Randomize (checked in buddies), every theme (checked in Setup) and Fieldy. Free has
+  // as many buddies as you like.
   const licensedTo = (s = db.settings()) => { const l = license.verify(s.license); return l ? l.name || l.email || "you" : ""; };
-  const addBlocked = () => (!licensedTo() && db.buddies().length >= license.FREE_BUDDIES
-    ? `The free version holds ${license.FREE_BUDDIES} buddies. Add a Netpals Plus key in Setup to make room for more.` : "");
   ipcMain.handle("license:set", attempt((_e, key) => {
     if (!license.verify(key)) throw new Error("That key doesn't check out. Copy the whole thing from your receipt.");
     db.setSettings({ license: String(key).replace(/\s+/g, "") });
@@ -130,5 +129,5 @@ module.exports = function account(ctx) {
     broadcast("settings", db.settings());
   });
 
-  return { licensedTo, addBlocked, signOn, isSignedOn: () => signedOn, idleCheck, noteScreenName };
+  return { licensedTo, signOn, isSignedOn: () => signedOn, idleCheck, noteScreenName };
 };

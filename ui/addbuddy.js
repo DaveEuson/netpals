@@ -2,7 +2,6 @@
 // `api` is the global from preload.js (contextBridge makes it non-configurable, so it can't be redeclared).
 let tab = "random";
 let rolled = null; // the last randomized buddy, shown in the card
-let blocked = ""; // why you can't add one: the free version is full
 const editId = Number(new URLSearchParams(location.search).get("id")) || 0; // Buddy Info's Edit… opens this window on one buddy
 
 const manual = () => ({
@@ -10,13 +9,13 @@ const manual = () => ({
   personaPrompt: $("m-persona").value, cadenceWeight: Number($("m-cad").value) / 10, nudge: $("m-nudge").checked,
   profile: { quote: $("m-quote").value, listening: $("m-listen").value, link: $("m-link").value },
 });
-const ready = () => (editId || !blocked) && (tab === "random" ? Boolean(rolled) : ["m-name", "m-sn", "m-persona"].every((id) => $(id).value.trim()));
+const ready = () => (tab === "random" ? Boolean(rolled) : ["m-name", "m-sn", "m-persona"].every((id) => $(id).value.trim()));
 const sync = () => { $("ok").disabled = !ready(); };
 
 function show(t) {
   tab = t;
   for (const k of ["random", "manual"]) { $(`tab-${k}`).setAttribute("aria-selected", String(t === k)); $(k).hidden = t !== k; }
-  say(editId ? "" : blocked, "err");
+  say("");
   sync();
 }
 
@@ -68,6 +67,5 @@ if (editId) {
   const plus = Boolean(api.settingsSync().licensedTo);
   if (!plus) $("tab-random").textContent = "Randomize · Plus";
   show(plus ? "random" : "manual");
-  api.invoke("buddy:canAdd").then((why) => { blocked = why; show(tab); });
   $(plus ? "vibe" : "m-name").focus();
 }

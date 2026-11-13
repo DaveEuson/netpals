@@ -148,7 +148,7 @@ dayPart("fy", "fieldyKey", "fieldy:check", (r) => `Connected${r.email ? ` as ${r
 const FREE_THEMES = ["dialup", "pinstripe", "midnight"];
 function showPlus() {
   $("plus-status").textContent = s.licensedTo ? `Licensed to ${s.licensedTo}. Thanks for supporting Netpals!`
-    : "You're on the free version: 3 buddies and the Dial-Up, Pinstripe and Midnight themes. Plus adds unlimited buddies, Randomize, every theme and Fieldy.";
+    : "You're on the free version: as many buddies as you like, and the Dial-Up, Pinstripe and Midnight themes. Plus adds Randomize, every theme and Fieldy.";
   $("plus-entry").hidden = Boolean(s.licensedTo);
   $("plus-buy").hidden = !s.buyUrl || Boolean(s.licensedTo); $("buy").dataset.href = s.buyUrl;
   for (const o of $("theme").options) o.disabled = !s.licensedTo && !FREE_THEMES.includes(o.value);

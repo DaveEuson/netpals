@@ -1,4 +1,5 @@
-// The free version and Netpals Plus: the 3-buddy limit, the Randomize gate, the theme gate, unlocking with a key.
+// The free version and Netpals Plus: free adds as many buddies as you like, the Randomize gate, the theme gate,
+// unlocking with a key.
 const t = require("../harness");
 const { db, check, skip, win, js, sleep, until, click, text, set, open, snap, buddy } = t;
 require(require("path").join(t.ROOT, "lib", "license.js")).BUY_URL = "https://example.com/plus"; // as if a store existed
@@ -12,27 +13,22 @@ async function addBuddyWindow() {
 t.run(async () => {
   await t.signedOn();
   let ab = await addBuddyWindow();
-  check(/free version holds 3/.test(await text(ab, "status")), "with 3 buddies, Add Buddy explains the free limit");
+  check(db.buddies().length === 3 && (await text(ab, "status")) === "", "with 3 buddies, Add Buddy says nothing about a limit");
   check((await text(ab, "tab-random")) === "Randomize · Plus" && !(await js(ab, "document.getElementById('manual').hidden")), "free opens on Build your own, with Randomize marked Plus");
-  await set(ab, { "m-name": "Kev", "m-sn": "kickflip_kev01", "m-persona": "A skater kid." });
-  check(await js(ab, "document.getElementById('ok').disabled"), "Add stays disabled even with the form filled");
-  await snap(ab, "plus-full.png");
-  ab.close();
-
-  db.removeBuddy(buddy("gordo_in_accounting").id);
-  ab = await addBuddyWindow();
-  check((await text(ab, "status")) === "", "with 2 buddies there's no limit message");
   await click(ab, "tab-random"); await sleep(200);
   await click(ab, "roll");
   await until(async () => /Plus/.test(await text(ab, "status")), 5000);
   check(/Randomize comes with Netpals Plus/.test(await text(ab, "status")), "free Randomize is refused");
   await click(ab, "tab-manual"); await sleep(200);
+  check((await text(ab, "status")) === "", "and switching back to Build your own clears that");
   await set(ab, { "m-name": "Kev", "m-sn": "kickflip_kev01", "m-persona": "A skater kid." });
+  check(!(await js(ab, "document.getElementById('ok').disabled")), "Add is ready once the form is filled");
+  await snap(ab, "plus-free-add.png");
   await click(ab, "ok");
-  check(await until(() => buddy("kickflip_kev01"), 3000), "free can still build a buddy while under 3");
+  check(await until(() => db.buddies().length === 4 && buddy("kickflip_kev01"), 3000), "free adds a fourth buddy");
   check(await until(() => buddy("kickflip_kev01")?.profile.quote, 5000), "who writes their own profile in the background");
   ab = await addBuddyWindow();
-  check(/free version holds 3/.test(await text(ab, "status")), "and the list is full again at 3");
+  check((await text(ab, "status")) === "" && (await js(ab, "document.getElementById('m-name').value")) === "", "and Add Buddy opens fresh for a fifth");
   ab.close();
 
   const st = await open(main, "settings");
@@ -57,10 +53,10 @@ t.run(async () => {
   check(db.settings().license === key, "Cancel doesn't take the license back");
 
   ab = await addBuddyWindow();
-  check((await text(ab, "tab-random")) === "Randomize" && (await text(ab, "status")) === "" && !(await js(ab, "document.getElementById('random').hidden")), "with Plus, Add Buddy opens on Randomize with no limit");
+  check((await text(ab, "tab-random")) === "Randomize" && (await text(ab, "status")) === "" && !(await js(ab, "document.getElementById('random').hidden")), "with Plus, Add Buddy opens on Randomize");
   await set(ab, { vibe: "a goth kid from 2004 who bakes elaborate cakes" });
   await click(ab, "roll");
   check(await until(() => js(ab, "!document.getElementById('card').hidden"), 10_000) && (await text(ab, "c-sn")) === "goth_baker04", "Randomize rolls a whole buddy and shows the card");
   await click(ab, "ok");
-  check(await until(() => db.buddies().length === 4 && buddy("goth_baker04"), 3000), "and Plus can add a fourth");
+  check(await until(() => db.buddies().length === 5 && buddy("goth_baker04"), 3000), "and adds them");
 });

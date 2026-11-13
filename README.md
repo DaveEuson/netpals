@@ -150,7 +150,7 @@ Windows too.
 
 | Free | Plus, free for now |
 |---|---|
-| Up to 3 buddies, built by hand | As many buddies as you like, plus Randomize |
+| As many buddies as you like, built by hand | Randomize: a whole buddy from a one-line vibe |
 | IMs, Buddy Chat, away messages, check-ins, pictures | Everything in Free |
 | Dial-Up, Pinstripe and Midnight themes | Every theme, custom colors and theme files |
 | Your day: calendar and weather | Your day with Fieldy too |

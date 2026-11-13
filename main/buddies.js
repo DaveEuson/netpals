@@ -45,7 +45,6 @@ module.exports = function buddies(ctx) {
   });
 
   // ---- adding and editing
-  ipcMain.handle("buddy:canAdd", () => ctx.addBlocked());
   ipcMain.handle("buddy:randomize", attempt(async (_e, vibe) => {
     if (!ctx.licensedTo()) throw new Error("Randomize comes with Netpals Plus. Add your key in Setup, or build a buddy yourself.");
     const b = prompts.toBuddy(await askJson(prompts.randomBuddy(String(vibe).slice(0, 200))), taken());
@@ -53,7 +52,6 @@ module.exports = function buddies(ctx) {
     return { buddy: b };
   }));
   ipcMain.handle("buddy:add", attempt((_e, raw) => {
-    if (ctx.addBlocked()) throw new Error(ctx.addBlocked());
     const b = prompts.toBuddy(raw, taken());
     const id = db.addBuddy(b);
     broadcast("presence", { buddy: db.buddy(id), from: "offline" }); // new buddies sign on with a door sound
