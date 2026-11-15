@@ -146,6 +146,32 @@ const questions = (t) => (t.match(/\?+/g) || []).length;
   db.addMessage(gordo.id, "me", "quick question, whats the capital of australia these days");
   await terse.reply(gordo.id);
   check(noteAsks === 0 && prompts().cleanNote("NONE") === "" && prompts().cleanNote('"Starts a library job Monday."') === "Starts a library job Monday" && prompts().cleanNote("I'm a large language model designed to help") === "", "short lines and trivia questions skip the memory call; NONE, quotes and a model talking about itself are dropped");
+  // What gemma4:12b's buddies noted in check-chat, 2026-11-15: "none", "they think i'm a bot", "it's 2026", the cat twice.
+  check(prompts().cleanNote("none") === "" && prompts().cleanNote("they think i'm a bot") === "" && prompts().cleanNote("it's 2026") === ""
+    && prompts().appendNote("Owns a cat named Pixel", "They have a cat") === "Owns a cat named Pixel"
+    && prompts().appendNote("They have a cat", "Has a cat named Pixel who knocks things over") === "Has a cat named Pixel who knocks things over",
+    "notes about the buddy or the date are dropped, and a note is known when its words already are");
+  db.updateBuddy(gordo.id, { notes: "" });
+  const tagged = createScheduler({ chat: async ({ system }) => (/tiny notebook/.test(system) ? "NONE" : "sure, lunch at noon <note>none</note>") });
+  db.addMessage(gordo.id, "me", "i'm thinking about getting lunch at noon, you in?");
+  await tagged.reply(gordo.id);
+  check(db.buddy(gordo.id).notes === "", `a <note> in the reply goes through the same filter (${db.buddy(gordo.id).notes})`);
+  check(prompts().cleanMessage("[9:25 AM] them: hey gordon [9:25 AM] you (gordo_in_accounting): lunch at noon?", gordo) === "lunch at noon?"
+    && prompts().cleanMessage("lol pixel's a menace <3 note>pixel, their cat", gordo) === "lol pixel's a menace <3"
+    && prompts().cleanMessage("love the <3 you sent", gordo) === "love the <3 you sent",
+    "a reply that carries on the conversation log keeps only the buddy's own line; a half-written note tag goes; a heart stays");
+  const omg = prompts().buddySystem(tasha0, { recent: [{ role: "me", text: "hey", ts: Date.now() }, { role: "buddy", text: "omg hiii!!", ts: Date.now() }], reply: true, you: {} });
+  check(/started with "omg"\. Start this one with a different word/.test(omg) && /life of your own/.test(omg) && /Don't flatter them/.test(omg),
+    "buddies are told to bring their own lives, not to flatter, and the word their last message started with");
+  // The starting buddies' first personalities give way to today's, unless someone edited them.
+  const FIRST_GORDO = "A dry-witted coworker two cubicles over. Deadpan, economical, secretly kind. You comment on the absurdity of the workday in one flat line and leave it there. 2003 texture: cubicles, the fax machine, a Blackberry that never stops, breakroom coffee, 'per my last IM'. Never cheer, never nag, never list. One question at most, and it's usually about lunch.";
+  const tashaWas = db.buddy(tasha0.id).personaPrompt;
+  db.updateBuddy(gordo.id, { personaPrompt: FIRST_GORDO });
+  db.updateBuddy(tasha0.id, { personaPrompt: "A hype friend who has calmed down a little." });
+  db.open(db.dir);
+  check(/printer feud with marketing/.test(db.buddy(gordo.id).personaPrompt) && db.buddy(tasha0.id).personaPrompt === "A hype friend who has calmed down a little.",
+    "an unedited starting personality is updated on open; an edited one is left alone");
+  db.updateBuddy(tasha0.id, { personaPrompt: tashaWas });
   const seen = new Set();
   const drifter = createScheduler({ chat: async () => "gone fishin, brb", onPresence: (b) => seen.add(b.status) });
   for (let i = 0; i < 60; i++) await drifter.drift(at(14));

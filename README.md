@@ -99,8 +99,8 @@ buddies sign on one by one, with a door sound each:
 
 | Buddy | Who | Lives in |
 |---|---|---|
-| 🌊 stillwaterMB | a calm coach who gives you space | 1999 |
-| ⚡ xXtashaRAWRxX | a hype friend who checks in if you go quiet | 2006 |
+| 🌊 stillwaterMB | a calm friend at a beach shop who gives you space | 1999 |
+| ⚡ xXtashaRAWRxX | a hype friend with drama of her own, who checks in if you go quiet | 2006 |
 | ☕ gordo_in_accounting | a deadpan coworker two cubicles over | 2003 |
 
 ## What you can do

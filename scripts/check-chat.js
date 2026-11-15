@@ -28,33 +28,50 @@ const SCRIPT = [
 db.setSettings({ provider: cfg.provider, baseUrl: cfg.baseUrl, model, screenName: "dialtone_dave", age: 41, about: "makes synth music", chattiness: 2 });
 const sched = createScheduler({ chat: (o) => llm.chat(o, cfg) });
 
-const flagsFor = (text, i) => {
+// The weak spots a friend would notice: flattery (praising a question, cheering everything), a pep talk or a
+// counsellor's reframe, and every message starting the same way. "own life" marks a line where the buddy says
+// something about themselves; a good conversation has a few.
+const FLATTERS = /\b(genius|so smart|smart question|great question|superstar|so proud of (u|you)|you'?re (amazing|the best)|ur (literally )?(amazing|the best)|trooper|crush (it|that))\b/i;
+const COUNSELS = /\b(you'?ve got this|u got this|believe in (u|you)|take a deep breath|your brain'?s way|be kind to yourself|one step at a time|it'?s okay to feel)\b/i;
+const OWN_LIFE = /\b(i'?m|im|i was|i just|i've|my|me too|i got|i had|i've been|i'?ll)\b/i;
+const opening = (t) => (String(t).toLowerCase().match(/^[\p{L}']+/u) || [""])[0];
+const flagsFor = (text, i, prev) => {
   const f = [];
   if (/\b(i'?m|i am|as) an? (ai|bot|language model|assistant|program)\b/i.test(text)) f.push("ADMITS AI");
   if (/\n\s*(?:[-*•]|\d+[.)])\s/.test(text)) f.push("list");
   if (!text) f.push("EMPTY");
+  if (FLATTERS.test(text)) f.push("flatters");
+  if (COUNSELS.test(text)) f.push("pep talk");
+  if (prev && opening(text) && opening(text) === opening(prev)) f.push(`same start "${opening(text)}"`);
+  if (OWN_LIFE.test(text) && !/\breal person\b/i.test(text)) f.push("own life");
   if (i === SCRIPT.length - 1) f.push(/coffee|keyboard|pixel|sticky/i.test(text) ? "remembers" : "FORGOT");
   return f;
 };
+const totals = { flatters: 0, "pep talk": 0, "same start": 0, "own life": 0, lines: 0 };
 
 (async () => {
   const buddies = db.buddies().filter((b) => !only || b.screenName.toLowerCase() === only.toLowerCase());
   for (const b of buddies) {
     console.log(`\n=== ${b.screenName} (${model}) ===`);
-    let bad = 0;
+    let bad = 0, prev = "";
     for (let i = 0; i < SCRIPT.length; i++) {
       db.addMessage(b.id, "me", SCRIPT[i]);
       console.log(`  you: ${SCRIPT[i]}`);
       const t0 = Date.now();
       const msg = await sched.reply(b.id);
       const text = msg?.text || "";
-      const f = flagsFor(text, i);
+      const f = flagsFor(text, i, prev);
+      prev = text;
+      totals.lines++;
+      for (const x of f) { const k = x.startsWith("same start") ? "same start" : x; if (k in totals) totals[k]++; }
       bad += f.filter((x) => x === x.toUpperCase()).length;
       console.log(`  ${b.screenName}: ${text || "(nothing)"}   [${((Date.now() - t0) / 1000).toFixed(1)}s${f.length ? ", " + f.join(", ") : ""}]`);
     }
     console.log(`  notes kept: ${db.buddy(b.id).notes || "(none)"}`);
     console.log(bad ? `  ${bad} problem(s)` : "  no flagged problems");
   }
+  const n = totals.lines;
+  console.log(`\n${model}, ${n} replies: flatters ${totals.flatters}, pep talk ${totals["pep talk"]}, same start ${totals["same start"]}, own life ${totals["own life"]} (more is better)`);
   db.close(); fs.rmSync(process.env.NETPALS_DATA, { recursive: true, force: true });
   process.exit(0);
 })().catch((e) => { console.error(e); process.exit(1); });
