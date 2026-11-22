@@ -6,6 +6,9 @@
 // It also downloads, the way Ollama's /api/pull does: one JSON line per step, a big layer and a small one. A name with
 // "missing" in it isn't in the library; one with "slow" takes 9 s, so a test can stop it. What finishes is listed
 // from then on, untagged names as name:latest the way Ollama lists them.
+// And it loads models the way Ollama does: /api/ps lists what's loaded, and /api/generate with no prompt loads one
+// (instantly; one with "slowload" in its name takes 1.5 s, "hangload" a minute, "noload" fails the way a crashed
+// runner does and "missing" isn't downloaded). Untagged names load as name:latest. Every load is kept in server.loads.
 // And it's a calendar, at /calendar.ics: a dentist appointment on right now, a team sync every day from 1 to 3 this
 // computer's time, and a cancelled meeting that must never show. /page.html is a web page, not a calendar.
 // And Open-Meteo, at /v1/search and /v1/forecast: two Springfields (Missouri is the bigger), a Paris, and no Nowhere;
@@ -111,7 +114,7 @@ function claude(req, b, send, server) {
 }
 
 function start(port = 0) {
-  const pulled = new Set();
+  const pulled = new Set(), loaded = new Set();
   const server = http.createServer((req, res) => {
     let body = "";
     req.on("data", (c) => (body += c));
@@ -124,6 +127,7 @@ function start(port = 0) {
       if (req.method === "GET" && /^\/v1\/(search|forecast)\?/.test(req.url)) return send(200, sky(req.url));
       if (req.method === "GET" && req.url.startsWith("/api/public/v2/")) { server.fieldyUrl = req.url; return send(...fieldy(req)); }
       if (req.method === "GET" && req.url === "/api/tags") return send(200, { models: names.map((n, i) => ({ name: n, details: { parameter_size: i ? "8B" : "7B" } })) });
+      if (req.method === "GET" && req.url === "/api/ps") return send(200, { models: [...loaded].map((name) => ({ name, model: name })) });
       // GitHub's latest release, three ways: /old has nothing new, /new has 99.0.0, /down is GitHub having a bad day.
       const rel = req.method === "GET" && req.url.match(/^\/(old|new|down)\/repos\/DaveEuson\/netpals\/releases\/latest$/);
       if (rel) {
@@ -154,6 +158,14 @@ function start(port = 0) {
       }
       if (req.method === "POST" && req.url === "/api/pull") return pull(String(b.model || b.name), res, pulled);
       // Ollama's own timings, for the welcome screen's speed check: fake:slow takes 30 s a reply, everything else 2 s.
+      if (req.method === "POST" && req.url === "/api/generate" && b.prompt === undefined) {
+        server.loads.push(b.model);
+        if (/missing/.test(b.model)) return send(404, { error: `model '${b.model}' not found` });
+        if (/noload/.test(b.model)) return send(500, { error: "llama runner process has terminated: exit status 2" });
+        if (/slowload|hangload/.test(b.model)) await wait(/hang/.test(b.model) ? 60_000 : 1500);
+        loaded.add(b.model.includes(":") ? b.model : `${b.model}:latest`);
+        return send(200, { model: b.model, response: "", done: true, done_reason: "load" });
+      }
       if (req.method === "POST" && req.url === "/api/generate") {
         server.lastGenerate = b;
         const half = (b.model === "fake:slow" ? 15 : 1) * 1e9;
@@ -170,6 +182,7 @@ function start(port = 0) {
       send(200, { choices: [{ message: { role: "assistant", content: answer(b.model, system, user) } }] });
     });
   });
+  server.loads = [];
   return new Promise((resolve) => server.listen(port, "127.0.0.1", () => resolve(server)));
 }
 

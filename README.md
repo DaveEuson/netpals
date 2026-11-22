@@ -227,6 +227,9 @@ conversations stay. With several screen names, Windows resets the one picked at 
 
 - **"Nothing answered at localhost:11434"**: Ollama isn't running. Start it, or pick another brain in Setup.
 - **Buddies are slow or say odd things**: try a different model in Setup (see the table above), or OpenRouter.
+- **"Ollama couldn't load" a model**: Netpals waits up to five minutes for Ollama to load a model before a buddy
+  answers. It fails when another program, such as a game or an image generator, is using the graphics card, or when
+  that model doesn't run well in your Ollama. Try again once the card is free, update Ollama, or pick another model.
 - **Netpals hit a snag**: the box has a **Copy details** button; the same details are in `netpals.log` in your data
   folder.
 - **Starting Netpals again** brings the open one forward; only one runs at a time.

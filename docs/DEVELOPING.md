@@ -28,7 +28,7 @@ npm run reset-password
 | `main/` | One file per part of the main process, each registering its own IPC channels: `windows`, `menus`, `pictures`, `account`, `buddies`, `settings`, `storage`, `updates` |
 | `lib/scheduler.js` | When buddies talk, presence drift, replies, check-ins, Buddy Chat turns, away |
 | `lib/prompts.js` | Every prompt a buddy sees, and the cleanup that holds their answers to the house rules |
-| `lib/llm.js` | One `chat()` over Ollama, LM Studio, OpenRouter, Claude (Anthropic's SDK; `NETPALS_ANTHROPIC` points it elsewhere), ChatGPT and Gemini (`NETPALS_OPENAI` and `NETPALS_GEMINI` point them elsewhere); model detection; whether a model can see; downloading a model into Ollama, and the models Setup suggests |
+| `lib/llm.js` | One `chat()` over Ollama, LM Studio, OpenRouter, Claude (Anthropic's SDK; `NETPALS_ANTHROPIC` points it elsewhere), ChatGPT and Gemini (`NETPALS_OPENAI` and `NETPALS_GEMINI` point them elsewhere); loading an Ollama model before it answers (up to 5 minutes for the load, then 90 s for the answer; `NETPALS_LOAD_MS` and `NETPALS_ANSWER_MS` change them); model detection; whether a model can see; downloading a model into Ollama, and the models Setup suggests |
 | `lib/db.js` | Settings, buddies and messages, the starting buddies, and migrations for older databases; `open()` switches screen names before sign-on |
 | `lib/accounts.js` | More than one screen name: a folder each (the first in the data folder, the rest in `screen-names/N`), `screen-names.json` listing them and the last one on |
 | `lib/machine.js` | Is this computer up to running buddies: memory, graphics, one timed reply (Ollama's own timings), and what the setup wizard says |
@@ -54,13 +54,14 @@ or open other windows (`main/windows.js`), and `settings:set` ignores the settin
 npm test
 ```
 
-The license, calendar, weather, Fieldy, Claude, OpenRouter, ChatGPT and Gemini, machine, GitHub, graphics card and scheduler checks, then a window test for each part of the app
+The license, calendar, weather, Fieldy, Claude, OpenRouter, model loading, ChatGPT and Gemini, machine, GitHub, graphics card and scheduler checks, then a window test for each part of the app
 (setup and sign-on, the setup wizard, several screen names, Connecting, Plus, the Buddy List, Away, going away while the graphics card is busy, closing the Buddy List, IMs, pictures, Buddy Chat, Setup, getting a model, Your
 day, the Claude brain, the ChatGPT and Gemini brains, window polish, one copy at a time, security, new versions and Report a problem).
 Each runs the real `main.js` under Electron in a throwaway data folder, with windows off-screen, against
 `tests/fake-model.js`: an OpenAI-compatible stand-in that answers in milliseconds and misbehaves on request
 (`fake:error`, `fake:slow`, `fake:empty`, `fake:huge`, `fake:junk`). It downloads too, the way Ollama's `/api/pull`
-does, and the tests point `NETPALS_OLLAMA` at it. It's a calendar as well, at `/calendar.ics`, with an appointment
+does, and loads models the way Ollama's `/api/ps` and `/api/generate` do (slowly, or failing, on request), and the
+tests point `NETPALS_OLLAMA` at it. It's a calendar as well, at `/calendar.ics`, with an appointment
 on right now, and stands in for Open-Meteo, Fieldy's API, Anthropic's Messages API, OpenAI's and Gemini's APIs and
 GitHub's latest release (the tests point `NETPALS_WEATHER`, `NETPALS_FIELDY`, `NETPALS_ANTHROPIC`, `NETPALS_OPENAI`,
 `NETPALS_GEMINI` and `NETPALS_UPDATES` at it, so no test asks the real GitHub or spends a cent). `NETPALS_GPU` is 0 for every test, so none reads this computer's graphics card. About four minutes;

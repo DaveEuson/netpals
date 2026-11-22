@@ -20,6 +20,7 @@ const TESTS = [
   { name: "claude", node: "unit/claude.js" },
   { name: "cloud", node: "unit/cloud.js" },
   { name: "openrouter", node: "unit/openrouter.js" },
+  { name: "load", node: "unit/load.js" },
   { name: "machine", node: "unit/machine.js" },
   { name: "github", node: "unit/github.js" },
   { name: "gpu", node: "unit/gpu.js" },
